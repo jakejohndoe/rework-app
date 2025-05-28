@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// Core ReWork Models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  plan          Plan      @default(FREE)
+
+  // Usage tracking
+  resumesCreated Int      @default(0)
+  lastActiveAt   DateTime @default(now())
+
+  // Relations
+  accounts     Account[]
+  sessions     Session[]
+  resumes      Resume[]
+  applications JobApplication[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Resume {
+  id     String @id @default(cuid())
+  userId String
+  title  String
+
+  // Content storage
+  originalContent Json? // Parsed text from uploaded file
+  currentContent  Json // Current editable content
+
+  // File references (AWS S3)
+  originalFileUrl String? // S3 URL of uploaded PDF/DOCX
+  templateId      String? // Which template they're using
+
+  // Metadata
+  isActive      Boolean   @default(true)
+  wordCount     Int?
+  lastOptimized DateTime?
+
+  // Relations
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+  versions     ResumeVersion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("resumes")
+}
+
+model ResumeVersion {
+  id            String  @id @default(cuid())
+  resumeId      String
+  versionNumber Int
+  content       Json
+  changes       String? // Description of what changed
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([resumeId, versionNumber])
+  @@map("resume_versions")
+}
+
+model JobApplication {
+  id       String @id @default(cuid())
+  userId   String
+  resumeId String
+
+  // Job details
+  jobTitle       String
+  company        String
+  jobDescription String  @db.Text
+  jobUrl         String?
+
+  // AI Analysis
+  optimizedContent Json? // AI-optimized resume content
+  matchScore       Float? // 0-100 compatibility score
+  keywords         String[] // Extracted keywords
+  suggestions      Json? // AI improvement suggestions
+
+  // Application tracking
+  status     ApplicationStatus @default(DRAFT)
+  appliedAt  DateTime?
+  responseAt DateTime?
+
+  // File output (AWS S3)
+  generatedPdfUrl String? // S3 URL of final PDF
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("job_applications")
+}
+
+// Enums
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum ApplicationStatus {
+  DRAFT
+  OPTIMIZED
+  APPLIED
+  INTERVIEW
+  REJECTED
+  OFFER
+}
