@@ -113,7 +113,8 @@ export default function ResumePreview({
   // Structured preview (original functionality)
   const StructuredPreview = () => {
     const extractName = (contactInfo?: string) => {
-      if (!contactInfo) return 'Resume Preview'
+      // Safety check - handle bad data
+      if (!contactInfo || typeof contactInfo !== 'string') return resumeData?.title || 'Resume Preview'
       const lines = contactInfo.split('\n').filter(line => line.trim())
       const nameLine = lines.find(line => 
         !line.includes('@') && 
@@ -143,7 +144,7 @@ export default function ResumePreview({
             <h1 className="font-bold text-gray-900 truncate text-[6px]">
               {name.toUpperCase()}
             </h1>
-            {resumeData?.contactInfo && (
+            {resumeData?.contactInfo && typeof resumeData.contactInfo === 'string' && (
               <div className="text-gray-600 text-[5px]">
                 {truncateText(resumeData.contactInfo.split('\n').slice(1).join(' '), 40)}
               </div>
