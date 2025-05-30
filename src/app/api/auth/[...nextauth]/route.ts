@@ -1,7 +1,5 @@
-import NextAuth from "next-auth"
-import type { NextAuthOptions } from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import EmailProvider from "next-auth/providers/email"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 
@@ -12,48 +10,31 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    // EmailProvider({
-    //   server: {
-    //     host: process.env.EMAIL_SERVER_HOST,
-    //     port: process.env.EMAIL_SERVER_PORT,
-    //     auth: {
-    //       user: process.env.EMAIL_SERVER_USER,
-    //       pass: process.env.EMAIL_SERVER_PASSWORD,
-    //     },
-    //   },
-    //   from: process.env.EMAIL_FROM,
-    // }),
   ],
+  pages: {
+    signIn: '/auth/signin',
+  },
   callbacks: {
-    async session({ session, user }) {
-      if (session?.user) {
-        // Add user ID and plan to session
+    session: async ({ session, user }) => {
+      if (session?.user && user) {
         session.user.id = user.id
-        
-        // Get user plan from database
+        // Add plan from database user
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { plan: true, resumesCreated: true }
+          select: { plan: true }
         })
-        
-        session.user.plan = dbUser?.plan || 'FREE'
-        session.user.resumesCreated = dbUser?.resumesCreated || 0
+        if (dbUser) {
+          session.user.plan = dbUser.plan
+        }
       }
       return session
     },
-    async signIn({ user, account, profile }) {
-      // Allow sign in - NextAuth handles user creation
-      return true
-    },
   },
   session: {
-    strategy: 'database',
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
+    strategy: "database",
   },
 }
 
 const handler = NextAuth(authOptions)
+
 export { handler as GET, handler as POST }

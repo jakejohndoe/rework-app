@@ -1,48 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
-// GET single resume
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id: resumeId } = await params
 
-    // Get resume by ID (only if it belongs to the user)
+    // Get user first
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Get resume with S3 fields
     const resume = await prisma.resume.findFirst({
       where: {
         id: resumeId,
-        userId: session.user.id,
+        userId: user.id,
         isActive: true
-      },
-      select: {
-        id: true,
-        title: true,
-        originalContent: true,
-        currentContent: true,
-        wordCount: true,
-        lastOptimized: true,
-        createdAt: true,
-        updatedAt: true
       }
     })
 
     if (!resume) {
-      return NextResponse.json({ 
-        error: 'Resume not found or access denied' 
-      }, { status: 404 })
+      return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -58,85 +50,44 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PATCH update resume
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id: resumeId } = await params
     const body = await request.json()
-    const { title, content } = body
 
-    // Validate input
-    if (!title && !content) {
-      return NextResponse.json({ 
-        error: 'Title or content is required' 
-      }, { status: 400 })
-    }
-
-    // Check if resume exists and belongs to user
-    const existingResume = await prisma.resume.findFirst({
-      where: {
-        id: resumeId,
-        userId: session.user.id,
-        isActive: true
-      }
+    // Get user first
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
     })
 
-    if (!existingResume) {
-      return NextResponse.json({ 
-        error: 'Resume not found or access denied' 
-      }, { status: 404 })
-    }
-
-    // Prepare update data
-    const updateData: any = {
-      updatedAt: new Date()
-    }
-
-    if (title) {
-      updateData.title = title
-    }
-
-    if (content) {
-      updateData.currentContent = content
-      
-      // Update word count if content changed
-      if (content.sections) {
-        const allText = Object.values(content.sections).join(' ')
-        updateData.wordCount = allText.split(/\s+/).filter(word => word.trim().length > 0).length
-      }
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Update resume
     const updatedResume = await prisma.resume.update({
-      where: { id: resumeId },
-      data: updateData,
-      select: {
-        id: true,
-        title: true,
-        currentContent: true,
-        wordCount: true,
-        updatedAt: true
+      where: {
+        id: resumeId,
+        userId: user.id
+      },
+      data: {
+        title: body.title,
+        currentContent: body.content,
+        updatedAt: new Date()
       }
     })
 
-    // Update user's last active time
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { lastActiveAt: new Date() }
-    })
-
-    console.log(`✅ Resume updated: ${updatedResume.title}`)
-
     return NextResponse.json({
       success: true,
-      resume: updatedResume,
-      message: 'Resume updated successfully'
+      resume: updatedResume
     })
 
   } catch (error) {
@@ -147,42 +98,39 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE resume (soft delete)
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+// ADD THIS DELETE FUNCTION
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id: resumeId } = await params
 
-    // Check if resume exists and belongs to user
-    const existingResume = await prisma.resume.findFirst({
-      where: {
-        id: resumeId,
-        userId: session.user.id,
-        isActive: true
-      }
+    // Get user first
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
     })
 
-    if (!existingResume) {
-      return NextResponse.json({ 
-        error: 'Resume not found or access denied' 
-      }, { status: 404 })
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Soft delete (set isActive to false)
-    await prisma.resume.update({
-      where: { id: resumeId },
-      data: { 
+    // Soft delete - mark as inactive instead of hard delete
+    const deletedResume = await prisma.resume.update({
+      where: {
+        id: resumeId,
+        userId: user.id
+      },
+      data: {
         isActive: false,
         updatedAt: new Date()
       }
     })
-
-    console.log(`🗑️ Resume deleted: ${existingResume.title}`)
 
     return NextResponse.json({
       success: true,

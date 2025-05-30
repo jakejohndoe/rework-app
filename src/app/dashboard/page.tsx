@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import ResumeUploader from "@/components/resume-uploader"
+import { ResumePreviewThumbnail } from "@/components/resume-preview"
 import { 
   FileText, 
   Plus, 
@@ -68,17 +69,12 @@ export default function DashboardPage() {
     redirect("/auth/signin")
   }
 
-  const handleUploadComplete = (file: File, resumeId: string) => {
-    console.log('Upload complete:', { file: file.name, resumeId })
+  const handleUploadComplete = (resumes: any[]) => {
+    console.log('Upload complete:', resumes)
     setIsUploadOpen(false)
     // Refresh the resume list
     fetchResumes()
     // Could show success toast here
-  }
-
-  const handleUploadError = (error: string) => {
-    console.error('Upload error:', error)
-    // Could show error toast here
   }
 
   const handleDeleteResume = async (resumeId: string, resumeTitle: string) => {
@@ -112,7 +108,30 @@ export default function DashboardPage() {
     }
   }
 
-  // Mock data for demo - will be replaced with real data later
+  // Helper function to extract resume data for preview
+  const getResumePreviewData = (resume: any) => {
+    // Handle both current and original content structure
+    const sections = resume.currentContent?.sections || resume.originalContent?.sections || {}
+    
+    return {
+      title: resume.title,
+      contactInfo: sections.contact || sections.contactInfo,
+      summary: sections.summary,
+      experience: sections.experience,
+      education: sections.education,
+      skills: sections.skills
+    }
+  }
+
+  // Helper function to get PDF URL for actual document preview
+  const getPdfUrl = (resume: any): string | undefined => {
+    // Check if resume has S3 key (new S3-uploaded resumes)
+    if (resume.s3Key) {
+      return `/api/resumes/${resume.id}/url`
+    }
+    return undefined
+  }
+
   const mockResumes = resumes
 
   const isPremium = session?.user?.plan === "PREMIUM"
@@ -306,32 +325,42 @@ export default function DashboardPage() {
                     <div className="space-y-3">
                       {mockResumes.map((resume) => (
                         <div key={resume.id} className="p-4 border border-white/10 rounded-lg hover:border-primary-400/30 transition-all duration-200 group">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-primary-400/20 rounded-lg group-hover:bg-primary-400/30 transition-colors">
-                                <FileText className="w-4 h-4 text-primary-400" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-white">{resume.title}</h4>
-                                <div className="flex items-center space-x-4 text-sm text-slate-400">
-                                  <span>Modified {resume.lastModified}</span>
-                                  <span>•</span>
-                                  <span>{resume.applications} applications</span>
-                                  {resume.wordCount && (
-                                    <>
-                                      <span>•</span>
-                                      <span>{resume.wordCount} words</span>
-                                    </>
-                                  )}
-                                  <Badge 
-                                    variant="secondary" 
-                                    className={resume.status === 'optimized' ? 'bg-green-400/20 text-green-300' : 'bg-yellow-400/20 text-yellow-300'}
-                                  >
-                                    {resume.status}
-                                  </Badge>
-                                </div>
-                              </div>
+                          <div className="flex items-center gap-4">
+                            {/* Resume Preview Thumbnail */}
+                            <div className="flex-shrink-0">
+                              <ResumePreviewThumbnail 
+                                pdfUrl={getPdfUrl(resume) || undefined}
+                                resumeData={getResumePreviewData(resume)}
+                                className="hover:scale-105 transition-transform duration-200"
+                              />
                             </div>
+                            
+                            {/* Resume Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <FileText className="w-4 h-4 text-cyan-400" />
+                                <h4 className="font-medium text-white truncate">{resume.title}</h4>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-slate-400 mb-2">
+                                <span>Modified {resume.lastModified}</span>
+                                <span>•</span>
+                                <span>{resume.applications || 0} applications</span>
+                                {resume.wordCount && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{resume.wordCount} words</span>
+                                  </>
+                                )}
+                              </div>
+                              <Badge 
+                                variant="secondary" 
+                                className={resume.status === 'optimized' ? 'bg-green-400/20 text-green-300' : 'bg-yellow-400/20 text-yellow-300'}
+                              >
+                                {resume.status || 'draft'}
+                              </Badge>
+                            </div>
+                            
+                            {/* Action Buttons */}
                             <div className="flex items-center space-x-2">
                               <Link href={`/dashboard/resume/${resume.id}`}>
                                 <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
@@ -490,8 +519,7 @@ export default function DashboardPage() {
                   
                   <ResumeUploader
                     onUploadComplete={handleUploadComplete}
-                    onError={handleUploadError}
-                    maxFileSize={10}
+                    maxFiles={5}
                   />
                 </div>
               </div>

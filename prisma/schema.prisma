@@ -82,11 +82,18 @@ model Resume {
 
   // Content storage
   originalContent Json? // Parsed text from uploaded file
-  currentContent  Json // Current editable content
+  currentContent  Json  // Current editable content
 
   // File references (AWS S3)
-  originalFileUrl String? // S3 URL of uploaded PDF/DOCX
-  templateId      String? // Which template they're using
+  originalFileUrl  String? // Legacy field - keep for backward compatibility
+  templateId       String? // Which template they're using
+  
+  // S3 FIELDS
+  s3Key            String? // S3 object key (e.g., "users/123/resumes/filename.pdf")
+  s3Bucket         String? // S3 bucket name
+  originalFileName String? // Original uploaded filename
+  fileSize         Int?    // File size in bytes
+  contentType      String? // MIME type (application/pdf, etc.)
 
   // Metadata
   isActive      Boolean   @default(true)
@@ -131,10 +138,10 @@ model JobApplication {
   jobUrl         String?
 
   // AI Analysis
-  optimizedContent Json? // AI-optimized resume content
-  matchScore       Float? // 0-100 compatibility score
-  keywords         String[] // Extracted keywords
-  suggestions      Json? // AI improvement suggestions
+  optimizedContent Json?     // AI-optimized resume content
+  matchScore       Float?    // 0-100 compatibility score
+  keywords         String[]  // Extracted keywords
+  suggestions      Json?     // AI improvement suggestions
 
   // Application tracking
   status     ApplicationStatus @default(DRAFT)

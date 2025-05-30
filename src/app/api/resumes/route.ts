@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's resumes
+    // Get user's resumes with S3 fields
     const resumes = await prisma.resume.findMany({
       where: {
         userId: session.user.id,
@@ -24,12 +24,14 @@ export async function GET(request: NextRequest) {
         lastOptimized: true,
         createdAt: true,
         updatedAt: true,
-        // Count related job applications
-        applications: {
-          select: {
-            id: true
-          }
-        }
+        // S3 FIELDS for PDF preview
+        s3Key: true,
+        s3Bucket: true,
+        originalFileName: true,
+        fileSize: true,
+        contentType: true,
+        originalContent: true,
+        currentContent: true,
       },
       orderBy: {
         updatedAt: 'desc'
@@ -44,9 +46,17 @@ export async function GET(request: NextRequest) {
       lastModified: getRelativeTime(resume.updatedAt),
       lastOptimized: resume.lastOptimized,
       status: resume.lastOptimized ? 'optimized' : 'draft',
-      applications: resume.applications.length,
+      applications: 0, // Simplified for now
       createdAt: resume.createdAt,
-      updatedAt: resume.updatedAt
+      updatedAt: resume.updatedAt,
+      // Include S3 fields for PDF preview
+      s3Key: resume.s3Key,
+      s3Bucket: resume.s3Bucket,
+      originalFileName: resume.originalFileName,
+      fileSize: resume.fileSize,
+      contentType: resume.contentType,
+      originalContent: resume.originalContent,
+      currentContent: resume.currentContent,
     }))
 
     return NextResponse.json({

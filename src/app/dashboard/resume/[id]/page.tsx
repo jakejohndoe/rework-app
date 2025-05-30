@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { ResumePreviewSidebar } from "@/components/resume-preview"
 import Link from "next/link"
 import { 
   ArrowLeft, 
@@ -23,7 +24,8 @@ import {
   GraduationCap,
   Zap,
   Clock,
-  Download
+  Download,
+  Sparkles
 } from "lucide-react"
 
 interface ResumeData {
@@ -32,6 +34,8 @@ interface ResumeData {
   wordCount: number
   createdAt: string
   updatedAt: string
+  s3Key?: string        // ADD THIS
+  s3Bucket?: string     // ADD THIS
   originalContent: {
     rawText: string
     sections: {
@@ -151,11 +155,67 @@ export default function ResumeEditorPage() {
     setHasChanges(true)
   }
 
+  // Helper function to get preview data from current edited state
+  const getPreviewData = () => {
+    return {
+      title: editedTitle,
+      contactInfo: editedSections.contact,
+      summary: editedSections.summary,
+      experience: editedSections.experience,
+      education: editedSections.education,
+      skills: editedSections.skills
+    }
+  }
+
+// Helper function to get PDF URL for actual document preview
+const getPdfUrl = (): string | undefined => {
+  // Return the API endpoint that generates signed URLs
+  if (resume?.id) {
+    return `/api/resumes/${resume.id}/url`
+  }
+  return undefined
+}
+
   useEffect(() => {
     if (status === "authenticated" && resumeId) {
       fetchResume()
     }
   }, [status, resumeId])
+
+  // DEBUG: Add debugging for PDF URL functionality
+  useEffect(() => {
+    const debugPdfUrl = async () => {
+      if (resume?.id) {
+        console.log('🐛 Debugging PDF URL...')
+        console.log('Resume ID:', resume.id)
+        console.log('S3 Key:', resume.s3Key)
+        console.log('S3 Bucket:', resume.s3Bucket)
+        console.log('getPdfUrl() returns:', getPdfUrl())
+        
+        try {
+          const response = await fetch(`/api/resumes/${resume.id}/url`)
+          console.log('📄 PDF URL API Response status:', response.status)
+          
+          const data = await response.json()
+          console.log('📄 PDF URL API Response data:', data)
+          
+          if (data.success) {
+            console.log('✅ Signed URL generated successfully')
+            console.log('🔗 URL length:', data.url?.length || 0)
+            console.log('🔗 URL starts with:', data.url?.substring(0, 50) + '...')
+          } else {
+            console.log('❌ PDF URL API failed:', data)
+          }
+        } catch (error) {
+          console.log('💥 PDF URL fetch error:', error)
+        }
+      }
+    }
+    
+    if (resume) {
+      debugPdfUrl()
+    }
+  }, [resume])
 
   // Loading state
   if (status === "loading" || isLoading) {
@@ -469,6 +529,12 @@ export default function ResumeEditorPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Resume Preview - NEW! */}
+              <ResumePreviewSidebar 
+                pdfUrl={getPdfUrl() || undefined}
+                resumeData={getPreviewData()}
+              />
+
               {/* File Info */}
               <Card className="glass-card border-white/10">
                 <CardHeader>
@@ -505,7 +571,7 @@ export default function ResumeEditorPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button className="w-full btn-gradient" disabled>
-                    <Zap className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-4 h-4 mr-2" />
                     Optimize with AI
                     <Badge variant="secondary" className="ml-2 bg-yellow-400/20 text-yellow-300 text-xs">
                       Coming Soon

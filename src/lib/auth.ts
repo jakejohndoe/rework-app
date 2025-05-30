@@ -1,46 +1,36 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { prisma } from "@/lib/prisma"
+import { NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import { prisma } from "./prisma"
 
-export async function getCurrentUser() {
-  const session = await getServerSession(authOptions)
-  return session?.user
-}
-
-export async function requireAuth() {
-  const user = await getCurrentUser()
-  if (!user) {
-    throw new Error('Authentication required')
-  }
-  return user
-}
-
-export async function getUserPlan(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true, resumesCreated: true }
-  })
-  return user
-}
-
-export async function checkPlanLimits(userId: string) {
-  const user = await getUserPlan(userId)
-  
-  if (!user) return { canCreate: false, reason: 'User not found' }
-  
-  // Free plan limits
-  if (user.plan === 'FREE') {
-    const resumeCount = await prisma.resume.count({
-      where: { userId, isActive: true }
-    })
-    
-    if (resumeCount >= 3) {
-      return { 
-        canCreate: false, 
-        reason: 'Free plan limited to 3 active resumes. Upgrade to create more.' 
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  pages: {
+    signIn: '/auth/signin',
+  },
+  callbacks: {
+    session: async ({ session, user }) => {
+      if (session?.user && user) {
+        session.user.id = user.id
+        // Add plan from database user
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { plan: true }
+        })
+        if (dbUser) {
+          session.user.plan = dbUser.plan
+        }
       }
-    }
-  }
-  
-  return { canCreate: true }
+      return session
+    },
+  },
+  session: {
+    strategy: "database",
+  },
 }
