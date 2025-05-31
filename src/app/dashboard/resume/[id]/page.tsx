@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { ResumePreviewSidebar } from "@/components/resume-preview"
 import Link from "next/link"
 import { 
   ArrowLeft, 
@@ -25,8 +24,70 @@ import {
   Zap,
   Clock,
   Download,
-  Sparkles
+  ArrowRight,
+  CheckCircle2
 } from "lucide-react"
+
+// Simple Resume Preview Component
+function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, className?: string }) {
+  const extractName = (contactInfo?: string) => {
+    if (!contactInfo || typeof contactInfo !== 'string') return resumeData?.title || 'Resume Preview'
+    const lines = contactInfo.split('\n').filter(line => line.trim())
+    const nameLine = lines.find(line => 
+      !line.includes('@') && 
+      !line.match(/\d{3}[-.]?\d{3}[-.]?\d{4}/) &&
+      line.length > 2
+    )
+    return nameLine || resumeData?.title || 'Resume Preview'
+  }
+
+  const truncateText = (text?: string, maxLength = 100) => {
+    if (!text) return ''
+    const cleaned = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    return cleaned.length > maxLength ? cleaned.substring(0, maxLength) + '...' : cleaned
+  }
+
+  const name = extractName(resumeData?.contactInfo || resumeData?.contact)
+
+  return (
+    <Card className={`glass-card border-white/10 ${className}`}>
+      <CardHeader>
+        <CardTitle className="text-white text-lg flex items-center gap-2">
+          <FileText className="w-4 h-4 text-primary-400" />
+          Resume Preview
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="w-48 h-64 bg-white rounded-sm shadow-lg border border-gray-200 overflow-hidden relative transition-all duration-300 transform-gpu hover:shadow-xl hover:scale-[1.02] mx-auto">
+          <div className="text-[8px] p-2 space-y-0.5 h-full overflow-hidden">
+            <div className="border-b border-gray-200 pb-1">
+              <h1 className="font-bold text-gray-900 truncate text-[6px]">
+                {name.toUpperCase()}
+              </h1>
+              {(resumeData?.contactInfo || resumeData?.contact) && typeof (resumeData?.contactInfo || resumeData?.contact) === 'string' && (
+                <div className="text-gray-600 text-[5px]">
+                  {truncateText((resumeData?.contactInfo || resumeData?.contact).split('\n').slice(1).join(' '), 40)}
+                </div>
+              )}
+            </div>
+            {(resumeData?.summary) && (
+              <div>
+                <h2 className="font-semibold text-gray-800 uppercase tracking-wide text-[5px]">Summary</h2>
+                <p className="text-gray-700 text-[5px]">{truncateText(resumeData.summary, 30)}</p>
+              </div>
+            )}
+            {(resumeData?.experience) && (
+              <div>
+                <h2 className="font-semibold text-gray-800 uppercase tracking-wide text-[5px]">Experience</h2>
+                <div className="text-gray-700 text-[5px]">{truncateText(resumeData.experience, 40)}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 interface ResumeData {
   id: string
@@ -34,8 +95,8 @@ interface ResumeData {
   wordCount: number
   createdAt: string
   updatedAt: string
-  s3Key?: string        // ADD THIS
-  s3Bucket?: string     // ADD THIS
+  s3Key?: string        
+  s3Bucket?: string     
   originalContent: {
     rawText: string
     sections: {
@@ -132,11 +193,9 @@ export default function ResumeEditorPage() {
       if (data.success) {
         setResume(prev => prev ? { ...prev, title: editedTitle, currentContent: updatedContent } : null)
         setHasChanges(false)
-        // Could show success toast here
         console.log('✅ Resume saved successfully')
       } else {
         console.error('Failed to save resume:', data.error)
-        // Could show error toast here
       }
     } catch (error) {
       console.error('Error saving resume:', error)
@@ -155,11 +214,29 @@ export default function ResumeEditorPage() {
     setHasChanges(true)
   }
 
-  // Helper function to get preview data from current edited state
+  // Check if resume is complete enough for next step
+  const isResumeComplete = () => {
+    const requiredSections = ['contact', 'summary', 'experience']
+    return requiredSections.every(section => editedSections[section as keyof typeof editedSections]?.trim().length > 20)
+  }
+
+  // Handle next step
+  const handleNext = async () => {
+    // Auto-save if there are changes
+    if (hasChanges) {
+      await handleSave()
+    }
+    
+    // Navigate to job description page
+    router.push(`/dashboard/resume/${resumeId}/job-description`)
+  }
+
+  // Helper function to get preview data
   const getPreviewData = () => {
     return {
       title: editedTitle,
       contactInfo: editedSections.contact,
+      contact: editedSections.contact,
       summary: editedSections.summary,
       experience: editedSections.experience,
       education: editedSections.education,
@@ -167,55 +244,11 @@ export default function ResumeEditorPage() {
     }
   }
 
-// Helper function to get PDF URL for actual document preview
-const getPdfUrl = (): string | undefined => {
-  // Return the API endpoint that generates signed URLs
-  if (resume?.id) {
-    return `/api/resumes/${resume.id}/url`
-  }
-  return undefined
-}
-
   useEffect(() => {
     if (status === "authenticated" && resumeId) {
       fetchResume()
     }
   }, [status, resumeId])
-
-  // DEBUG: Add debugging for PDF URL functionality
-  useEffect(() => {
-    const debugPdfUrl = async () => {
-      if (resume?.id) {
-        console.log('🐛 Debugging PDF URL...')
-        console.log('Resume ID:', resume.id)
-        console.log('S3 Key:', resume.s3Key)
-        console.log('S3 Bucket:', resume.s3Bucket)
-        console.log('getPdfUrl() returns:', getPdfUrl())
-        
-        try {
-          const response = await fetch(`/api/resumes/${resume.id}/url`)
-          console.log('📄 PDF URL API Response status:', response.status)
-          
-          const data = await response.json()
-          console.log('📄 PDF URL API Response data:', data)
-          
-          if (data.success) {
-            console.log('✅ Signed URL generated successfully')
-            console.log('🔗 URL length:', data.url?.length || 0)
-            console.log('🔗 URL starts with:', data.url?.substring(0, 50) + '...')
-          } else {
-            console.log('❌ PDF URL API failed:', data)
-          }
-        } catch (error) {
-          console.log('💥 PDF URL fetch error:', error)
-        }
-      }
-    }
-    
-    if (resume) {
-      debugPdfUrl()
-    }
-  }, [resume])
 
   // Loading state
   if (status === "loading" || isLoading) {
@@ -271,12 +304,29 @@ const getPdfUrl = (): string | undefined => {
                   </Button>
                 </Link>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
+                
+                {/* Step Indicator */}
                 <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-primary-400" />
-                  <span className="text-white font-medium">{resume.title}</span>
-                  <Badge variant="secondary" className="bg-slate-600/50 text-slate-300">
-                    {resume.wordCount} words
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center">
+                      <span className="text-sm font-bold text-white">1</span>
+                    </div>
+                    <span className="text-white font-medium">Edit Resume</span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                      <span className="text-sm font-bold text-slate-400">2</span>
+                    </div>
+                    <span className="text-slate-400">Job Description</span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                      <span className="text-sm font-bold text-slate-400">3</span>
+                    </div>
+                    <span className="text-slate-400">AI Analysis</span>
+                  </div>
                 </div>
               </div>
               
@@ -290,18 +340,15 @@ const getPdfUrl = (): string | undefined => {
                 <Button
                   onClick={handleSave}
                   disabled={!hasChanges || isSaving}
-                  className="btn-gradient"
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
                 >
                   {isSaving ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export PDF
+                  {isSaving ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>
@@ -312,6 +359,7 @@ const getPdfUrl = (): string | undefined => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Editor */}
             <div className="lg:col-span-3 space-y-6">
+              
               {/* Resume Title */}
               <Card className="glass-card border-white/10">
                 <CardHeader>
@@ -319,13 +367,16 @@ const getPdfUrl = (): string | undefined => {
                     <Edit3 className="w-5 h-5 text-primary-400" />
                     Resume Title
                   </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Give your resume a clear, descriptive title
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Input
                     value={editedTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     className="bg-white/5 border-white/20 text-white text-lg font-medium placeholder:text-slate-400 focus:border-primary-400"
-                    placeholder="Enter resume title..."
+                    placeholder="e.g. John Smith - Software Engineer Resume"
                   />
                 </CardContent>
               </Card>
@@ -366,12 +417,13 @@ const getPdfUrl = (): string | undefined => {
                         <Label className="text-white font-medium flex items-center gap-2">
                           <User className="w-4 h-4 text-primary-400" />
                           Contact Information
+                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
                         </Label>
                         <Textarea
                           value={editedSections.contact}
                           onChange={(e) => handleSectionChange('contact', e.target.value)}
-                          placeholder="Email, phone, address, LinkedIn..."
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[80px]"
+                          placeholder="Full Name&#10;Email Address&#10;Phone Number&#10;LinkedIn Profile&#10;Location (City, State)"
+                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[100px]"
                         />
                       </div>
 
@@ -380,11 +432,12 @@ const getPdfUrl = (): string | undefined => {
                         <Label className="text-white font-medium flex items-center gap-2">
                           <FileText className="w-4 h-4 text-secondary-400" />
                           Professional Summary
+                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
                         </Label>
                         <Textarea
                           value={editedSections.summary}
                           onChange={(e) => handleSectionChange('summary', e.target.value)}
-                          placeholder="Brief professional summary or objective..."
+                          placeholder="Write a compelling 2-3 sentence summary of your professional experience, key skills, and career objectives..."
                           className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
                         />
                       </div>
@@ -394,11 +447,12 @@ const getPdfUrl = (): string | undefined => {
                         <Label className="text-white font-medium flex items-center gap-2">
                           <Briefcase className="w-4 h-4 text-green-400" />
                           Work Experience
+                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
                         </Label>
                         <Textarea
                           value={editedSections.experience}
                           onChange={(e) => handleSectionChange('experience', e.target.value)}
-                          placeholder="Job titles, companies, dates, achievements..."
+                          placeholder="Job Title - Company Name (Start Date - End Date)&#10;• Key achievement with quantifiable results&#10;• Another achievement demonstrating relevant skills&#10;• Third achievement showing impact and value&#10;&#10;Previous Job Title - Company Name (Start Date - End Date)&#10;• Achievement or responsibility&#10;• Another key accomplishment..."
                           className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[200px]"
                         />
                       </div>
@@ -412,7 +466,7 @@ const getPdfUrl = (): string | undefined => {
                         <Textarea
                           value={editedSections.education}
                           onChange={(e) => handleSectionChange('education', e.target.value)}
-                          placeholder="Degrees, schools, certifications..."
+                          placeholder="Degree Name - University/Institution (Graduation Year)&#10;• Relevant coursework, honors, or achievements&#10;• GPA (if 3.5+), Dean's List, scholarships, etc."
                           className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
                         />
                       </div>
@@ -426,7 +480,7 @@ const getPdfUrl = (): string | undefined => {
                         <Textarea
                           value={editedSections.skills}
                           onChange={(e) => handleSectionChange('skills', e.target.value)}
-                          placeholder="Technical skills, programming languages, tools..."
+                          placeholder="Technical Skills: JavaScript, Python, React, Node.js, SQL&#10;Tools & Platforms: Git, Docker, AWS, MongoDB, Jira&#10;Soft Skills: Leadership, Communication, Problem-solving, Team Collaboration"
                           className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
                         />
                       </div>
@@ -439,7 +493,7 @@ const getPdfUrl = (): string | undefined => {
                         <Textarea
                           value={editedSections.other}
                           onChange={(e) => handleSectionChange('other', e.target.value)}
-                          placeholder="Awards, projects, volunteer work, other relevant information..."
+                          placeholder="Awards, certifications, volunteer work, projects, publications, languages, or other relevant information..."
                           className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
                         />
                       </div>
@@ -525,15 +579,91 @@ const getPdfUrl = (): string | undefined => {
                   </div>
                 </div>
               </Tabs>
+
+              {/* Next Step Button */}
+              <Card className="glass-card border-white/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-white font-medium mb-1">Ready for the next step?</h3>
+                      <p className="text-slate-400 text-sm">
+                        {isResumeComplete() 
+                          ? "Your resume looks great! Let's add a job description to optimize it."
+                          : "Complete the required sections (Contact, Summary, Experience) to continue."
+                        }
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleNext}
+                      disabled={!isResumeComplete()}
+                      className="btn-gradient"
+                      size="lg"
+                    >
+                      {isResumeComplete() && <CheckCircle2 className="w-4 h-4 mr-2" />}
+                      Next: Job Description
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Resume Preview - NEW! */}
-              <ResumePreviewSidebar 
-                pdfUrl={getPdfUrl() || undefined}
+              {/* Resume Preview */}
+              <SimpleResumePreview 
                 resumeData={getPreviewData()}
+                className="sticky top-6"
               />
+
+              {/* Progress Indicator */}
+              <Card className="glass-card border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white text-lg">Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-sm">Contact Info</span>
+                    {editedSections.contact?.length > 20 ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-sm">Summary</span>
+                    {editedSections.summary.length > 20 ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-sm">Experience</span>
+                    {editedSections.experience.length > 20 ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-sm">Education</span>
+                    {editedSections.education.length > 5 ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-sm">Skills</span>
+                    {editedSections.skills.length > 5 ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* File Info */}
               <Card className="glass-card border-white/10">
@@ -554,33 +684,9 @@ const getPdfUrl = (): string | undefined => {
                     <span className="text-white">{resume.originalContent.metadata.fileType.split('/')[1].toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Uploaded:</span>
-                    <span className="text-white">{new Date(resume.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-slate-400">Last modified:</span>
                     <span className="text-white">{new Date(resume.updatedAt).toLocaleDateString()}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              <Card className="glass-card border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full btn-gradient" disabled>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Optimize with AI
-                    <Badge variant="secondary" className="ml-2 bg-yellow-400/20 text-yellow-300 text-xs">
-                      Coming Soon
-                    </Badge>
-                  </Button>
-                  <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10" disabled>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PDF
-                  </Button>
                 </CardContent>
               </Card>
             </div>
