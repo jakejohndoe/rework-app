@@ -1,3 +1,5 @@
+// Replace your current src/app/dashboard/resume/[id]/analysis/page.tsx with this:
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,45 +9,48 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
+import { toast } from "sonner"
 import Link from "next/link"
 import { 
   ArrowLeft, 
   ArrowRight,
-  CheckCircle,
   Download,
-  Sparkles,
+  CheckCircle,
   TrendingUp,
+  Sparkles,
+  FileText,
   Target,
   AlertTriangle,
-  Lightbulb,
-  FileText,
-  RefreshCw,
-  Eye,
+  Brain,
   Share,
   Mail,
-  ExternalLink,
-  Zap,
-  Award,
-  BarChart3
+  Edit,
+  RefreshCw
 } from "lucide-react"
 
 interface AnalysisResult {
   matchScore: number
   matchedKeywords: string[]
   missingKeywords: string[]
-  suggestions: {
+  suggestions: Array<{
     section: string
-    type: 'improve' | 'add' | 'remove'
+    type: 'improve' | 'add'
     current: string
     suggested: string
     impact: 'high' | 'medium' | 'low'
     reason: string
-  }[]
+  }>
   atsScore: number
   readabilityScore: number
   completenessScore: number
+  jobApplication?: {
+    id: string
+    jobTitle: string
+    company: string
+    status: string
+  }
 }
 
 export default function AnalysisPage() {
@@ -54,147 +59,138 @@ export default function AnalysisPage() {
   const router = useRouter()
   const resumeId = params.id as string
 
-  const [isAnalyzing, setIsAnalyzing] = useState(true)
-  const [analysisComplete, setAnalysisComplete] = useState(false)
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
+  // Analysis State
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
-  // Mock analysis results - replace with real AI analysis
-  const [analysisResults] = useState<AnalysisResult>({
-    matchScore: 87,
-    matchedKeywords: [
-      "JavaScript", "React", "Node.js", "AWS", "PostgreSQL", 
-      "Full-stack", "Agile", "Git", "API Development", "Problem-solving"
-    ],
-    missingKeywords: [
-      "TypeScript", "Docker", "Kubernetes", "Microservices", 
-      "CI/CD", "Test-driven development", "GraphQL"
-    ],
-    suggestions: [
-      {
-        section: "Professional Summary",
-        type: "improve",
-        current: "Experienced software engineer with 5 years of experience",
-        suggested: "Results-driven Full-stack Engineer with 5+ years developing scalable web applications using React, Node.js, and AWS",
-        impact: "high",
-        reason: "Incorporates key job requirements and quantifies experience"
-      },
-      {
-        section: "Skills",
-        type: "add",
-        current: "JavaScript, React, Node.js, PostgreSQL",
-        suggested: "JavaScript, TypeScript, React, Node.js, PostgreSQL, Docker, AWS (EC2, S3, Lambda), GraphQL",
-        impact: "high",
-        reason: "Adds missing keywords that appear in job requirements"
-      },
-      {
-        section: "Work Experience",
-        type: "improve",
-        current: "Developed web applications for users",
-        suggested: "Architected and developed scalable microservices serving 100K+ daily active users, improving system performance by 40%",
-        impact: "medium",
-        reason: "Quantifies impact and uses job-relevant terminology"
-      },
-      {
-        section: "Work Experience",
-        type: "add",
-        current: "",
-        suggested: "• Implemented CI/CD pipelines using Docker and Kubernetes, reducing deployment time by 60%",
-        impact: "medium",
-        reason: "Addresses missing DevOps keywords from job requirements"
+  const analysisSteps = [
+    "Loading resume content...",
+    "Analyzing job requirements...", 
+    "Comparing skills and experience...",
+    "Generating optimization suggestions...",
+    "Calculating compatibility scores...",
+    "Finalizing analysis..."
+  ]
+
+  // Load existing analysis or start new one
+  useEffect(() => {
+    const loadOrStartAnalysis = async () => {
+      if (!resumeId || status !== "authenticated") return
+      
+      try {
+        setIsLoading(true)
+        
+        // Check if we already have analysis results
+        // For now, we'll always run a fresh analysis
+        // You could add a check here to load existing results from the database
+        
+        await performRealAnalysis()
+        
+      } catch (error) {
+        console.error('Failed to load analysis:', error)
+        setError('Failed to start analysis')
+      } finally {
+        setIsLoading(false)
       }
-    ],
-    atsScore: 92,
-    readabilityScore: 88,
-    completenessScore: 85
-  })
+    }
 
-  const handleBack = () => {
-    router.push(`/dashboard/resume/${resumeId}/job-description`)
+    loadOrStartAnalysis()
+  }, [resumeId, status])
+
+  const performRealAnalysis = async () => {
+    setIsAnalyzing(true)
+    setError(null)
+    setCurrentStep(0)
+    
+    try {
+      console.log('🚀 Starting real AI analysis for resume:', resumeId)
+      
+      // Show progress through analysis steps with realistic timing
+      for (let i = 0; i < analysisSteps.length - 1; i++) {
+        setCurrentStep(i)
+        await new Promise(resolve => setTimeout(resolve, 800))
+      }
+      
+      // Perform actual AI analysis
+      setCurrentStep(analysisSteps.length - 1)
+      toast.loading('AI is analyzing your resume...', { id: 'analysis' })
+      
+      const response = await fetch(`/api/resumes/${resumeId}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Analysis failed')
+      }
+      
+      const data = await response.json()
+      setAnalysisResults(data.analysis)
+      
+      toast.success('✨ Analysis complete!', { id: 'analysis' })
+      console.log('✅ AI analysis complete:', data.analysis)
+      
+    } catch (error) {
+      console.error('❌ Analysis error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Analysis failed'
+      setError(errorMessage)
+      toast.error(`Analysis failed: ${errorMessage}`, { id: 'analysis' })
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const retryAnalysis = () => {
+    setAnalysisResults(null)
+    setError(null)
+    performRealAnalysis()
+  }
+
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true)
+    toast.loading('Generating optimized PDF...', { id: 'download' })
+    
+    try {
+      // Simulate PDF generation (replace with real implementation)
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // TODO: Implement real PDF generation
+      console.log('📄 PDF generation would happen here')
+      toast.success('PDF ready for download!', { id: 'download' })
+      
+    } catch (error) {
+      console.error('PDF generation error:', error)
+      toast.error('Failed to generate PDF', { id: 'download' })
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   const handleEditResume = () => {
     router.push(`/dashboard/resume/${resumeId}`)
   }
 
-  const handleEditJobDescription = () => {
+  const handleEditJob = () => {
     router.push(`/dashboard/resume/${resumeId}/job-description`)
   }
 
-  const handleDownloadPDF = async () => {
-    setIsGeneratingPDF(true)
-    // Simulate PDF generation
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    setIsGeneratingPDF(false)
-    
-    // In real implementation, this would generate and download the optimized PDF
-    console.log('📄 Downloading optimized resume PDF...')
+  const handleBack = () => {
+    router.push(`/dashboard/resume/${resumeId}/job-description`)
   }
 
-  const handleShare = () => {
-    // Share functionality
-    console.log('📤 Sharing resume analysis...')
-  }
-
-  const handleEmailResults = () => {
-    // Email results functionality  
-    console.log('📧 Emailing analysis results...')
-  }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400"
-    if (score >= 60) return "text-yellow-400"
-    return "text-red-400"
-  }
-
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return "bg-green-500"
-    if (score >= 60) return "bg-yellow-500"
-    return "bg-red-500"
-  }
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      // Simulate AI analysis process
-      const analysisSteps = [
-        "Loading resume and job description...",
-        "Analyzing keyword matches...",
-        "Generating improvement suggestions...",
-        "Calculating ATS compatibility...",
-        "Finalizing recommendations..."
-      ]
-      
-      let currentStep = 0
-      const interval = setInterval(() => {
-        currentStep++
-        if (currentStep >= analysisSteps.length) {
-          setAnalysisComplete(true)
-          setIsAnalyzing(false)
-          clearInterval(interval)
-        }
-      }, 1000)
-
-      return () => clearInterval(interval)
-    }
-  }, [status])
-
-  // Loading state during analysis
-  if (status === "loading" || isAnalyzing) {
+  // Loading state
+  if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="circuit-bg min-h-screen flex items-center justify-center">
-          <div className="text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center mx-auto">
-              <Sparkles className="w-10 h-10 text-white animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Analyzing Your Resume</h2>
-              <p className="text-slate-400">Our AI is optimizing your resume for the job description...</p>
-            </div>
-            <div className="w-64 mx-auto">
-              <Progress value={75} className="h-2" />
-              <p className="text-sm text-slate-500 mt-2">Generating improvement suggestions...</p>
-            </div>
+          <div className="text-center">
+            <div className="w-12 h-12 border-2 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400">Loading analysis...</p>
           </div>
         </div>
       </div>
@@ -239,7 +235,7 @@ export default function AnalysisPage() {
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-white" />
+                      <Brain className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-white font-medium">AI Analysis</span>
                   </div>
@@ -247,9 +243,15 @@ export default function AnalysisPage() {
               </div>
               
               <div className="flex items-center space-x-3">
-                <Badge variant="secondary" className="bg-green-500/20 text-green-300">
-                  <Award className="w-3 h-3 mr-1" />
-                  Analysis Complete
+                {analysisResults && (
+                  <Badge variant="secondary" className="bg-green-500/20 text-green-300">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Analysis Complete
+                  </Badge>
+                )}
+                <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-300">
+                  <Target className="w-3 h-3 mr-1" />
+                  Step 3 of 3
                 </Badge>
               </div>
             </div>
@@ -259,423 +261,366 @@ export default function AnalysisPage() {
         <main className="container mx-auto px-4 py-6">
           <div className="max-w-6xl mx-auto space-y-6">
             
-            {/* Results Header */}
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mx-auto">
-                <Award className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Analysis Complete!</h1>
-                <p className="text-slate-400 text-lg">
-                  Your resume has been optimized for the job description
-                </p>
-              </div>
-            </div>
-
-            {/* Overall Score */}
-            <Card className="glass-card border-white/10">
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="md:col-span-1 text-center">
-                    <div className="relative w-24 h-24 mx-auto mb-4">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">{analysisResults.matchScore}%</span>
-                      </div>
-                    </div>
-                    <h3 className="text-white font-semibold mb-1">Overall Match</h3>
-                    <p className="text-sm text-slate-400">Great match for this role!</p>
+            {/* Loading Analysis State */}
+            {isAnalyzing && (
+              <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-cyan-200 border-t-cyan-500 rounded-full animate-spin"></div>
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-semibold text-white">🤖 AI Analyzing Your Resume</h3>
+                  <p className="text-gray-300">{analysisSteps[currentStep]}</p>
+                  <div className="w-64 bg-gray-700 rounded-full h-2 mt-4">
+                    <div 
+                      className="bg-gradient-to-r from-cyan-400 to-purple-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${((currentStep + 1) / analysisSteps.length) * 100}%` }}
+                    ></div>
                   </div>
-                  
-                  <div className="md:col-span-3 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-300">ATS Compatibility</span>
-                      <span className={`font-semibold ${getScoreColor(analysisResults.atsScore)}`}>
-                        {analysisResults.atsScore}%
-                      </span>
-                    </div>
-                    <Progress value={analysisResults.atsScore} className="h-2" />
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-300">Keyword Match</span>
-                      <span className={`font-semibold ${getScoreColor(analysisResults.matchScore)}`}>
-                        {analysisResults.matchScore}%
-                      </span>
-                    </div>
-                    <Progress value={analysisResults.matchScore} className="h-2" />
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-300">Content Quality</span>
-                      <span className={`font-semibold ${getScoreColor(analysisResults.readabilityScore)}`}>
-                        {analysisResults.readabilityScore}%
-                      </span>
-                    </div>
-                    <Progress value={analysisResults.readabilityScore} className="h-2" />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Using OpenAI GPT-4o-mini for professional analysis...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && !isAnalyzing && (
+              <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-red-500" />
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-semibold text-white">Analysis Failed</h3>
+                  <p className="text-gray-300">{error}</p>
+                  <div className="flex gap-3 mt-4">
+                    <Button 
+                      onClick={retryAnalysis}
+                      className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Try Again
+                    </Button>
+                    <Button 
+                      onClick={handleEditJob}
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      Edit Job Description
+                    </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
 
-            {/* Analysis Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="glass-dark border-white/10 p-1 w-full">
-                <TabsTrigger 
-                  value="overview" 
-                  className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300 flex-1"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="keywords" 
-                  className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300 flex-1"
-                >
-                  <Target className="w-4 h-4 mr-2" />
-                  Keywords
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="suggestions" 
-                  className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300 flex-1"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Suggestions
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="optimized" 
-                  className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300 flex-1"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Optimized
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="mt-6">
-                <TabsContent value="overview" className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Strengths */}
-                    <Card className="glass-card border-white/10">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                          Strengths
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-start gap-3">
-                          <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">Strong Keyword Match</p>
-                            <p className="text-slate-400 text-xs">87% of job requirements keywords are present</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">ATS Optimized</p>
-                            <p className="text-slate-400 text-xs">Clean formatting and proper structure</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">Relevant Experience</p>
-                            <p className="text-slate-400 text-xs">Experience aligns well with job requirements</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Areas for Improvement */}
-                    <Card className="glass-card border-white/10">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center gap-2">
-                          <TrendingUp className="w-5 h-5 text-yellow-400" />
-                          Areas for Improvement
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">Missing Keywords</p>
-                            <p className="text-slate-400 text-xs">Add TypeScript, Docker, Kubernetes</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">Quantify Achievements</p>
-                            <p className="text-slate-400 text-xs">Add more metrics and numbers to impact statements</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-white text-sm font-medium">Technical Depth</p>
-                            <p className="text-slate-400 text-xs">Expand on DevOps and cloud experience</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {/* Analysis Results */}
+            {analysisResults && !isAnalyzing && (
+              <>
+                {/* Header */}
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mx-auto">
+                    <CheckCircle className="w-8 h-8 text-white" />
                   </div>
-                </TabsContent>
-
-                <TabsContent value="keywords" className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Matched Keywords */}
-                    <Card className="glass-card border-white/10">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                          Matched Keywords ({analysisResults.matchedKeywords.length})
-                        </CardTitle>
-                        <CardDescription className="text-slate-400">
-                          Keywords from the job description found in your resume
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {analysisResults.matchedKeywords.map((keyword, index) => (
-                            <Badge 
-                              key={index}
-                              variant="secondary" 
-                              className="bg-green-500/20 text-green-300 border-green-500/30"
-                            >
-                              {keyword}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Missing Keywords */}
-                    <Card className="glass-card border-white/10">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center gap-2">
-                          <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                          Missing Keywords ({analysisResults.missingKeywords.length})
-                        </CardTitle>
-                        <CardDescription className="text-slate-400">
-                          Important keywords from the job description to consider adding
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {analysisResults.missingKeywords.map((keyword, index) => (
-                            <Badge 
-                              key={index}
-                              variant="secondary" 
-                              className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-                            >
-                              {keyword}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">✨ Analysis Complete!</h1>
+                    <p className="text-slate-400 text-lg">
+                      Your resume has been optimized for{" "}
+                      {analysisResults.jobApplication && (
+                        <span className="text-cyan-300 font-medium">
+                          {analysisResults.jobApplication.jobTitle} at {analysisResults.jobApplication.company}
+                        </span>
+                      )}
+                    </p>
                   </div>
-                </TabsContent>
+                </div>
 
-                <TabsContent value="suggestions" className="space-y-6">
-                  <div className="space-y-4">
-                    {analysisResults.suggestions.map((suggestion, index) => (
-                      <Card key={index} className="glass-card border-white/10">
+                {/* Match Score and Metrics */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                      {/* Overall Match Score */}
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-24 h-24 mb-3">
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-white">{analysisResults.matchScore}%</span>
+                          </div>
+                        </div>
+                        <h3 className="text-white font-medium text-center">Overall Match</h3>
+                        <p className="text-slate-400 text-sm text-center">
+                          {analysisResults.matchScore >= 85 ? "Excellent match!" : 
+                           analysisResults.matchScore >= 70 ? "Great match for this role!" :
+                           analysisResults.matchScore >= 55 ? "Good potential with improvements" :
+                           "Needs optimization for better fit"}
+                        </p>
+                      </div>
+
+                      {/* Individual Metrics */}
+                      <div className="lg:col-span-3 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">ATS Compatibility</span>
+                          <span className="text-green-400 font-medium">{analysisResults.atsScore}%</span>
+                        </div>
+                        <Progress value={analysisResults.atsScore} className="h-2" />
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">Keyword Match</span>
+                          <span className="text-green-400 font-medium">{analysisResults.matchScore}%</span>
+                        </div>
+                        <Progress value={analysisResults.matchScore} className="h-2" />
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">Content Quality</span>
+                          <span className="text-green-400 font-medium">{analysisResults.readabilityScore}%</span>
+                        </div>
+                        <Progress value={analysisResults.readabilityScore} className="h-2" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Analysis Tabs */}
+                <Tabs defaultValue="overview" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 bg-white/5 border border-white/10">
+                    <TabsTrigger value="overview" className="data-[state=active]:bg-primary-500">
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Overview
+                    </TabsTrigger>
+                    <TabsTrigger value="keywords" className="data-[state=active]:bg-primary-500">
+                      <Target className="w-4 h-4 mr-2" />
+                      Keywords
+                    </TabsTrigger>
+                    <TabsTrigger value="suggestions" className="data-[state=active]:bg-primary-500">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Suggestions
+                    </TabsTrigger>
+                    <TabsTrigger value="optimized" className="data-[state=active]:bg-primary-500">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Optimized
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="overview" className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Strengths */}
+                      <Card className="glass-card border-white/10">
                         <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-white flex items-center gap-2">
-                              <Lightbulb className="w-4 h-4 text-yellow-400" />
-                              {suggestion.section}
-                            </CardTitle>
-                            <Badge 
-                              variant="secondary" 
-                              className={`${
-                                suggestion.impact === 'high' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
-                                suggestion.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
-                                'bg-blue-500/20 text-blue-300 border-blue-500/30'
-                              }`}
-                            >
-                              {suggestion.impact} impact
-                            </Badge>
-                          </div>
-                          <CardDescription className="text-slate-400">
-                            {suggestion.reason}
-                          </CardDescription>
+                          <CardTitle className="text-green-400 flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5" />
+                            Strengths
+                          </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          {suggestion.current && (
+                        <CardContent className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
                             <div>
-                              <h4 className="text-sm font-medium text-slate-300 mb-2">Current:</h4>
-                              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                                <p className="text-slate-300 text-sm">{suggestion.current}</p>
-                              </div>
+                              <p className="text-white font-medium">Strong Keyword Match</p>
+                              <p className="text-slate-400 text-sm">{analysisResults.matchedKeywords.length} of job requirements keywords are present</p>
                             </div>
-                          )}
-                          <div>
-                            <h4 className="text-sm font-medium text-slate-300 mb-2">
-                              {suggestion.type === 'add' ? 'Add:' : 'Suggested:'}
-                            </h4>
-                            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                              <p className="text-slate-300 text-sm">{suggestion.suggested}</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="text-white font-medium">ATS Optimized</p>
+                              <p className="text-slate-400 text-sm">Clean formatting and proper structure</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="text-white font-medium">Relevant Experience</p>
+                              <p className="text-slate-400 text-sm">Experience aligns well with job requirements</p>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
-                </TabsContent>
 
-                <TabsContent value="optimized" className="space-y-6">
-                  <Card className="glass-card border-white/10">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-cyan-400" />
-                        Optimized Resume Preview
-                      </CardTitle>
-                      <CardDescription className="text-slate-400">
-                        Preview of your resume with AI-suggested improvements applied
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-white rounded-lg p-6 text-gray-900 min-h-96">
-                        <div className="text-center mb-6">
-                          <h1 className="text-2xl font-bold">John Smith</h1>
-                          <p className="text-gray-600">Results-driven Full-stack Engineer</p>
-                          <p className="text-sm text-gray-500">john.smith@email.com • (555) 123-4567 • San Francisco, CA</p>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-semibold border-b border-gray-300 pb-1">PROFESSIONAL SUMMARY</h3>
-                            <p className="text-sm mt-2">
-                              Results-driven Full-stack Engineer with 5+ years developing scalable web applications using React, Node.js, and AWS. 
-                              Proven track record of improving system performance and leading cross-functional teams.
-                            </p>
+                      {/* Areas for Improvement */}
+                      <Card className="glass-card border-white/10">
+                        <CardHeader>
+                          <CardTitle className="text-yellow-400 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5" />
+                            Areas for Improvement
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {analysisResults.missingKeywords.length > 0 && (
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-white font-medium">Missing Keywords</p>
+                                <p className="text-slate-400 text-sm">Add {analysisResults.missingKeywords.slice(0, 3).join(', ')}</p>
+                              </div>
+                            </div>
+                          )}
+                          {analysisResults.suggestions.filter(s => s.impact === 'high').length > 0 && (
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-white font-medium">High Impact Improvements</p>
+                                <p className="text-slate-400 text-sm">{analysisResults.suggestions.filter(s => s.impact === 'high').length} suggestions to boost your match score</p>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="keywords" className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Matched Keywords */}
+                      <Card className="glass-card border-white/10">
+                        <CardHeader>
+                          <CardTitle className="text-green-400">
+                            ✅ Matched Keywords ({analysisResults.matchedKeywords.length})
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Keywords from the job description found in your resume
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {analysisResults.matchedKeywords.map((keyword, index) => (
+                              <Badge key={index} variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">
+                                {keyword}
+                              </Badge>
+                            ))}
                           </div>
-                          
-                          <div>
-                            <h3 className="font-semibold border-b border-gray-300 pb-1">TECHNICAL SKILLS</h3>
-                            <p className="text-sm mt-2">
-                              <strong>Languages:</strong> JavaScript, TypeScript, Python, SQL<br/>
-                              <strong>Frontend:</strong> React, Vue.js, HTML5, CSS3, Responsive Design<br/>
-                              <strong>Backend:</strong> Node.js, Express, GraphQL, REST APIs<br/>
-                              <strong>Cloud & DevOps:</strong> AWS (EC2, S3, Lambda), Docker, Kubernetes, CI/CD<br/>
-                              <strong>Databases:</strong> PostgreSQL, MongoDB, Redis
-                            </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Missing Keywords */}
+                      <Card className="glass-card border-white/10">
+                        <CardHeader>
+                          <CardTitle className="text-yellow-400">
+                            ⚠️ Missing Keywords ({analysisResults.missingKeywords.length})
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Important keywords to consider adding to your resume
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {analysisResults.missingKeywords.map((keyword, index) => (
+                              <Badge key={index} variant="secondary" className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                                {keyword}
+                              </Badge>
+                            ))}
                           </div>
-                          
-                          <p className="text-xs text-gray-500 italic text-center">
-                            ✨ Optimized with AI suggestions applied
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="suggestions" className="space-y-4">
+                    <div className="space-y-4">
+                      {analysisResults.suggestions.map((suggestion, index) => (
+                        <Card key={index} className="glass-card border-white/10">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-white text-lg">{suggestion.section}</CardTitle>
+                              <Badge 
+                                variant="secondary" 
+                                className={
+                                  suggestion.impact === 'high' ? 'bg-red-500/20 text-red-300' :
+                                  suggestion.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                  'bg-blue-500/20 text-blue-300'
+                                }
+                              >
+                                {suggestion.impact} impact
+                              </Badge>
+                            </div>
+                            <CardDescription className="text-slate-400">
+                              {suggestion.reason}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {suggestion.current && (
+                              <div>
+                                <p className="text-slate-300 text-sm font-medium mb-1">Current:</p>
+                                <p className="text-slate-400 text-sm bg-slate-800/50 rounded p-3 border border-slate-700">
+                                  {suggestion.current}
+                                </p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-slate-300 text-sm font-medium mb-1">Suggested:</p>
+                              <p className="text-slate-200 text-sm bg-green-900/30 rounded p-3 border border-green-700">
+                                {suggestion.suggested}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="optimized" className="space-y-4">
+                    <Card className="glass-card border-white/10">
+                      <CardHeader>
+                        <CardTitle className="text-white">📄 Optimized Resume Preview</CardTitle>
+                        <CardDescription className="text-slate-400">
+                          Preview of your resume with AI-suggested improvements
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+                          <p className="text-slate-300 text-center">
+                            📋 Optimized resume preview will be shown here
+                          </p>
+                          <p className="text-slate-500 text-sm text-center mt-2">
+                            Full implementation coming soon...
                           </p>
                         </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+
+                {/* Action Buttons */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-white font-medium mb-1">Ready to Apply?</h3>
+                        <p className="text-slate-400 text-sm">
+                          Download your optimized resume or make additional changes
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </div>
-            </Tabs>
-
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="glass-card border-white/10">
-                <CardContent className="p-6">
-                  <div className="text-center space-y-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mx-auto">
-                      <Download className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold mb-1">Download Optimized Resume</h3>
-                      <p className="text-slate-400 text-sm">Get your ATS-optimized resume as a PDF</p>
-                    </div>
-                    <Button 
-                      onClick={handleDownloadPDF}
-                      disabled={isGeneratingPDF}
-                      className="btn-gradient w-full"
-                    >
-                      {isGeneratingPDF ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                          Generating PDF...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4 mr-2" />
+                      <div className="flex gap-3">
+                        <Button 
+                          onClick={handleEditResume}
+                          variant="outline"
+                          className="border-white/20 text-white hover:bg-white/10"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Resume
+                        </Button>
+                        <Button 
+                          onClick={handleEditJob}
+                          variant="outline"
+                          className="border-white/20 text-white hover:bg-white/10"
+                        >
+                          <Target className="w-4 h-4 mr-2" />
+                          Edit Job
+                        </Button>
+                        <Button 
+                          onClick={handleDownloadPDF}
+                          disabled={isDownloading}
+                          className="btn-gradient"
+                        >
+                          {isDownloading ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                          )}
                           Download PDF
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card border-white/10">
-                <CardContent className="p-6">
-                  <div className="text-center space-y-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mx-auto">
-                      <RefreshCw className="w-6 h-6 text-white" />
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-white font-semibold mb-1">Make Changes</h3>
-                      <p className="text-slate-400 text-sm">Edit your resume or job description</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={handleEditResume}
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10 flex-1"
-                        size="sm"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Edit Resume
-                      </Button>
-                      <Button 
-                        onClick={handleEditJobDescription}
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10 flex-1"
-                        size="sm"
-                      >
-                        <Target className="w-4 h-4 mr-2" />
-                        Edit Job
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <Card className="glass-card border-white/10">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-center gap-4">
-                  <Button 
-                    onClick={handleShare}
-                    variant="ghost"
-                    className="text-slate-300 hover:text-white hover:bg-white/10"
-                    size="sm"
-                  >
-                    <Share className="w-4 h-4 mr-2" />
-                    Share Results
-                  </Button>
-                  <Button 
-                    onClick={handleEmailResults}
-                    variant="ghost"
-                    className="text-slate-300 hover:text-white hover:bg-white/10"
-                    size="sm"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email Results
-                  </Button>
-                  <Link href="/dashboard">
-                    <Button 
-                      variant="ghost"
-                      className="text-slate-300 hover:text-white hover:bg-white/10"
-                      size="sm"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Back to Dashboard
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </main>
       </div>

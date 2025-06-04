@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
+import { toast } from "sonner"
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -24,7 +25,8 @@ import {
   DollarSign,
   Clock,
   Users,
-  FileText
+  FileText,
+  Save
 } from "lucide-react"
 
 export default function JobDescriptionPage() {
@@ -44,6 +46,8 @@ export default function JobDescriptionPage() {
   const [hasJobDescription, setHasJobDescription] = useState(false)
   const [isFetchingJob, setIsFetchingJob] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [existingJobId, setExistingJobId] = useState<string | null>(null)
 
   // Check if we have enough job info for next step
   const isJobComplete = () => {
@@ -52,6 +56,45 @@ export default function JobDescriptionPage() {
            jobDescription.trim().length > 100
   }
 
+  // Load existing job description on page load
+  useEffect(() => {
+    const loadExistingJobDescription = async () => {
+      if (!resumeId) return
+      
+      try {
+        const response = await fetch(`/api/resumes/${resumeId}/job-description`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          
+          if (data.jobApplication) {
+            const job = data.jobApplication
+            setJobTitle(job.jobTitle || '')
+            setCompanyName(job.company || '')
+            setJobDescription(job.jobDescription || '')
+            setJobUrl(job.jobUrl || '')
+            setJobLocation('') // Not stored in current schema, keeping for UI
+            setJobRequirements('') // Not stored in current schema, keeping for UI  
+            setJobBenefits('') // Not stored in current schema, keeping for UI
+            setExistingJobId(job.id)
+            setHasJobDescription(job.jobDescription?.length > 100)
+            
+            console.log('✅ Loaded existing job description')
+          }
+        }
+      } catch (error) {
+        console.error('Error loading job description:', error)
+        // Silently fail - user can still enter new data
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (status === "authenticated") {
+      loadExistingJobDescription()
+    }
+  }, [resumeId, status])
+
   const handleFetchJobDescription = async () => {
     if (!jobUrl.trim()) return
 
@@ -59,11 +102,13 @@ export default function JobDescriptionPage() {
       setIsFetchingJob(true)
       
       console.log('🔗 Fetching job description from URL:', jobUrl)
+      toast.loading('Fetching job details...', { id: 'fetch-job' })
       
-      // Simulate API call
+      // TODO: Replace with real scraping API when implemented
+      // For now, keeping the mock functionality
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Mock response - replace with actual scraping logic
+      // Mock response - replace with actual scraping logic later
       const mockJobData = {
         title: "Senior Software Engineer",
         company: "TechCorp Inc.",
@@ -99,42 +144,77 @@ In this role, you will work closely with product managers, designers, and other 
       setJobBenefits(mockJobData.benefits)
       setHasJobDescription(true)
       
+      toast.success('Job details fetched successfully!', { id: 'fetch-job' })
       console.log('✅ Job description fetched successfully')
       
     } catch (error) {
       console.error('❌ Failed to fetch job description:', error)
+      toast.error('Failed to fetch job details. Please enter manually.', { id: 'fetch-job' })
     } finally {
       setIsFetchingJob(false)
     }
   }
 
-  const handleNext = async () => {
-    // Save job description data (you'll want to create an API endpoint for this)
-    const jobData = {
-      jobTitle,
-      companyName,
-      jobLocation,
-      jobUrl,
-      jobDescription,
-      jobRequirements,
-      jobBenefits
+  const handleSaveJobDescription = async () => {
+    if (!isJobComplete()) {
+      toast.error('Please fill in all required fields (Job Title, Company, and Job Description)')
+      return
     }
+
+    setIsSaving(true)
+    toast.loading('Saving job description...', { id: 'save-job' })
+
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}/job-description`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobTitle: jobTitle.trim(),
+          company: companyName.trim(),
+          jobDescription: jobDescription.trim(),
+          jobUrl: jobUrl.trim() || undefined,
+          location: jobLocation.trim() || undefined,
+          requirements: jobRequirements.trim() || undefined,
+          benefits: jobBenefits.trim() || undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save job description')
+      }
+
+      const data = await response.json()
+      setExistingJobId(data.jobApplication.id)
+      
+      toast.success('Job description saved successfully!', { id: 'save-job' })
+      console.log('✅ Job description saved:', data)
+      
+      return true
+    } catch (error) {
+      console.error('❌ Failed to save job description:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to save job description', { id: 'save-job' })
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleNext = async () => {
+    // Save job description before proceeding
+    const saved = await handleSaveJobDescription()
     
-    console.log('💾 Saving job description data:', jobData)
-    
-    // Navigate to AI analysis page
-    router.push(`/dashboard/resume/${resumeId}/analysis`)
+    if (saved) {
+      // Navigate to AI analysis page
+      router.push(`/dashboard/resume/${resumeId}/analysis`)
+    }
   }
 
   const handleBack = () => {
     router.push(`/dashboard/resume/${resumeId}`)
   }
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      setIsLoading(false)
-    }
-  }, [status])
 
   // Loading state
   if (status === "loading" || isLoading) {
@@ -143,7 +223,7 @@ In this role, you will work closely with product managers, designers, and other 
         <div className="circuit-bg min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 border-2 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-400">Loading...</p>
+            <p className="text-slate-400">Loading job description...</p>
           </div>
         </div>
       </div>
@@ -196,6 +276,12 @@ In this role, you will work closely with product managers, designers, and other 
               </div>
               
               <div className="flex items-center space-x-3">
+                {existingJobId && (
+                  <Badge variant="secondary" className="bg-green-500/20 text-green-300">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Saved
+                  </Badge>
+                )}
                 <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-300">
                   <Target className="w-3 h-3 mr-1" />
                   Step 2 of 3
@@ -227,7 +313,7 @@ In this role, you will work closely with product managers, designers, and other 
                 <CardTitle className="text-white flex items-center gap-2">
                   🔗 Quick Import from Job URL
                   <Badge variant="outline" className="border-cyan-500/30 text-cyan-300 text-xs">
-                    Recommended
+                    Coming Soon
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-slate-400">
@@ -259,7 +345,7 @@ In this role, you will work closely with product managers, designers, and other 
                 </div>
                 <p className="text-xs text-slate-500 flex items-center gap-2">
                   <Sparkles className="w-3 h-3" />
-                  AI will automatically extract job title, company, requirements, and description
+                  Currently shows demo data - real URL scraping coming soon!
                 </p>
               </CardContent>
             </Card>
@@ -352,6 +438,26 @@ In this role, you will work closely with product managers, designers, and other 
                       <li>• Don't forget company culture and benefits info</li>
                     </ul>
                   </div>
+
+                  {/* Save Progress Button */}
+                  {isJobComplete() && (
+                    <div className="border-t border-white/10 pt-4">
+                      <Button 
+                        onClick={handleSaveJobDescription}
+                        disabled={isSaving}
+                        variant="outline"
+                        className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                        size="sm"
+                      >
+                        {isSaving ? (
+                          <div className="w-3 h-3 border-2 border-cyan-300 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        ) : (
+                          <Save className="w-3 h-3 mr-2" />
+                        )}
+                        Save Progress
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -446,11 +552,15 @@ In this role, you will work closely with product managers, designers, and other 
                   </div>
                   <Button 
                     onClick={handleNext}
-                    disabled={!isJobComplete()}
+                    disabled={!isJobComplete() || isSaving}
                     className="btn-gradient"
                     size="lg"
                   >
-                    {isJobComplete() && <Sparkles className="w-4 h-4 mr-2" />}
+                    {isSaving ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    ) : (
+                      isJobComplete() && <Sparkles className="w-4 h-4 mr-2" />
+                    )}
                     Start AI Analysis
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
