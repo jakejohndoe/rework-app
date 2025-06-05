@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
+import AutoFillButton from '@/components/auto-fill-button'
 import { 
   ArrowLeft, 
   Save, 
@@ -142,6 +143,72 @@ export default function ResumeEditorPage() {
     other: ""
   })
 
+  // Convert structured auto-fill data to string-based sections format
+  const convertAutoFillDataToSections = (autoFillData: any) => {
+    const sections = {
+      contact: '',
+      summary: autoFillData.summary || '',
+      experience: '',
+      education: '',
+      skills: '',
+      other: ''
+    }
+
+    // Convert contact object to string
+    if (autoFillData.contact) {
+      const contactParts = []
+      if (autoFillData.contact.fullName) contactParts.push(autoFillData.contact.fullName)
+      if (autoFillData.contact.email) contactParts.push(autoFillData.contact.email)
+      if (autoFillData.contact.phone) contactParts.push(autoFillData.contact.phone)
+      if (autoFillData.contact.location) contactParts.push(autoFillData.contact.location)
+      if (autoFillData.contact.linkedin) contactParts.push(autoFillData.contact.linkedin)
+      if (autoFillData.contact.website) contactParts.push(autoFillData.contact.website)
+      sections.contact = contactParts.join('\n')
+    }
+
+    // Convert experience array to string
+    if (autoFillData.experience && Array.isArray(autoFillData.experience)) {
+      const experienceStrings = autoFillData.experience.map((exp: any) => {
+        const header = `${exp.title} - ${exp.company} (${exp.startDate} - ${exp.endDate})`
+        const description = exp.description ? `\n${exp.description}` : ''
+        return header + description
+      })
+      sections.experience = experienceStrings.join('\n\n')
+    }
+
+    // Convert education array to string
+    if (autoFillData.education && Array.isArray(autoFillData.education)) {
+      const educationStrings = autoFillData.education.map((edu: any) => {
+        return `${edu.degree} - ${edu.school} (${edu.year})`
+      })
+      sections.education = educationStrings.join('\n')
+    }
+
+    // Convert skills array to string
+    if (autoFillData.skills && Array.isArray(autoFillData.skills)) {
+      sections.skills = autoFillData.skills.join(', ')
+    }
+
+    return sections
+  }
+
+  // Handle auto-fill completion
+  const handleAutoFillComplete = (autoFillData: any) => {
+    console.log('🎉 Auto-fill completed with data:', autoFillData)
+    
+    // Convert the structured auto-fill data to your sections format
+    const convertedSections = convertAutoFillDataToSections(autoFillData)
+    
+    // Update the edited sections
+    setEditedSections(convertedSections)
+    
+    // Mark as having changes so user can save
+    setHasChanges(true)
+    
+    // Optionally switch to edit tab to show the populated data
+    setActiveTab('edit')
+  }
+
   // Fetch resume data
   const fetchResume = async () => {
     try {
@@ -152,7 +219,43 @@ export default function ResumeEditorPage() {
       if (data.success) {
         setResume(data.resume)
         setEditedTitle(data.resume.title)
-        setEditedSections(data.resume.currentContent.sections || data.resume.originalContent.sections)
+        
+        // Handle different data structures - be defensive about the structure
+        let sections = {
+          contact: "",
+          summary: "",
+          experience: "",
+          education: "",
+          skills: "",
+          other: ""
+        }
+        
+        // Try to get sections from currentContent.sections first (old structure)
+        if (data.resume.currentContent?.sections) {
+          sections = { ...sections, ...data.resume.currentContent.sections }
+        }
+        // Otherwise try originalContent.sections (fallback)
+        else if (data.resume.originalContent?.sections) {
+          sections = { ...sections, ...data.resume.originalContent.sections }
+        }
+        // Handle flat structure from auto-fill API
+        else if (data.resume.currentContent) {
+          const content = data.resume.currentContent
+          sections = {
+            contact: content.contact?.fullName ? 
+              [content.contact.fullName, content.contact.email, content.contact.phone, content.contact.location]
+                .filter(Boolean).join('\n') : '',
+            summary: content.summary || '',
+            experience: Array.isArray(content.experience) ? 
+              content.experience.map((exp: any) => `${exp.title} - ${exp.company} (${exp.startDate} - ${exp.endDate})\n${exp.description}`).join('\n\n') : '',
+            education: Array.isArray(content.education) ? 
+              content.education.map((edu: any) => `${edu.degree} - ${edu.school} (${edu.year})`).join('\n') : '',
+            skills: Array.isArray(content.skills) ? content.skills.join(', ') : '',
+            other: ''
+          }
+        }
+        
+        setEditedSections(sections)
       } else {
         console.error('Failed to fetch resume:', data.error)
         router.push('/dashboard')
@@ -360,16 +463,36 @@ export default function ResumeEditorPage() {
             {/* Main Editor */}
             <div className="lg:col-span-3 space-y-6">
               
-              {/* Resume Title */}
+              {/* Resume Title with Auto-Fill */}
               <Card className="glass-card border-white/10">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Edit3 className="w-5 h-5 text-primary-400" />
-                    Resume Title
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Give your resume a clear, descriptive title
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Edit3 className="w-5 h-5 text-primary-400" />
+                        Resume Title
+                      </CardTitle>
+                      <CardDescription className="text-slate-400">
+                        Give your resume a clear, descriptive title
+                      </CardDescription>
+                    </div>
+                    
+                    {/* Auto-Fill Button */}
+                    {resume?.s3Key && (
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-sm text-slate-300 font-medium">Speed up editing!</p>
+                          <p className="text-xs text-slate-400">Auto-fill from your uploaded PDF</p>
+                        </div>
+                        <AutoFillButton
+                          resumeId={resumeId}
+                          onAutoFillComplete={handleAutoFillComplete}
+                          disabled={false}
+                          className="shrink-0"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Input
@@ -378,6 +501,24 @@ export default function ResumeEditorPage() {
                     className="bg-white/5 border-white/20 text-white text-lg font-medium placeholder:text-slate-400 focus:border-primary-400"
                     placeholder="e.g. John Smith - Software Engineer Resume"
                   />
+                  
+                  {/* Auto-fill help text for empty forms */}
+                  {resume?.s3Key && !editedSections?.contact && !editedSections?.summary && (
+                    <div className="mt-4 p-4 bg-blue-500/10 border border-blue-400/20 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                          <span className="text-blue-300 text-sm">✨</span>
+                        </div>
+                        <div>
+                          <h4 className="text-blue-300 font-medium text-sm mb-1">Pro Tip: Auto-fill your resume!</h4>
+                          <p className="text-blue-200/80 text-sm">
+                            Click the "Auto-fill from PDF" button above to automatically populate all sections with information from your uploaded resume. 
+                            You can then edit and refine the content as needed.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
