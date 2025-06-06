@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
 import { uploadToS3, generateS3Key, getContentType } from '@/lib/s3'
+import { generatePDFThumbnail } from '@/lib/pdf-thumbnail-generator'
 
 export async function POST(request: NextRequest) {
   try {
@@ -95,12 +96,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Upload failed: ' + uploadResult.error }, { status: 500 })
     }
 
+    // Generate PDF thumbnail if it's a PDF
+    let thumbnailUrl: string | null = null;
+    if (file.type === 'application/pdf') {
+      console.log('🖼️ Generating PDF thumbnail...');
+      thumbnailUrl = await generatePDFThumbnail(buffer);
+      if (thumbnailUrl) {
+        console.log('✅ Thumbnail generated successfully');
+      } else {
+        console.log('⚠️ Thumbnail generation failed, continuing without thumbnail');
+      }
+    }
+
     // Generate title from filename
     const title = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ')
 
     console.log('💾 Creating resume record in database...');
 
-    // Create resume record (NO TEXT EXTRACTION - that happens in auto-fill)
+    // Create resume record
     const resume = await prisma.resume.create({
       data: {
         title,
@@ -112,10 +125,11 @@ export async function POST(request: NextRequest) {
         originalFileName: file.name,
         fileSize: file.size,
         contentType: file.type,
+        thumbnailUrl: thumbnailUrl,
         
         // Empty content - will be filled by auto-fill feature
         originalContent: {
-          rawText: '', // Will be extracted by auto-fill
+          rawText: '',
           metadata: {
             originalFileName: file.name,
             fileSize: file.size,
@@ -123,11 +137,10 @@ export async function POST(request: NextRequest) {
             uploadedAt: new Date().toISOString(),
             s3Key,
             s3Bucket: process.env.AWS_S3_BUCKET_NAME,
-            extractionStatus: 'pending', // Indicates auto-fill needed
+            extractionStatus: 'pending',
           }
         },
         currentContent: {
-          // Empty structure - will be populated by auto-fill
           contact: {
             fullName: '',
             email: '',
@@ -140,7 +153,7 @@ export async function POST(request: NextRequest) {
           skills: [],
           lastModified: new Date().toISOString(),
         },
-        wordCount: 0, // Will be calculated during auto-fill
+        wordCount: 0,
       }
     })
 
@@ -152,8 +165,9 @@ export async function POST(request: NextRequest) {
         id: resume.id,
         title: resume.title,
         s3Key: resume.s3Key,
+        thumbnailUrl: resume.thumbnailUrl,
         createdAt: resume.createdAt,
-        needsAutoFill: true, // Indicates PDF parsing needed
+        needsAutoFill: true,
       }
     })
 

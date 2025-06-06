@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import ResumeUploader from "@/components/resume-uploader"
-import { ResumePreviewThumbnail } from "@/components/resume-preview"
+import { PDFThumbnail } from "@/components/pdf-thumbnail" // ✅ New import
 import { 
   FileText, 
   Plus, 
@@ -108,28 +108,16 @@ export default function DashboardPage() {
     }
   }
 
-  // Helper function to extract resume data for preview
-  const getResumePreviewData = (resume: any) => {
-    // Handle both current and original content structure
-    const sections = resume.currentContent?.sections || resume.originalContent?.sections || {}
+  // ✅ Helper function to format time ago
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
     
-    return {
-      title: resume.title,
-      contactInfo: sections.contact || sections.contactInfo,
-      summary: sections.summary,
-      experience: sections.experience,
-      education: sections.education,
-      skills: sections.skills
-    }
-  }
-
-  // Helper function to get PDF URL for actual document preview
-  const getPdfUrl = (resume: any): string | undefined => {
-    // Check if resume has S3 key (new S3-uploaded resumes)
-    if (resume.s3Key) {
-      return `/api/resumes/${resume.id}/url`
-    }
-    return undefined
+    if (diffInHours < 1) return 'just now'
+    if (diffInHours < 24) return `${diffInHours} hours ago`
+    if (diffInHours < 48) return '1 day ago'
+    return `${Math.floor(diffInHours / 24)} days ago`
   }
 
   const mockResumes = resumes
@@ -326,12 +314,13 @@ export default function DashboardPage() {
                       {mockResumes.map((resume) => (
                         <div key={resume.id} className="p-4 border border-white/10 rounded-lg hover:border-primary-400/30 transition-all duration-200 group">
                           <div className="flex items-center gap-4">
-                            {/* Resume Preview Thumbnail */}
+                            {/* ✅ PDF Thumbnail - FIXED: Simplified without conditional */}
                             <div className="flex-shrink-0">
-                              <ResumePreviewThumbnail 
-                                pdfUrl={getPdfUrl(resume) || undefined}
-                                resumeData={getResumePreviewData(resume)}
-                                className="hover:scale-105 transition-transform duration-200"
+                              <PDFThumbnail 
+                                resumeId={resume.id}
+                                thumbnailUrl={resume.thumbnailUrl}
+                                width={120}
+                                className="w-[120px] h-[156px] hover:scale-105 transition-transform duration-200"
                               />
                             </div>
                             
@@ -342,7 +331,7 @@ export default function DashboardPage() {
                                 <h4 className="font-medium text-white truncate">{resume.title}</h4>
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-slate-400 mb-2">
-                                <span>Modified {resume.lastModified}</span>
+                                <span>Modified {formatTimeAgo(resume.updatedAt)}</span>
                                 <span>•</span>
                                 <span>{resume.applications || 0} applications</span>
                                 {resume.wordCount && (

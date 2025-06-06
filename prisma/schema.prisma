@@ -93,6 +93,7 @@ model Resume {
   s3Bucket         String? // S3 bucket name
   originalFileName String? // Original uploaded filename
   fileSize         Int?    // File size in bytes
+  thumbnailUrl      String?   // ✅ ADD THIS LINE
   contentType      String? // MIME type (application/pdf, etc.)
 
   // Metadata

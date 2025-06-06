@@ -112,3 +112,10 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply from-primary-500 to-secondary-600;
 }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

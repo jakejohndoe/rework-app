@@ -5,13 +5,18 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Fetching resumes...');
+    
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      console.log('❌ No session user ID');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's resumes with S3 fields
+    console.log('👤 User ID:', session.user.id);
+
+    // Get user's resumes with S3 fields INCLUDING thumbnailUrl
     const resumes = await prisma.resume.findMany({
       where: {
         userId: session.user.id,
@@ -30,6 +35,7 @@ export async function GET(request: NextRequest) {
         originalFileName: true,
         fileSize: true,
         contentType: true,
+        thumbnailUrl: true,  // ✅ THIS WAS MISSING!
         originalContent: true,
         currentContent: true,
       },
@@ -37,6 +43,9 @@ export async function GET(request: NextRequest) {
         updatedAt: 'desc'
       }
     })
+
+    console.log(`📋 Found ${resumes.length} resumes`);
+    console.log('🖼️ Thumbnail URLs:', resumes.map(r => ({ id: r.id, hasThumbnail: !!r.thumbnailUrl })));
 
     // Transform data for frontend
     const transformedResumes = resumes.map(resume => ({
@@ -55,6 +64,7 @@ export async function GET(request: NextRequest) {
       originalFileName: resume.originalFileName,
       fileSize: resume.fileSize,
       contentType: resume.contentType,
+      thumbnailUrl: resume.thumbnailUrl,  // ✅ ADD THIS
       originalContent: resume.originalContent,
       currentContent: resume.currentContent,
     }))
@@ -66,7 +76,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Resumes fetch error:', error)
+    console.error('❌ Resumes fetch error:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch resumes' 
     }, { status: 500 })
