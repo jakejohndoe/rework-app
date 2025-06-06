@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import ResumeUploader from "@/components/resume-uploader"
-import { PDFThumbnail } from "@/components/pdf-thumbnail" // ✅ New import
+import { PDFThumbnail } from "@/components/pdf-thumbnail"
+import { QuickDownloadButton, DownloadButton } from "@/components/download-button" // ✅ NEW: Download buttons
 import { 
   FileText, 
   Plus, 
@@ -24,7 +25,9 @@ import {
   Sparkles,
   Target,
   Clock,
-  Trash2
+  Trash2,
+  Download, // ✅ NEW: Download icon
+  Eye // ✅ NEW: Preview icon
 } from "lucide-react"
 
 export default function DashboardPage() {
@@ -310,16 +313,14 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {mockResumes.map((resume) => (
                         <div key={resume.id} className="p-4 border border-white/10 rounded-lg hover:border-primary-400/30 transition-all duration-200 group">
                           <div className="flex items-center gap-4">
-                            {/* ✅ PDF Thumbnail - FIXED: Simplified without conditional */}
+                            {/* PDF Thumbnail */}
                             <div className="flex-shrink-0">
                               <PDFThumbnail 
                                 resumeId={resume.id}
-                                thumbnailUrl={resume.thumbnailUrl}
-                                width={120}
                                 className="w-[120px] h-[156px] hover:scale-105 transition-transform duration-200"
                               />
                             </div>
@@ -329,6 +330,12 @@ export default function DashboardPage() {
                               <div className="flex items-center gap-2 mb-1">
                                 <FileText className="w-4 h-4 text-cyan-400" />
                                 <h4 className="font-medium text-white truncate">{resume.title}</h4>
+                                {/* ✅ NEW: Quick download indicator */}
+                                {resume.lastOptimized && (
+                                  <Badge variant="secondary" className="bg-green-400/20 text-green-300 text-xs">
+                                    ✨ Optimized
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-slate-400 mb-2">
                                 <span>Modified {formatTimeAgo(resume.updatedAt)}</span>
@@ -349,16 +356,33 @@ export default function DashboardPage() {
                               </Badge>
                             </div>
                             
-                            {/* Action Buttons */}
+                            {/* ✅ UPDATED: Action Buttons with Download */}
                             <div className="flex items-center space-x-2">
+                              {/* Download button with dropdown */}
+                              <DownloadButton 
+                                resumeId={resume.id}
+                                size="sm"
+                                variant="outline"
+                                showVersions={!!resume.lastOptimized}
+                                showPreview={true}
+                                className="text-slate-300 hover:text-white border-slate-600 hover:border-slate-400"
+                              />
+                              
+                              {/* Edit button */}
                               <Link href={`/dashboard/resume/${resume.id}`}>
                                 <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
                                   Edit
                                 </Button>
                               </Link>
-                              <Button size="sm" className="btn-gradient">
-                                Optimize
-                              </Button>
+                              
+                              {/* Optimize button */}
+                              <Link href={`/dashboard/resume/${resume.id}/job-description`}>
+                                <Button size="sm" className="btn-gradient">
+                                  Optimize
+                                </Button>
+                              </Link>
+                              
+                              {/* Delete button */}
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
@@ -374,6 +398,25 @@ export default function DashboardPage() {
                               </Button>
                             </div>
                           </div>
+                          
+                          {/* ✅ NEW: Expanded download options on hover */}
+                          <div className="mt-3 pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs text-slate-500">
+                                Download options:
+                              </div>
+                              <div className="flex gap-2">
+                                <DownloadButton 
+                                  resumeId={resume.id}
+                                  size="sm"
+                                  variant="ghost"
+                                  showVersions={!!resume.lastOptimized}
+                                  showPreview={true}
+                                  className="text-slate-400 hover:text-white text-xs px-2 py-1 h-auto"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -385,8 +428,8 @@ export default function DashboardPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Plan Status */}
-              <Card className={`glass-card ${isPremium ? 'border-purple-400/30' : 'border-white/10'}`}>
-                <CardHeader>
+              <Card className={`glass-card border border-white/20 ${isPremium ? 'border-purple-400/30' : 'border-white/20'}`}>
+                <CardHeader className="pb-4">
                   <CardTitle className="text-white flex items-center gap-2">
                     {isPremium ? (
                       <Crown className="w-5 h-5 text-purple-400" />
@@ -396,66 +439,102 @@ export default function DashboardPage() {
                     {isPremium ? 'Premium Plan' : 'Free Plan'}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-400">Resume Usage</span>
-                        <span className="text-white">{currentResumes} / {resumeLimit}</span>
-                      </div>
-                      {!isPremium && (
-                        <Progress value={usagePercentage} className="h-2" />
-                      )}
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-slate-300">Resume Usage</span>
+                      <span className="text-white font-medium">{currentResumes} / {resumeLimit}</span>
                     </div>
-                    
                     {!isPremium && (
+                      <Progress value={usagePercentage} className="h-2 bg-slate-700" />
+                    )}
+                  </div>
+                  
+                  {!isPremium && (
+                    <>
+                      <Separator className="bg-white/20" />
+                      <div className="space-y-2">
+                        <p className="text-sm text-slate-200 font-medium">Upgrade to unlock:</p>
+                        <ul className="text-sm text-slate-300 space-y-1">
+                          <li>• Unlimited resumes</li>
+                          <li>• Advanced AI optimization</li>
+                          <li>• Premium templates</li>
+                          <li>• Priority support</li>
+                        </ul>
+                      </div>
+                      <Button className="w-full btn-gradient font-medium">
+                        <Crown className="w-4 h-4 mr-2" />
+                        Upgrade to Premium
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* ✅ FIXED: Download Quick Actions */}
+              <Card className="glass-card border border-white/20 bg-slate-800/50">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Download className="w-5 h-5 text-green-400" />
+                    Quick Downloads
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {mockResumes.length > 0 ? (
                       <>
-                        <Separator className="bg-white/10" />
-                        <div className="space-y-2">
-                          <p className="text-sm text-slate-300">Upgrade to unlock:</p>
-                          <ul className="text-sm text-slate-400 space-y-1">
-                            <li>• Unlimited resumes</li>
-                            <li>• Advanced AI optimization</li>
-                            <li>• Premium templates</li>
-                            <li>• Priority support</li>
-                          </ul>
-                        </div>
-                        <Button className="w-full btn-gradient">
-                          <Crown className="w-4 h-4 mr-2" />
-                          Upgrade to Premium
-                        </Button>
+                        <p className="text-sm text-slate-300 mb-3">Recent resumes:</p>
+                        {mockResumes.slice(0, 2).map((resume) => (
+                          <div key={resume.id} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600/50">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white font-medium truncate">{resume.title}</p>
+                              <p className="text-xs text-slate-300">
+                                {resume.lastOptimized ? 'Optimized' : 'Original'}
+                              </p>
+                            </div>
+                            <QuickDownloadButton 
+                              resumeId={resume.id}
+                              className="ml-2 text-xs px-2 py-1 h-auto border-slate-500 text-slate-200 hover:text-white hover:border-slate-400"
+                            />
+                          </div>
+                        ))}
                       </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-slate-300">No resumes to download yet.</p>
+                        <p className="text-xs text-slate-400 mt-1">Upload a resume to get started!</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Recent Activity */}
-              <Card className="glass-card border-white/10">
-                <CardHeader>
+              <Card className="glass-card border border-white/20 bg-slate-800/50">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-white">Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 text-sm">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <div>
-                        <p className="text-white">Resume optimized</p>
-                        <p className="text-slate-400">2 hours ago</p>
+                    <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30">
+                      <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <p className="text-slate-100">Resume optimized</p>
+                        <p className="text-slate-400 text-xs">2 hours ago</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <div>
-                        <p className="text-white">New resume created</p>
-                        <p className="text-slate-400">1 day ago</p>
+                    <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <p className="text-slate-100">New resume created</p>
+                        <p className="text-slate-400 text-xs">1 day ago</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                      <div>
-                        <p className="text-white">Application submitted</p>
-                        <p className="text-slate-400">3 days ago</p>
+                    <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <p className="text-slate-100">Application submitted</p>
+                        <p className="text-slate-400 text-xs">3 days ago</p>
                       </div>
                     </div>
                   </div>
@@ -463,16 +542,16 @@ export default function DashboardPage() {
               </Card>
 
               {/* Tips */}            
-              <Card className="glass-card border-primary-400/20">
-                <CardHeader>
-                  <CardTitle className="text-primary-400 flex items-center gap-2">
+              <Card className="glass-card border border-primary-400/30 bg-primary-900/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-primary-300 flex items-center gap-2">
                     <Sparkles className="w-5 h-5" />
                     Pro Tip
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-300">
-                    Tailor your resume for each job application. Our AI can help you optimize keywords and content for better ATS compatibility.
+                  <p className="text-sm text-slate-200 leading-relaxed">
+                    Download both original and AI-optimized versions of your resume. Use different versions for different types of job applications for better results.
                   </p>
                 </CardContent>
               </Card>
