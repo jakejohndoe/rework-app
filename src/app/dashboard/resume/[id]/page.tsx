@@ -287,7 +287,7 @@ export default function ResumeEditorPage() {
         },
         body: JSON.stringify({
           title: editedTitle,
-          content: updatedContent
+          currentContent: updatedContent
         })
       })
 

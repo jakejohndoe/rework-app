@@ -356,18 +356,8 @@ export default function DashboardPage() {
                               </Badge>
                             </div>
                             
-                            {/* ✅ UPDATED: Action Buttons with Download */}
+                            {/* ✅ UPDATED: Action Buttons - REMOVED Download Button */}
                             <div className="flex items-center space-x-2">
-                              {/* Download button with dropdown */}
-                              <DownloadButton 
-                                resumeId={resume.id}
-                                size="sm"
-                                variant="outline"
-                                showVersions={!!resume.lastOptimized}
-                                showPreview={true}
-                                className="text-slate-300 hover:text-white border-slate-600 hover:border-slate-400"
-                              />
-                              
                               {/* Edit button */}
                               <Link href={`/dashboard/resume/${resume.id}`}>
                                 <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
@@ -399,7 +389,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           
-                          {/* ✅ NEW: Expanded download options on hover */}
+                          {/* ✅ KEEP: Sleek download options on hover */}
                           <div className="mt-3 pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="text-xs text-slate-500">
