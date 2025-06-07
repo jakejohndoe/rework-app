@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import Link from "next/link"
+import { DownloadButton } from "@/components/download-button" // ✅ NEW: Use standard download
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -65,7 +66,7 @@ export default function AnalysisPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isDownloading, setIsDownloading] = useState(false)
+  // ✅ REMOVED: isDownloading state (handled by DownloadButton)
 
   const analysisSteps = [
     "Loading resume content...",
@@ -151,25 +152,7 @@ export default function AnalysisPage() {
     performRealAnalysis()
   }
 
-  const handleDownloadPDF = async () => {
-    setIsDownloading(true)
-    toast.loading('Generating optimized PDF...', { id: 'download' })
-    
-    try {
-      // Simulate PDF generation (replace with real implementation)
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // TODO: Implement real PDF generation
-      console.log('📄 PDF generation would happen here')
-      toast.success('PDF ready for download!', { id: 'download' })
-      
-    } catch (error) {
-      console.error('PDF generation error:', error)
-      toast.error('Failed to generate PDF', { id: 'download' })
-    } finally {
-      setIsDownloading(false)
-    }
-  }
+  // ✅ REMOVED: handleDownloadPDF function (using DownloadButton instead)
 
   const handleEditResume = () => {
     router.push(`/dashboard/resume/${resumeId}`)
@@ -603,18 +586,14 @@ export default function AnalysisPage() {
                           <Target className="w-4 h-4 mr-2" />
                           Edit Job
                         </Button>
-                        <Button 
-                          onClick={handleDownloadPDF}
-                          disabled={isDownloading}
-                          className="btn-gradient"
-                        >
-                          {isDownloading ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          ) : (
-                            <Download className="w-4 h-4 mr-2" />
-                          )}
-                          Download PDF
-                        </Button>
+                        {/* ✅ UPDATED: Using standard DownloadButton component */}
+                        <DownloadButton 
+                          resumeId={resumeId}
+                          showVersions={false}
+                          showPreview={false}
+                          className="btn-gradient gap-2"
+                          variant="default"
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -625,5 +604,4 @@ export default function AnalysisPage() {
         </main>
       </div>
     </div>
-  )
-}
+  )}
