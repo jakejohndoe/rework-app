@@ -1,11 +1,34 @@
-// Replace your existing pdf-thumbnail.tsx with this debugging version
+// SSR-safe PDF thumbnail component
 import { useEffect, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// Use local worker file
-if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-}
+// Custom hook to dynamically load PDF.js only on client side
+const usePdfJs = () => {
+  const [pdfjsLib, setPdfjsLib] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadPdfJs = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const pdfjs = await import('pdfjs-dist');
+          setPdfjsLib(pdfjs);
+          
+          // Set worker
+          if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+            pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+          }
+        } catch (error) {
+          console.error('Failed to load PDF.js:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadPdfJs();
+  }, []);
+  
+  return { pdfjsLib, isLoading };
+};
 
 interface PDFThumbnailProps {
   resumeId: string;
@@ -15,17 +38,17 @@ interface PDFThumbnailProps {
 export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const { pdfjsLib, isLoading: pdfLibLoading } = usePdfJs();
 
   console.log('🏗️ PDFThumbnail component rendering for:', resumeId);
 
   useEffect(() => {
-    console.log('🔥 useEffect triggered for resumeId:', resumeId);
-    
-    if (!resumeId) {
-      console.log('❌ No resumeId provided');
+    // Don't start rendering until PDF.js is loaded
+    if (pdfLibLoading || !pdfjsLib || !resumeId) {
       return;
     }
 
+    console.log('🔥 useEffect triggered for resumeId:', resumeId);
     console.log('⏱️ Setting timer for PDF rendering...');
     
     const timer = setTimeout(async () => {
@@ -95,9 +118,37 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
       console.log('🧹 Cleaning up timer for:', resumeId);
       clearTimeout(timer);
     };
-  }, [resumeId]);
+  }, [resumeId, pdfjsLib, pdfLibLoading]);
 
   console.log('🎭 Rendering with status:', status, 'for resume:', resumeId);
+
+  // Show loading state while PDF.js is loading
+  if (pdfLibLoading) {
+    return (
+      <div className={`rounded-lg overflow-hidden relative ${className}`}>
+        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg flex items-center justify-center min-h-[120px]">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div>
+          <span className="ml-2 text-white text-xs">Loading PDF viewer...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if PDF.js failed to load
+  if (!pdfjsLib) {
+    return (
+      <div className={`rounded-lg overflow-hidden relative ${className}`}>
+        <div className="bg-white/5 backdrop-blur-sm border border-red-500/30 rounded-lg flex flex-col items-center justify-center min-h-[120px]">
+          <div className="text-red-400 text-xs text-center">
+            📄 PDF Preview
+          </div>
+          <div className="text-red-300/60 text-xs mt-1 text-center">
+            Viewer failed to load
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Always render canvas but overlay loading/error states
   return (
