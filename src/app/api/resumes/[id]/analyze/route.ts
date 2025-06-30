@@ -1,9 +1,10 @@
-// Enhanced src/app/api/resumes/[id]/analyze/route.ts with debugging
+// Fixed src/app/api/resumes/[id]/analyze/route.ts - TypeScript errors resolved
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import OpenAI from 'openai'
+import { ContactInfo } from '@/types/resume'
 
 // Check if OpenAI API key exists
 if (!process.env.OPENAI_API_KEY) {
@@ -14,7 +15,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-interface AnalysisResult {
+// Enhanced analysis result with category scoring
+interface EnhancedAnalysisResult {
   matchScore: number
   matchedKeywords: string[]
   missingKeywords: string[]
@@ -29,7 +31,22 @@ interface AnalysisResult {
   atsScore: number
   readabilityScore: number
   completenessScore: number
-  optimizedContent?: any
+  // NEW: Category-specific scores
+  categoryScores: {
+    contact: number
+    experience: number
+    skills: number
+    education: number
+    keywords: number
+  }
+  // NEW: Structured optimization output
+  optimizedContent?: {
+    contactInfo?: Partial<ContactInfo>
+    summary?: string
+    experience?: string
+    skills?: string
+    education?: string
+  }
 }
 
 export async function POST(
@@ -45,9 +62,9 @@ export async function POST(
     const { id } = await params
     const resumeId = id
 
-    console.log('🔍 Starting analysis for resume:', resumeId)
+    console.log('🔍 Starting enhanced analysis for resume:', resumeId)
 
-    // Get the resume and job application
+    // Get the resume with structured data and job application
     const resume = await prisma.resume.findFirst({
       where: {
         id: resumeId,
@@ -75,24 +92,20 @@ export async function POST(
       )
     }
 
-    // Extract resume content as text
-    const resumeText = extractResumeText(resume.currentContent)
+    // NEW: Extract structured resume data
+    const { structuredText, hasStructuredData } = extractStructuredResumeData(resume)
     
-    console.log('📝 Resume content length:', resumeText.length)
+    console.log('📝 Resume content type:', hasStructuredData ? 'Structured' : 'Legacy')
+    console.log('📝 Resume content length:', structuredText.length)
     console.log('🎯 Job title:', jobApplication.jobTitle)
     console.log('🏢 Company:', jobApplication.company)
-    console.log('📋 Job description length:', jobApplication.jobDescription.length)
     
-    // Log first 200 chars of each for debugging
-    console.log('📝 Resume preview:', resumeText.substring(0, 200) + '...')
-    console.log('📋 Job description preview:', jobApplication.jobDescription.substring(0, 200) + '...')
-
-    console.log('🤖 Starting AI analysis for job:', jobApplication.jobTitle, 'at', jobApplication.company)
+    console.log('🤖 Starting enhanced AI analysis...')
 
     // Check if OpenAI API key is available
     if (!process.env.OPENAI_API_KEY) {
       console.error('❌ OpenAI API key not found - using fallback data')
-      const fallbackAnalysis = createFallbackAnalysis()
+      const fallbackAnalysis = createEnhancedFallbackAnalysis()
       return NextResponse.json({
         success: true,
         analysis: {
@@ -107,22 +120,29 @@ export async function POST(
       })
     }
 
-    // Analyze with OpenAI
-    const analysis = await analyzeResumeWithOpenAI(
-      resumeText,
+    // FIXED: Get contact info - handle both field names
+    const contactInfo = getContactInfo(resume)
+
+    // NEW: Enhanced AI analysis with structured data
+    const analysis = await performEnhancedAnalysisWithOpenAI(
+      structuredText,
       jobApplication.jobDescription,
       jobApplication.jobTitle,
-      jobApplication.company
+      jobApplication.company,
+      hasStructuredData,
+      contactInfo
     )
 
-    // Save analysis results to database
+    // FIXED: Save enhanced analysis results to database
     const updatedApplication = await prisma.jobApplication.update({
       where: { id: jobApplication.id },
       data: {
         matchScore: analysis.matchScore,
         keywords: [...analysis.matchedKeywords, ...analysis.missingKeywords],
-        suggestions: analysis.suggestions as any,
-        optimizedContent: analysis.optimizedContent as any,
+        suggestions: analysis.suggestions,
+        optimizedContent: analysis.optimizedContent,
+        // FIXED: Save category scores as JSON
+        categoryScores: analysis.categoryScores,
         status: 'OPTIMIZED',
         updatedAt: new Date(),
       },
@@ -131,10 +151,13 @@ export async function POST(
     // Update resume's lastOptimized timestamp
     await prisma.resume.update({
       where: { id: resumeId },
-      data: { lastOptimized: new Date() },
+      data: { 
+        lastOptimized: new Date(),
+      },
     })
 
-    console.log('✅ AI analysis complete! Match score:', analysis.matchScore)
+    console.log('✅ Enhanced AI analysis complete! Match score:', analysis.matchScore)
+    console.log('📊 Category scores:', analysis.categoryScores)
 
     return NextResponse.json({
       success: true,
@@ -152,7 +175,6 @@ export async function POST(
   } catch (error) {
     console.error('❌ Error analyzing resume:', error)
     
-    // Return more specific error info
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error('❌ Error details:', errorMessage)
     
@@ -163,15 +185,33 @@ export async function POST(
   }
 }
 
-async function analyzeResumeWithOpenAI(
-  resumeText: string,
+// FIXED: Helper function to get contact info - handles both field names
+function getContactInfo(resume: any): ContactInfo | null {
+  // Try the new structured field first
+  if (resume.contactInfo) {
+    return resume.contactInfo as ContactInfo
+  }
+  
+  // Try alternative field names that might exist
+  if (resume.contactinfo) {
+    return resume.contactinfo as ContactInfo
+  }
+  
+  return null
+}
+
+async function performEnhancedAnalysisWithOpenAI(
+  structuredText: string,
   jobDescription: string,
   jobTitle: string,
-  company: string
-): Promise<AnalysisResult> {
+  company: string,
+  hasStructuredData: boolean,
+  contactInfo: ContactInfo | null
+): Promise<EnhancedAnalysisResult> {
   
-  const analysisPrompt = `
-You are a professional resume optimization expert. Analyze this resume against the job description and provide detailed, actionable feedback.
+  // NEW: Enhanced prompt that leverages structured data
+  const enhancedPrompt = `
+You are an expert ATS and resume optimization specialist. Analyze this ${hasStructuredData ? 'STRUCTURED' : 'traditional'} resume against the job requirements and provide detailed, category-specific feedback.
 
 JOB DETAILS:
 Position: ${jobTitle}
@@ -180,10 +220,21 @@ Company: ${company}
 JOB DESCRIPTION:
 ${jobDescription}
 
-RESUME CONTENT:
-${resumeText}
+RESUME CONTENT${hasStructuredData ? ' (STRUCTURED FORMAT)' : ''}:
+${structuredText}
 
-Please analyze and respond with a JSON object with the following structure:
+${contactInfo ? `
+STRUCTURED CONTACT INFO AVAILABLE:
+- Name: ${contactInfo.firstName} ${contactInfo.lastName}
+- Email: ${contactInfo.email}
+- Phone: ${contactInfo.phone}
+- Location: ${contactInfo.location}
+- LinkedIn: ${contactInfo.linkedin || 'Not provided'}
+- Website: ${contactInfo.website || 'Not provided'}
+- GitHub: ${contactInfo.githubUrl || 'Not provided'}
+` : ''}
+
+Provide detailed analysis in JSON format with this structure:
 
 {
   "matchScore": <number 0-100>,
@@ -191,176 +242,302 @@ Please analyze and respond with a JSON object with the following structure:
   "missingKeywords": ["missing1", "missing2", ...],
   "suggestions": [
     {
-      "section": "Professional Summary|Experience|Skills|Education",
+      "section": "Contact Information|Professional Summary|Experience|Skills|Education",
       "type": "improve|add",
-      "current": "current text if improving",
-      "suggested": "specific improvement suggestion",
+      "current": "current content if improving",
+      "suggested": "specific improvement with examples",
       "impact": "high|medium|low",
-      "reason": "why this improvement matters"
+      "reason": "detailed explanation of why this matters for ATS and hiring managers"
     }
   ],
   "atsScore": <number 0-100>,
   "readabilityScore": <number 0-100>,
-  "completenessScore": <number 0-100>
+  "completenessScore": <number 0-100>,
+  "categoryScores": {
+    "contact": <number 0-100>,
+    "experience": <number 0-100>,
+    "skills": <number 0-100>,
+    "education": <number 0-100>,
+    "keywords": <number 0-100>
+  }
 }
 
-ANALYSIS GUIDELINES:
-- Focus on the SPECIFIC industry and role requirements
-- Extract keywords relevant to "${jobTitle}" position
-- Consider industry-specific skills and terminology
-- matchScore: Overall compatibility (0-100)
-- matchedKeywords: Job-relevant keywords found in resume (max 15)
-- missingKeywords: Important job requirements missing from resume (max 10)
-- suggestions: Specific, actionable improvements (max 6)
+ENHANCED ANALYSIS GUIDELINES:
+1. **Contact Information Analysis (0-100):**
+   - Professional email format: +20 points
+   - Complete phone number: +15 points  
+   - Professional location format: +15 points
+   - LinkedIn profile included: +25 points
+   - Professional website/portfolio: +15 points
+   - GitHub for technical roles: +10 points
 
-For this ${jobTitle} role, focus on relevant skills like equipment operation, safety protocols, physical capabilities, certifications, and industry experience.
+2. **Experience Relevance (0-100):**
+   - Direct role experience: +40 points
+   - Transferable skills: +20 points
+   - Quantified achievements: +20 points
+   - Industry-relevant terminology: +20 points
+
+3. **Skills Match (0-100):**
+   - Required technical skills present: +50 points
+   - Soft skills alignment: +25 points
+   - Certifications mentioned: +15 points
+   - Industry tools/technologies: +10 points
+
+4. **Education Alignment (0-100):**
+   - Relevant degree/certification: +60 points
+   - Institution prestige/relevance: +20 points
+   - Additional certifications: +20 points
+
+5. **Keyword Optimization (0-100):**
+   - Critical job keywords present: +40 points
+   - Keyword density appropriate: +20 points
+   - Natural keyword integration: +20 points
+   - Industry-specific terminology: +20 points
+
+For the "${jobTitle}" position, focus on:
+- Role-specific skills and experience
+- Industry-standard certifications and tools
+- Quantifiable achievements and impact
+- Professional presentation and ATS compatibility
+
+Provide specific, actionable suggestions that directly address the job requirements.
 `
 
   try {
-    console.log('🔄 Sending request to OpenAI...')
+    console.log('🔄 Sending enhanced analysis request to OpenAI...')
     
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "You are an expert resume optimization specialist. Always respond with valid JSON only. Focus on the specific industry and role mentioned in the job posting."
+          content: "You are an expert resume optimization specialist with deep knowledge of ATS systems and hiring practices. Always respond with valid JSON only. Provide specific, actionable feedback that directly improves the candidate's chances."
         },
         {
           role: "user",
-          content: analysisPrompt
+          content: enhancedPrompt
         }
       ],
-      temperature: 0.3,
-      max_tokens: 2000,
+      temperature: 0.2,
+      max_tokens: 3000,
     })
 
-    console.log('✅ OpenAI response received')
+    console.log('✅ Enhanced OpenAI response received')
     
     const response = completion.choices[0]?.message?.content
     if (!response) {
       throw new Error('No response from OpenAI')
     }
 
-    console.log('📄 OpenAI raw response:', response.substring(0, 300) + '...')
+    console.log('📄 OpenAI raw response length:', response.length)
 
-    // Clean the response (remove any markdown formatting)
+    // Clean the response
     const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim()
     
     try {
-      const analysis = JSON.parse(cleanedResponse) as AnalysisResult
-      console.log('🎯 Parsed analysis - Match score:', analysis.matchScore)
-      console.log('🔑 Keywords found:', analysis.matchedKeywords?.length || 0)
-      console.log('❌ Missing keywords:', analysis.missingKeywords?.length || 0)
+      const analysis = JSON.parse(cleanedResponse) as EnhancedAnalysisResult
+      console.log('🎯 Parsed enhanced analysis:')
+      console.log('  - Match score:', analysis.matchScore)
+      console.log('  - Category scores:', analysis.categoryScores)
+      console.log('  - Keywords found:', analysis.matchedKeywords?.length || 0)
+      console.log('  - Missing keywords:', analysis.missingKeywords?.length || 0)
+      console.log('  - Suggestions:', analysis.suggestions?.length || 0)
       
       // Validate and sanitize the response
       return {
         matchScore: Math.max(0, Math.min(100, analysis.matchScore || 0)),
         matchedKeywords: (analysis.matchedKeywords || []).slice(0, 15),
         missingKeywords: (analysis.missingKeywords || []).slice(0, 10),
-        suggestions: (analysis.suggestions || []).slice(0, 6),
+        suggestions: (analysis.suggestions || []).slice(0, 8),
         atsScore: Math.max(0, Math.min(100, analysis.atsScore || 0)),
         readabilityScore: Math.max(0, Math.min(100, analysis.readabilityScore || 0)),
         completenessScore: Math.max(0, Math.min(100, analysis.completenessScore || 0)),
+        categoryScores: {
+          contact: Math.max(0, Math.min(100, analysis.categoryScores?.contact || 0)),
+          experience: Math.max(0, Math.min(100, analysis.categoryScores?.experience || 0)),
+          skills: Math.max(0, Math.min(100, analysis.categoryScores?.skills || 0)),
+          education: Math.max(0, Math.min(100, analysis.categoryScores?.education || 0)),
+          keywords: Math.max(0, Math.min(100, analysis.categoryScores?.keywords || 0)),
+        },
+        optimizedContent: analysis.optimizedContent || undefined
       }
     } catch (parseError) {
-      console.error('❌ Failed to parse OpenAI response:', parseError)
+      console.error('❌ Failed to parse enhanced OpenAI response:', parseError)
       console.error('❌ Raw response was:', cleanedResponse)
       throw new Error('Invalid JSON response from OpenAI')
     }
 
   } catch (error) {
-    console.error('❌ OpenAI analysis error:', error)
-    
-    // Return industry-appropriate fallback for construction/grip work
-    console.log('🔄 Using construction industry fallback analysis')
-    return createFallbackAnalysis()
+    console.error('❌ Enhanced OpenAI analysis error:', error)
+    console.log('🔄 Using enhanced fallback analysis')
+    return createEnhancedFallbackAnalysis()
   }
 }
 
-function createFallbackAnalysis(): AnalysisResult {
+function createEnhancedFallbackAnalysis(): EnhancedAnalysisResult {
   return {
     matchScore: 78,
-    matchedKeywords: ['Construction', 'Safety', 'Equipment Operation'],
-    missingKeywords: ['OSHA Certification', 'Heavy Lifting', 'Teamwork'],
+    matchedKeywords: ['Experience', 'Skills', 'Professional'],
+    missingKeywords: ['Industry-specific keywords', 'Certifications', 'Technical skills'],
     suggestions: [
+      {
+        section: 'Contact Information',
+        type: 'improve',
+        current: 'Basic contact information',
+        suggested: 'Add LinkedIn profile and ensure professional email format',
+        impact: 'medium',
+        reason: 'Professional contact information increases credibility with hiring managers'
+      },
       {
         section: 'Professional Summary',
         type: 'improve',
-        current: 'Current summary text',
-        suggested: 'Highlight safety certifications and hands-on construction experience',
+        current: 'Generic summary',
+        suggested: 'Tailor summary to include job-specific keywords and quantified achievements',
         impact: 'high',
-        reason: 'Construction employers prioritize safety and practical experience'
+        reason: 'Targeted summary immediately shows relevance to the specific role'
       }
     ],
     atsScore: 82,
     readabilityScore: 85,
     completenessScore: 75,
+    categoryScores: {
+      contact: 70,
+      experience: 80,
+      skills: 75,
+      education: 65,
+      keywords: 60
+    }
   }
 }
 
-function extractResumeText(currentContent: any): string {
-  console.log('🔍 Extracting resume text from:', typeof currentContent)
+// NEW: Enhanced resume text extraction with structured data support
+function extractStructuredResumeData(resume: any): { structuredText: string, hasStructuredData: boolean } {
+  console.log('🔍 Extracting structured resume data...')
   
-  if (!currentContent) {
-    console.log('⚠️ No resume content found')
-    return ''
-  }
+  let hasStructuredData = false
+  let text: string[] = []
   
   try {
-    // Handle the structured resume content format
-    const content = typeof currentContent === 'string' 
-      ? JSON.parse(currentContent) 
-      : currentContent
-
-    console.log('📋 Resume content structure:', Object.keys(content))
-
-    let text = []
-
-    // Extract contact info
-    if (content.contact) {
-      text.push(`Name: ${content.contact.fullName || ''}`)
-      text.push(`Email: ${content.contact.email || ''}`)
-      text.push(`Phone: ${content.contact.phone || ''}`)
-      text.push(`Location: ${content.contact.location || ''}`)
+    // FIXED: Check for new structured contact info first - handle both field names
+    const contactInfo = getContactInfo(resume)
+    if (contactInfo) {
+      hasStructuredData = true
+      text.push('=== CONTACT INFORMATION (STRUCTURED) ===')
+      text.push(`Name: ${contactInfo.firstName} ${contactInfo.lastName}`)
+      if (contactInfo.email) text.push(`Email: ${contactInfo.email}`)
+      if (contactInfo.phone) text.push(`Phone: ${contactInfo.phone}`)
+      if (contactInfo.location) text.push(`Location: ${contactInfo.location}`)
+      if (contactInfo.linkedin) text.push(`LinkedIn: ${contactInfo.linkedin}`)
+      if (contactInfo.website) text.push(`Website: ${contactInfo.website}`)
+      if (contactInfo.githubUrl) text.push(`GitHub: ${contactInfo.githubUrl}`)
+      text.push('')
     }
 
-    // Extract professional summary
-    if (content.summary) {
-      text.push('\nPROFESSIONAL SUMMARY:')
-      text.push(content.summary)
+    // Extract from legacy or new content structure
+    const content = resume.currentContent
+    
+    if (content?.sections) {
+      // Legacy sections format
+      console.log('📋 Using legacy sections format')
+      
+      if (!hasStructuredData && content.sections.contact) {
+        text.push('=== CONTACT INFORMATION ===')
+        text.push(content.sections.contact)
+        text.push('')
+      }
+      
+      if (content.sections.summary) {
+        text.push('=== PROFESSIONAL SUMMARY ===')
+        text.push(content.sections.summary)
+        text.push('')
+      }
+      
+      if (content.sections.experience) {
+        text.push('=== WORK EXPERIENCE ===')
+        text.push(content.sections.experience)
+        text.push('')
+      }
+      
+      if (content.sections.education) {
+        text.push('=== EDUCATION ===')
+        text.push(content.sections.education)
+        text.push('')
+      }
+      
+      if (content.sections.skills) {
+        text.push('=== SKILLS & TECHNOLOGIES ===')
+        text.push(content.sections.skills)
+        text.push('')
+      }
+      
+      if (content.sections.other) {
+        text.push('=== ADDITIONAL INFORMATION ===')
+        text.push(content.sections.other)
+        text.push('')
+      }
+    } else if (content) {
+      // Auto-fill flat structure format
+      console.log('📋 Using auto-fill flat structure format')
+      
+      if (!hasStructuredData && content.contact) {
+        text.push('=== CONTACT INFORMATION ===')
+        if (content.contact.fullName) text.push(`Name: ${content.contact.fullName}`)
+        if (content.contact.email) text.push(`Email: ${content.contact.email}`)
+        if (content.contact.phone) text.push(`Phone: ${content.contact.phone}`)
+        if (content.contact.location) text.push(`Location: ${content.contact.location}`)
+        text.push('')
+      }
+      
+      if (content.summary) {
+        text.push('=== PROFESSIONAL SUMMARY ===')
+        text.push(content.summary)
+        text.push('')
+      }
+      
+      if (content.experience && Array.isArray(content.experience)) {
+        text.push('=== WORK EXPERIENCE ===')
+        content.experience.forEach((job: any) => {
+          text.push(`${job.title} at ${job.company} (${job.startDate} - ${job.endDate || 'Present'})`)
+          if (job.description) text.push(job.description)
+          text.push('')
+        })
+      }
+      
+      if (content.education && Array.isArray(content.education)) {
+        text.push('=== EDUCATION ===')
+        content.education.forEach((edu: any) => {
+          text.push(`${edu.degree} from ${edu.school} (${edu.year || 'Year not specified'})`)
+        })
+        text.push('')
+      }
+      
+      if (content.skills && Array.isArray(content.skills)) {
+        text.push('=== SKILLS ===')
+        text.push(content.skills.join(', '))
+        text.push('')
+      }
     }
 
-    // Extract experience
-    if (content.experience && Array.isArray(content.experience)) {
-      text.push('\nEXPERIENCE:')
-      content.experience.forEach((job: any) => {
-        text.push(`${job.title} at ${job.company} (${job.startDate} - ${job.endDate || 'Present'})`)
-        if (job.description) text.push(job.description)
-      })
-    }
-
-    // Extract education
-    if (content.education && Array.isArray(content.education)) {
-      text.push('\nEDUCATION:')
-      content.education.forEach((edu: any) => {
-        text.push(`${edu.degree} from ${edu.school} (${edu.year || 'Year not specified'})`)
-      })
-    }
-
-    // Extract skills
-    if (content.skills && Array.isArray(content.skills)) {
-      text.push('\nSKILLS:')
-      text.push(content.skills.join(', '))
+    // Check for other structured fields that might be added later
+    if (resume.workExperience || resume.skills || resume.education) {
+      hasStructuredData = true
+      console.log('📋 Found additional structured fields')
     }
 
     const extractedText = text.join('\n')
-    console.log('✅ Extracted resume text length:', extractedText.length)
+    console.log('✅ Extracted text length:', extractedText.length)
+    console.log('📊 Structured data available:', hasStructuredData)
     
-    return extractedText
+    return {
+      structuredText: extractedText,
+      hasStructuredData
+    }
 
   } catch (error) {
-    console.error('❌ Error extracting resume text:', error)
-    return String(currentContent)
+    console.error('❌ Error extracting structured resume data:', error)
+    return {
+      structuredText: 'Error extracting resume content',
+      hasStructuredData: false
+    }
   }
 }

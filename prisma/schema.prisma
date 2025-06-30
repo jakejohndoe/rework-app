@@ -173,7 +173,7 @@ model JobApplication {
   optimizedContent     Json?     // AI-optimized resume content
   optimizedStructured  Json?     // NEW: AI-optimized structured content
   matchScore          Float?    // 0-100 compatibility score
-  categoryScores      Json?     // NEW: { technical: 85, experience: 92, education: 78, skills: 88 }
+  categoryScores      Json?     // NEW: { technical: 85, experience: 92, education: 78, skills: 88, contact: 90, keywords: 75 }
   keywords            String[]  // Extracted keywords
   suggestions         Json?     // AI improvement suggestions
   
