@@ -5,13 +5,12 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { 
-  Code, 
+  Zap, 
   Cpu, 
   Wrench, 
-  Cloud, 
-  Database, 
   Users, 
   Award, 
+  Globe,
   Plus, 
   X,
   CheckCircle2,
@@ -33,76 +32,75 @@ interface SkillCategory {
   color: string
   placeholder: string
   description: string
+  priority: 'high' | 'medium' | 'optional'
 }
 
 const skillCategories: SkillCategory[] = [
   {
     key: 'technical',
-    label: 'Programming Languages',
-    icon: Code,
+    label: 'Core Job Skills',
+    icon: Zap,
     color: 'text-blue-400',
-    placeholder: 'JavaScript, Python, Java, TypeScript, Go',
-    description: 'Programming languages you use regularly'
-  },
-  {
-    key: 'frameworks',
-    label: 'Frameworks & Libraries',
-    icon: Cpu,
-    color: 'text-green-400',
-    placeholder: 'React, Angular, Vue.js, Express.js, Django',
-    description: 'Web frameworks and libraries you\'re proficient with'
+    placeholder: 'Customer Service, Sales, Project Management, Data Analysis, Marketing',
+    description: 'Main skills required for your target role',
+    priority: 'high'
   },
   {
     key: 'tools',
-    label: 'Development Tools',
+    label: 'Software & Tools',
     icon: Wrench,
     color: 'text-orange-400',
-    placeholder: 'Git, Docker, Kubernetes, Jenkins, Jira',
-    description: 'Development and project management tools'
-  },
-  {
-    key: 'cloud',
-    label: 'Cloud Platforms',
-    icon: Cloud,
-    color: 'text-cyan-400',
-    placeholder: 'AWS, Azure, Google Cloud, Heroku, Vercel',
-    description: 'Cloud services and deployment platforms'
-  },
-  {
-    key: 'databases',
-    label: 'Databases',
-    icon: Database,
-    color: 'text-purple-400',
-    placeholder: 'PostgreSQL, MongoDB, MySQL, Redis, Elasticsearch',
-    description: 'Database technologies and data storage solutions'
+    placeholder: 'Microsoft Office, Salesforce, Excel, SAP, QuickBooks, Photoshop',
+    description: 'Software, tools, and systems you use',
+    priority: 'high'
   },
   {
     key: 'soft',
     label: 'Soft Skills',
     icon: Users,
     color: 'text-pink-400',
-    placeholder: 'Leadership, Communication, Problem Solving, Team Collaboration',
-    description: 'Interpersonal and leadership abilities'
+    placeholder: 'Leadership, Communication, Problem Solving, Team Collaboration, Time Management',
+    description: 'Interpersonal and personal effectiveness skills',
+    priority: 'medium'
   },
   {
     key: 'certifications',
-    label: 'Certifications',
+    label: 'Certifications & Licenses',
     icon: Award,
     color: 'text-yellow-400',
-    placeholder: 'AWS Certified Solutions Architect, PMP, Scrum Master',
-    description: 'Professional certifications and credentials'
+    placeholder: 'PMP, Real Estate License, CPA, First Aid, Forklift Certified',
+    description: 'Professional certifications, licenses, and credentials',
+    priority: 'medium'
+  },
+  {
+    key: 'frameworks',
+    label: 'Industry Knowledge',
+    icon: Cpu,
+    color: 'text-green-400',
+    placeholder: 'Healthcare Regulations, OSHA Safety, Retail Operations, Financial Planning',
+    description: 'Industry-specific knowledge and methodologies',
+    priority: 'optional'
+  },
+  {
+    key: 'databases',
+    label: 'Languages',
+    icon: Globe,
+    color: 'text-purple-400',
+    placeholder: 'English, Spanish, French, Mandarin, American Sign Language',
+    description: 'Languages you speak (include proficiency level)',
+    priority: 'optional'
   }
 ]
 
 export default function SkillsSection({ skills, onChange, className = "" }: SkillsSectionProps) {
   const [formData, setFormData] = useState<SkillsStructure>({
-    technical: [],
-    frameworks: [],
-    tools: [],
-    cloud: [],
-    databases: [],
-    soft: [],
-    certifications: []
+    technical: [],    // Core Job Skills
+    frameworks: [],   // Industry Knowledge  
+    tools: [],        // Software & Tools
+    cloud: [],        // Not used in generic version
+    databases: [],    // Languages
+    soft: [],         // Soft Skills
+    certifications: [] // Certifications & Licenses
   })
   
   const [newSkillInputs, setNewSkillInputs] = useState<{ [key: string]: string }>({})
@@ -117,10 +115,15 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
 
   // Calculate completion score
   useEffect(() => {
-    const coreCategories = ['technical', 'frameworks', 'tools'] // Most important for ATS
-    const optionalCategories = ['cloud', 'databases', 'soft', 'certifications']
+    const coreCategories = ['technical', 'tools'] // Most important for any job
+    const recommendedCategories = ['soft', 'certifications']
+    const optionalCategories = ['frameworks', 'databases']
     
     const coreComplete = coreCategories.filter(cat => 
+      formData[cat as keyof SkillsStructure].length > 0
+    ).length
+    
+    const recommendedComplete = recommendedCategories.filter(cat => 
       formData[cat as keyof SkillsStructure].length > 0
     ).length
     
@@ -128,19 +131,29 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
       formData[cat as keyof SkillsStructure].length > 0
     ).length
     
-    // Core categories worth 70%, optional worth 30%
-    const coreScore = (coreComplete / coreCategories.length) * 70
-    const optionalScore = (optionalComplete / optionalCategories.length) * 30
+    // Core worth 50%, recommended 30%, optional 20%
+    const coreScore = (coreComplete / coreCategories.length) * 50
+    const recommendedScore = (recommendedComplete / recommendedCategories.length) * 30
+    const optionalScore = (optionalComplete / optionalCategories.length) * 20
     
-    setCompletionScore(Math.round(coreScore + optionalScore))
+    setCompletionScore(Math.round(coreScore + recommendedScore + optionalScore))
   }, [formData])
 
   const addSkill = (category: keyof SkillsStructure, skill: string) => {
     if (!skill.trim()) return
     
+    // Clean up the skill text
+    const cleanSkill = skill.trim()
+    
+    // Avoid duplicates
+    if (formData[category].includes(cleanSkill)) {
+      setNewSkillInputs(prev => ({ ...prev, [category]: '' }))
+      return
+    }
+    
     const updatedData = {
       ...formData,
-      [category]: [...formData[category], skill.trim()]
+      [category]: [...formData[category], cleanSkill]
     }
     
     setFormData(updatedData)
@@ -168,7 +181,9 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
     if (e.key === 'Enter') {
       e.preventDefault()
       const skill = newSkillInputs[category] || ''
-      addSkill(category, skill)
+      if (skill.trim()) {
+        addSkill(category, skill)
+      }
     }
   }
 
@@ -187,6 +202,7 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
       
       setFormData(updatedData)
       onChange(updatedData)
+      setNewSkillInputs(prev => ({ ...prev, [category]: '' }))
     }
   }
 
@@ -194,12 +210,6 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
     if (completionScore >= 90) return 'text-green-400'
     if (completionScore >= 70) return 'text-yellow-400'
     return 'text-red-400'
-  }
-
-  const getCategoryPriority = (categoryKey: keyof SkillsStructure): 'high' | 'medium' | 'optional' => {
-    if (['technical', 'frameworks'].includes(categoryKey)) return 'high'
-    if (['tools', 'databases'].includes(categoryKey)) return 'medium'
-    return 'optional'
   }
 
   const getPriorityColor = (priority: 'high' | 'medium' | 'optional'): string => {
@@ -213,7 +223,7 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
   const getPriorityBadge = (priority: 'high' | 'medium' | 'optional') => {
     switch (priority) {
       case 'high':
-        return <Badge variant="outline" className="text-xs text-green-400 border-green-400/50">High Impact</Badge>
+        return <Badge variant="outline" className="text-xs text-green-400 border-green-400/50">Essential</Badge>
       case 'medium':
         return <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/50">Recommended</Badge>
       default:
@@ -226,8 +236,8 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-white text-lg flex items-center gap-2">
-            <Code className="w-5 h-5 text-primary-400" />
-            Skills & Technologies
+            <Zap className="w-5 h-5 text-primary-400" />
+            Skills & Abilities
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge 
@@ -245,13 +255,12 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
       
       <CardContent className="space-y-6">
         {skillCategories.map((category) => {
-          const priority = getCategoryPriority(category.key)
           const IconComponent = category.icon
           
           return (
             <div 
               key={category.key} 
-              className={`p-4 rounded-lg border ${getPriorityColor(priority)} space-y-3`}
+              className={`p-4 rounded-lg border ${getPriorityColor(category.priority)} space-y-3`}
             >
               {/* Category Header */}
               <div className="flex items-center justify-between">
@@ -260,10 +269,10 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
                   <Label className="text-white font-medium">
                     {category.label}
                   </Label>
-                  {getPriorityBadge(priority)}
+                  {getPriorityBadge(category.priority)}
                 </div>
                 <span className="text-xs text-slate-400">
-                  {formData[category.key].length} skills
+                  {formData[category.key].length} {formData[category.key].length === 1 ? 'skill' : 'skills'}
                 </span>
               </div>
 
@@ -299,12 +308,21 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
                   <Input
                     value={newSkillInputs[category.key] || ''}
                     onChange={(e) => handleInputChange(category.key, e.target.value)}
-                    onKeyPress={(e) => handleKeyPress(category.key, e)}
+                    onKeyDown={(e) => handleKeyPress(category.key, e)}
                     placeholder={category.placeholder}
                     className="flex-1 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400"
                   />
                   <Button
-                    onClick={() => addSkill(category.key, newSkillInputs[category.key] || '')}
+                    onClick={() => {
+                      const skill = newSkillInputs[category.key] || ''
+                      if (skill.trim()) {
+                        if (skill.includes(',')) {
+                          addMultipleSkills(category.key, skill)
+                        } else {
+                          addSkill(category.key, skill)
+                        }
+                      }
+                    }}
                     disabled={!newSkillInputs[category.key]?.trim()}
                     className="bg-primary-500 hover:bg-primary-600 text-white"
                   >
@@ -316,38 +334,25 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Lightbulb className="w-3 h-3" />
                   <span>
-                    Tip: Add one skill at a time, or paste multiple skills separated by commas
+                    Press Enter to add a skill, or separate multiple skills with commas
                   </span>
-                  {newSkillInputs[category.key]?.includes(',') && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        addMultipleSkills(category.key, newSkillInputs[category.key] || '')
-                        setNewSkillInputs(prev => ({ ...prev, [category.key]: '' }))
-                      }}
-                      className="text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 p-1 h-auto"
-                    >
-                      Add All
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>
           )
         })}
 
-        {/* ATS Optimization Tips */}
+        {/* General Tips */}
         <div className="mt-6 p-4 bg-blue-500/10 border border-blue-400/20 rounded-lg space-y-2">
           <h4 className="text-blue-300 font-medium flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            ATS Optimization Tips
+            Tips for All Job Types
           </h4>
           <ul className="text-blue-300 text-sm space-y-1">
-            <li>• Use exact skill names from job descriptions (e.g., "React.js" not just "React")</li>
-            <li>• Include both abbreviations and full names (e.g., "AI" and "Artificial Intelligence")</li>
-            <li>• Focus on high-impact categories first: Programming Languages and Frameworks</li>
-            <li>• Include skill variations (e.g., "JavaScript", "ES6", "Node.js")</li>
+            <li>• Use keywords from the job description (copy exact terms when possible)</li>
+            <li>• Include both technical and soft skills relevant to your field</li>
+            <li>• Be specific (e.g., "Microsoft Excel Advanced" not just "Excel")</li>
+            <li>• Include industry-standard certifications and licenses</li>
           </ul>
         </div>
 
@@ -356,9 +361,9 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
           <div className="mt-4 p-3 bg-green-500/10 border border-green-400/20 rounded-lg">
             <p className="text-green-300 text-sm">
               <strong>Next Steps:</strong> 
-              {completionScore < 40 && " Start with Programming Languages and Frameworks - these have the highest ATS impact."}
-              {completionScore >= 40 && completionScore < 70 && " Add Development Tools and Databases to round out your technical profile."}
-              {completionScore >= 70 && " Consider adding Cloud Platforms and Certifications to stand out from other candidates."}
+              {completionScore < 30 && " Start with Core Job Skills and Software & Tools - these are essential for any role."}
+              {completionScore >= 30 && completionScore < 60 && " Add your Soft Skills and any Certifications to strengthen your profile."}
+              {completionScore >= 60 && " Consider adding Industry Knowledge and Languages if relevant to your target role."}
             </p>
           </div>
         )}

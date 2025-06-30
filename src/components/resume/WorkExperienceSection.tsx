@@ -14,8 +14,10 @@ import {
   Trash2, 
   CheckCircle2,
   AlertCircle,
-  Code,
-  Target
+  Wrench,
+  Target,
+  X,
+  Lightbulb
 } from "lucide-react"
 import { WorkExperience } from "@/types/resume"
 
@@ -433,21 +435,111 @@ export default function WorkExperienceSection({ workExperience, onChange, classN
               ))}
             </div>
 
-            {/* Technologies Used */}
-            <div className="space-y-2">
+            {/* Tools & Software Used */}
+            <div className="space-y-3">
               <Label className="text-white font-medium flex items-center gap-2">
-                <Code className="w-4 h-4 text-cyan-400" />
-                Technologies & Tools Used
+                <Wrench className="w-4 h-4 text-cyan-400" />
+                Tools & Software Used
               </Label>
-              <Input
-                value={job.technologies.join(', ')}
-                onChange={(e) => handleJobChange(job.id, 'technologies', e.target.value.split(',').map(t => t.trim()).filter(t => t))}
-                placeholder="React, TypeScript, Node.js, PostgreSQL, AWS"
-                className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400"
-              />
-              <p className="text-xs text-slate-400">
-                Separate technologies with commas. This helps with ATS keyword matching.
-              </p>
+
+              {/* Display existing tools as badges */}
+              {job.technologies.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {job.technologies.map((tech, techIndex) => (
+                    <Badge
+                      key={techIndex}
+                      variant="secondary"
+                      className="bg-white/10 text-white hover:bg-white/15 group cursor-pointer"
+                    >
+                      {tech}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newTechnologies = job.technologies.filter((_, i) => i !== techIndex)
+                          handleJobChange(job.id, 'technologies', newTechnologies)
+                        }}
+                        className="ml-1 p-0 h-auto w-auto text-white/60 hover:text-red-400 hover:bg-transparent"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new tool input */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Microsoft Office, Salesforce, Excel, POS Systems, Forklift, Medical Equipment"
+                    className="flex-1 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const input = e.target as HTMLInputElement
+                        const value = input.value.trim()
+                        if (value) {
+                          if (value.includes(',')) {
+                            // Handle multiple tools separated by commas
+                            const newTools = value
+                              .split(',')
+                              .map(tool => tool.trim())
+                              .filter(tool => tool.length > 0)
+                              .filter(tool => !job.technologies.includes(tool)) // Avoid duplicates
+                            
+                            if (newTools.length > 0) {
+                              handleJobChange(job.id, 'technologies', [...job.technologies, ...newTools])
+                            }
+                          } else {
+                            // Handle single tool
+                            if (!job.technologies.includes(value)) {
+                              handleJobChange(job.id, 'technologies', [...job.technologies, value])
+                            }
+                          }
+                          input.value = ''
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={(e) => {
+                      const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement
+                      const value = input?.value.trim()
+                      if (value) {
+                        if (value.includes(',')) {
+                          // Handle multiple tools separated by commas
+                          const newTools = value
+                            .split(',')
+                            .map(tool => tool.trim())
+                            .filter(tool => tool.length > 0)
+                            .filter(tool => !job.technologies.includes(tool)) // Avoid duplicates
+                          
+                          if (newTools.length > 0) {
+                            handleJobChange(job.id, 'technologies', [...job.technologies, ...newTools])
+                          }
+                        } else {
+                          // Handle single tool
+                          if (!job.technologies.includes(value)) {
+                            handleJobChange(job.id, 'technologies', [...job.technologies, value])
+                          }
+                        }
+                        input.value = ''
+                      }
+                    }}
+                    className="bg-primary-500 hover:bg-primary-600 text-white"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <Lightbulb className="w-3 h-3" />
+                  <span>
+                    Press Enter to add, or separate multiple tools with commas for better keyword matching
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         ))}

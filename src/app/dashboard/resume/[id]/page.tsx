@@ -16,7 +16,9 @@ import AutoFillButton from '@/components/auto-fill-button'
 import ContactInfoSection from '@/components/resume/ContactInfoSection'
 import WorkExperienceSection from '@/components/resume/WorkExperienceSection'
 import SkillsSection from '@/components/resume/SkillsSection'
-import { ContactInfo, StructuredResumeData, WorkExperience, SkillsStructure } from '@/types/resume'
+import EducationSection from '@/components/resume/EducationSection'
+import ProfessionalSummarySection from '@/components/resume/ProfessionalSummarySection'
+import { ContactInfo, StructuredResumeData, WorkExperience, SkillsStructure, Education, ProfessionalSummary } from '@/types/resume'
 import { 
   ArrowLeft, 
   Save, 
@@ -85,10 +87,15 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
                 </div>
               )}
             </div>
-            {(resumeData?.summary) && (
+            {(resumeData?.summary || resumeData?.structuredSummary) && (
               <div>
                 <h2 className="font-semibold text-gray-800 uppercase tracking-wide text-[5px]">Summary</h2>
-                <p className="text-gray-700 text-[5px]">{truncateText(resumeData.summary, 30)}</p>
+                <p className="text-gray-700 text-[5px]">
+                  {resumeData?.structuredSummary ? 
+                    truncateText(resumeData.structuredSummary.summary, 30) :
+                    truncateText(resumeData.summary, 30)
+                  }
+                </p>
               </div>
             )}
             {(resumeData?.experience || resumeData?.workExperience) && (
@@ -98,6 +105,17 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
                   {resumeData?.workExperience ? 
                     truncateText(resumeData.workExperience[0]?.jobTitle + ' - ' + resumeData.workExperience[0]?.company, 40) :
                     truncateText(resumeData.experience, 40)
+                  }
+                </div>
+              </div>
+            )}
+            {(resumeData?.education || resumeData?.structuredEducation) && (
+              <div>
+                <h2 className="font-semibold text-gray-800 uppercase tracking-wide text-[5px]">Education</h2>
+                <div className="text-gray-700 text-[5px]">
+                  {resumeData?.structuredEducation ? 
+                    truncateText(`${resumeData.structuredEducation[0]?.degree} - ${resumeData.structuredEducation[0]?.institution}`, 40) :
+                    truncateText(resumeData.education, 40)
                   }
                 </div>
               </div>
@@ -141,7 +159,8 @@ interface ResumeData {
   contactInfo?: ContactInfo
   workExperience?: WorkExperience[]
   skills?: SkillsStructure
-  education?: any[]
+  education?: Education[]
+  professionalSummary?: ProfessionalSummary
 }
 
 export default function ResumeEditorPage() {
@@ -249,7 +268,7 @@ export default function ResumeEditorPage() {
         ? '\n' + job.achievements.filter(a => a.trim()).map(a => `• ${a}`).join('\n')
         : ''
       const technologies = job.technologies && job.technologies.length > 0 
-        ? `\nTechnologies: ${job.technologies.join(', ')}`
+        ? `\nTools/Software: ${job.technologies.join(', ')}`
         : ''
       
       return header + location + achievements + technologies
@@ -262,28 +281,48 @@ export default function ResumeEditorPage() {
     const sections = []
     
     if (skills.technical.length > 0) {
-      sections.push(`Programming Languages: ${skills.technical.join(', ')}`)
-    }
-    if (skills.frameworks.length > 0) {
-      sections.push(`Frameworks & Libraries: ${skills.frameworks.join(', ')}`)
+      sections.push(`Core Job Skills: ${skills.technical.join(', ')}`)
     }
     if (skills.tools.length > 0) {
-      sections.push(`Development Tools: ${skills.tools.join(', ')}`)
-    }
-    if (skills.cloud.length > 0) {
-      sections.push(`Cloud Platforms: ${skills.cloud.join(', ')}`)
-    }
-    if (skills.databases.length > 0) {
-      sections.push(`Databases: ${skills.databases.join(', ')}`)
+      sections.push(`Software & Tools: ${skills.tools.join(', ')}`)
     }
     if (skills.soft.length > 0) {
       sections.push(`Soft Skills: ${skills.soft.join(', ')}`)
     }
     if (skills.certifications.length > 0) {
-      sections.push(`Certifications: ${skills.certifications.join(', ')}`)
+      sections.push(`Certifications & Licenses: ${skills.certifications.join(', ')}`)
+    }
+    if (skills.frameworks.length > 0) {
+      sections.push(`Industry Knowledge: ${skills.frameworks.join(', ')}`)
+    }
+    if (skills.databases.length > 0) {
+      sections.push(`Languages: ${skills.databases.join(', ')}`)
     }
     
     return sections.join('\n')
+  }
+
+  const convertEducationToLegacy = (education: Education[]): string => {
+    if (!education || education.length === 0) return ''
+    
+    return education.map(edu => {
+      const header = `${edu.degree} in ${edu.field} - ${edu.institution} (${edu.graduationYear})`
+      const gpa = edu.gpa ? `\nGPA: ${edu.gpa}` : ''
+      const honors = edu.honors && edu.honors.length > 0 
+        ? `\nHonors: ${edu.honors.join(', ')}`
+        : ''
+      const coursework = edu.relevantCoursework && edu.relevantCoursework.length > 0 
+        ? `\nRelevant Coursework: ${edu.relevantCoursework.join(', ')}`
+        : ''
+      
+      return header + gpa + honors + coursework
+    }).join('\n\n')
+  }
+
+  const convertProfessionalSummaryToLegacy = (professionalSummary: ProfessionalSummary): string => {
+    if (!professionalSummary) return ''
+    
+    return professionalSummary.summary
   }
 
   // Handler for structured contact data
@@ -332,6 +371,40 @@ export default function ResumeEditorPage() {
     setEditedSections(prev => ({
       ...prev,
       skills: legacySkills
+    }))
+    
+    setHasChanges(true)
+  }
+
+  // Handler for structured education data
+  const handleEducationChange = (education: Education[]) => {
+    setStructuredData(prev => ({
+      ...prev,
+      education: education
+    }))
+    
+    // Update legacy format for backward compatibility
+    const legacyEducation = convertEducationToLegacy(education)
+    setEditedSections(prev => ({
+      ...prev,
+      education: legacyEducation
+    }))
+    
+    setHasChanges(true)
+  }
+
+  // Handler for structured professional summary data
+  const handleProfessionalSummaryChange = (professionalSummary: ProfessionalSummary) => {
+    setStructuredData(prev => ({
+      ...prev,
+      professionalSummary: professionalSummary
+    }))
+    
+    // Update legacy format for backward compatibility
+    const legacySummary = convertProfessionalSummaryToLegacy(professionalSummary)
+    setEditedSections(prev => ({
+      ...prev,
+      summary: legacySummary
     }))
     
     setHasChanges(true)
@@ -405,6 +478,20 @@ export default function ResumeEditorPage() {
           contactInfo: structuredContact
         }))
       }
+    }
+
+    // Convert summary to structured format
+    if (convertedSections.summary) {
+      const structuredSummary: ProfessionalSummary = {
+        summary: convertedSections.summary,
+        targetRole: '',
+        keyStrengths: [],
+        careerLevel: 'mid'
+      }
+      setStructuredData(prev => ({
+        ...prev,
+        professionalSummary: structuredSummary
+      }))
     }
     
     // Mark as having changes so user can save
@@ -494,6 +581,25 @@ export default function ResumeEditorPage() {
           newStructuredData.skills = data.resume.skills
         }
 
+        // Load structured education
+        if (data.resume.education) {
+          newStructuredData.education = data.resume.education
+        }
+
+        // Load structured professional summary
+        if (data.resume.professionalSummary) {
+          newStructuredData.professionalSummary = data.resume.professionalSummary
+        } else if (sections.summary) {
+          // Convert legacy summary to structured format
+          const structuredSummary: ProfessionalSummary = {
+            summary: sections.summary,
+            targetRole: '',
+            keyStrengths: [],
+            careerLevel: 'mid'
+          }
+          newStructuredData.professionalSummary = structuredSummary
+        }
+
         setStructuredData(newStructuredData)
       } else {
         console.error('Failed to fetch resume:', data.error)
@@ -527,8 +633,9 @@ export default function ResumeEditorPage() {
         contactInfo: structuredData.contactInfo,
         workExperience: structuredData.workExperience,
         skills: structuredData.skills,
+        education: structuredData.education,
+        professionalSummary: structuredData.professionalSummary,
         // Add other structured fields as needed:
-        // education: structuredData.education,
         // projects: structuredData.projects,
       }
 
@@ -549,7 +656,9 @@ export default function ResumeEditorPage() {
           currentContent: updatedContent,
           contactInfo: structuredData.contactInfo,
           workExperience: structuredData.workExperience,
-          skills: structuredData.skills
+          skills: structuredData.skills,
+          education: structuredData.education,
+          professionalSummary: structuredData.professionalSummary
         } : null)
         setHasChanges(false)
         console.log('✅ Resume saved successfully')
@@ -577,7 +686,7 @@ export default function ResumeEditorPage() {
   const isResumeComplete = () => {
     // Check structured data first, then fall back to legacy
     const hasContact = structuredData.contactInfo?.email || editedSections.contact?.trim().length > 20
-    const hasSummary = editedSections.summary?.trim().length > 20
+    const hasSummary = (structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary?.trim().length > 20
     const hasExperience = (structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience?.trim().length > 20
     
     return hasContact && hasSummary && hasExperience
@@ -601,9 +710,11 @@ export default function ResumeEditorPage() {
       contactInfo: structuredData.contactInfo,
       contact: editedSections.contact,
       summary: editedSections.summary,
+      structuredSummary: structuredData.professionalSummary,
       experience: editedSections.experience,
       workExperience: structuredData.workExperience,
       education: editedSections.education,
+      structuredEducation: structuredData.education,
       skills: editedSections.skills,
       structuredSkills: structuredData.skills
     }
@@ -822,20 +933,12 @@ export default function ResumeEditorPage() {
                         className="mb-6"
                       />
 
-                      {/* Professional Summary */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-secondary-400" />
-                          Professional Summary
-                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
-                        </Label>
-                        <Textarea
-                          value={editedSections.summary}
-                          onChange={(e) => handleSectionChange('summary', e.target.value)}
-                          placeholder="Write a compelling 2-3 sentence summary of your professional experience, key skills, and career objectives..."
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
-                        />
-                      </div>
+                      {/* Structured Professional Summary */}
+                      <ProfessionalSummarySection
+                        professionalSummary={structuredData.professionalSummary}
+                        onChange={handleProfessionalSummaryChange}
+                        className="mb-6"
+                      />
 
                       {/* Structured Work Experience */}
                       <WorkExperienceSection
@@ -844,19 +947,12 @@ export default function ResumeEditorPage() {
                         className="mb-6"
                       />
 
-                      {/* Education */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-blue-400" />
-                          Education
-                        </Label>
-                        <Textarea
-                          value={editedSections.education}
-                          onChange={(e) => handleSectionChange('education', e.target.value)}
-                          placeholder="Degree Name - University/Institution (Graduation Year)&#10;• Relevant coursework, honors, or achievements&#10;• GPA (if 3.5+), Dean's List, scholarships, etc."
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
-                        />
-                      </div>
+                      {/* Structured Education */}
+                      <EducationSection
+                        education={structuredData.education}
+                        onChange={handleEducationChange}
+                        className="mb-6"
+                      />
 
                       {/* Structured Skills */}
                       <SkillsSection
@@ -909,13 +1005,29 @@ export default function ResumeEditorPage() {
                           </div>
                         )}
 
-                        {editedSections.summary && (
+                        {(editedSections.summary || structuredData.professionalSummary) && (
                           <div>
                             <h3 className="text-lg font-semibold text-secondary-400 mb-2 flex items-center gap-2">
                               <FileText className="w-4 h-4" />
                               Professional Summary
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.summary}</div>
+                            {structuredData.professionalSummary ? (
+                              <div className="space-y-2 text-slate-300">
+                                <div className="whitespace-pre-wrap">{structuredData.professionalSummary.summary}</div>
+                                {structuredData.professionalSummary.targetRole && (
+                                  <p className="text-slate-400 text-sm">
+                                    <strong>Target Role:</strong> {structuredData.professionalSummary.targetRole}
+                                  </p>
+                                )}
+                                {structuredData.professionalSummary.keyStrengths.length > 0 && (
+                                  <p className="text-slate-400 text-sm">
+                                    <strong>Key Strengths:</strong> {structuredData.professionalSummary.keyStrengths.join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.summary}</div>
+                            )}
                           </div>
                         )}
 
@@ -945,7 +1057,7 @@ export default function ResumeEditorPage() {
                                     )}
                                     {job.technologies && job.technologies.length > 0 && (
                                       <p className="mt-2 text-slate-400 text-sm">
-                                        <strong>Technologies:</strong> {job.technologies.join(', ')}
+                                        <strong>Tools/Software:</strong> {job.technologies.join(', ')}
                                       </p>
                                     )}
                                   </div>
@@ -957,13 +1069,39 @@ export default function ResumeEditorPage() {
                           </div>
                         )}
 
-                        {editedSections.education && (
+                        {(editedSections.education || structuredData.education?.length) && (
                           <div>
                             <h3 className="text-lg font-semibold text-blue-400 mb-2 flex items-center gap-2">
                               <GraduationCap className="w-4 h-4" />
                               Education
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.education}</div>
+                            {structuredData.education && structuredData.education.length > 0 ? (
+                              <div className="space-y-3">
+                                {structuredData.education.map((edu, index) => (
+                                  <div key={edu.id} className="border-l border-slate-600 pl-4">
+                                    <h4 className="font-semibold text-white">
+                                      {edu.degree} in {edu.field}
+                                    </h4>
+                                    <p className="text-slate-400 text-sm">
+                                      {edu.institution} • {edu.graduationYear}
+                                      {edu.gpa && ` • GPA: ${edu.gpa}`}
+                                    </p>
+                                    {edu.honors && edu.honors.length > 0 && (
+                                      <p className="text-slate-300 text-sm mt-1">
+                                        <strong>Honors:</strong> {edu.honors.join(', ')}
+                                      </p>
+                                    )}
+                                    {edu.relevantCoursework && edu.relevantCoursework.length > 0 && (
+                                      <p className="text-slate-300 text-sm mt-1">
+                                        <strong>Relevant Coursework:</strong> {edu.relevantCoursework.join(', ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.education}</div>
+                            )}
                           </div>
                         )}
 
@@ -971,30 +1109,27 @@ export default function ResumeEditorPage() {
                           <div>
                             <h3 className="text-lg font-semibold text-yellow-400 mb-2 flex items-center gap-2">
                               <Zap className="w-4 h-4" />
-                              Skills & Technologies
+                              Skills & Abilities
                             </h3>
                             {structuredData.skills ? (
                               <div className="space-y-2">
                                 {structuredData.skills.technical.length > 0 && (
-                                  <div><strong>Programming Languages:</strong> {structuredData.skills.technical.join(', ')}</div>
-                                )}
-                                {structuredData.skills.frameworks.length > 0 && (
-                                  <div><strong>Frameworks & Libraries:</strong> {structuredData.skills.frameworks.join(', ')}</div>
+                                  <div><strong>Core Job Skills:</strong> {structuredData.skills.technical.join(', ')}</div>
                                 )}
                                 {structuredData.skills.tools.length > 0 && (
-                                  <div><strong>Development Tools:</strong> {structuredData.skills.tools.join(', ')}</div>
-                                )}
-                                {structuredData.skills.cloud.length > 0 && (
-                                  <div><strong>Cloud Platforms:</strong> {structuredData.skills.cloud.join(', ')}</div>
-                                )}
-                                {structuredData.skills.databases.length > 0 && (
-                                  <div><strong>Databases:</strong> {structuredData.skills.databases.join(', ')}</div>
+                                  <div><strong>Software & Tools:</strong> {structuredData.skills.tools.join(', ')}</div>
                                 )}
                                 {structuredData.skills.soft.length > 0 && (
                                   <div><strong>Soft Skills:</strong> {structuredData.skills.soft.join(', ')}</div>
                                 )}
                                 {structuredData.skills.certifications.length > 0 && (
-                                  <div><strong>Certifications:</strong> {structuredData.skills.certifications.join(', ')}</div>
+                                  <div><strong>Certifications & Licenses:</strong> {structuredData.skills.certifications.join(', ')}</div>
+                                )}
+                                {structuredData.skills.frameworks.length > 0 && (
+                                  <div><strong>Industry Knowledge:</strong> {structuredData.skills.frameworks.join(', ')}</div>
+                                )}
+                                {structuredData.skills.databases.length > 0 && (
+                                  <div><strong>Languages:</strong> {structuredData.skills.databases.join(', ')}</div>
                                 )}
                               </div>
                             ) : (
@@ -1078,7 +1213,7 @@ export default function ResumeEditorPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Summary</span>
-                    {editedSections.summary.length > 20 ? (
+                    {(structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary.length > 20 ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
@@ -1094,7 +1229,7 @@ export default function ResumeEditorPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Education</span>
-                    {editedSections.education.length > 5 ? (
+                    {(structuredData.education && structuredData.education.length > 0) || editedSections.education.length > 5 ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
