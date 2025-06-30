@@ -1,4 +1,4 @@
-// Fixed src/app/api/resumes/[id]/analyze/route.ts - TypeScript errors resolved
+// Enhanced src/app/api/resumes/[id]/analyze/route.ts - Now extracts ALL structured data
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
@@ -92,10 +92,10 @@ export async function POST(
       )
     }
 
-    // NEW: Extract structured resume data
+    // ENHANCED: Extract ALL structured resume data
     const { structuredText, hasStructuredData } = extractStructuredResumeData(resume)
     
-    console.log('📝 Resume content type:', hasStructuredData ? 'Structured' : 'Legacy')
+    console.log('📝 Resume content type:', hasStructuredData ? 'Structured (PREMIUM)' : 'Legacy')
     console.log('📝 Resume content length:', structuredText.length)
     console.log('🎯 Job title:', jobApplication.jobTitle)
     console.log('🏢 Company:', jobApplication.company)
@@ -410,15 +410,15 @@ function createEnhancedFallbackAnalysis(): EnhancedAnalysisResult {
   }
 }
 
-// NEW: Enhanced resume text extraction with structured data support
+// 🚀 ENHANCED: Resume data extraction with FULL structured data support
 function extractStructuredResumeData(resume: any): { structuredText: string, hasStructuredData: boolean } {
-  console.log('🔍 Extracting structured resume data...')
+  console.log('🔍 Extracting ALL structured resume data...')
   
   let hasStructuredData = false
   let text: string[] = []
   
   try {
-    // FIXED: Check for new structured contact info first - handle both field names
+    // 1. ✅ CONTACT INFORMATION (Already working)
     const contactInfo = getContactInfo(resume)
     if (contactInfo) {
       hasStructuredData = true
@@ -433,100 +433,211 @@ function extractStructuredResumeData(resume: any): { structuredText: string, has
       text.push('')
     }
 
-    // Extract from legacy or new content structure
-    const content = resume.currentContent
-    
-    if (content?.sections) {
-      // Legacy sections format
-      console.log('📋 Using legacy sections format')
+    // 2. 🆕 PROFESSIONAL SUMMARY (NEW - Extract structured data)
+    if (resume.professionalSummary) {
+      hasStructuredData = true
+      text.push('=== PROFESSIONAL SUMMARY (STRUCTURED) ===')
       
-      if (!hasStructuredData && content.sections.contact) {
-        text.push('=== CONTACT INFORMATION ===')
-        text.push(content.sections.contact)
-        text.push('')
+      const summary = resume.professionalSummary
+      if (summary.targetRole) text.push(`Target Role: ${summary.targetRole}`)
+      if (summary.careerLevel) text.push(`Career Level: ${summary.careerLevel}`)
+      
+      if (summary.keyStrengths && Array.isArray(summary.keyStrengths) && summary.keyStrengths.length > 0) {
+        text.push(`Key Strengths: ${summary.keyStrengths.join(', ')}`)
       }
       
-      if (content.sections.summary) {
-        text.push('=== PROFESSIONAL SUMMARY ===')
-        text.push(content.sections.summary)
-        text.push('')
+      if (summary.summary) {
+        text.push('Summary:')
+        text.push(summary.summary)
       }
-      
-      if (content.sections.experience) {
-        text.push('=== WORK EXPERIENCE ===')
-        text.push(content.sections.experience)
-        text.push('')
-      }
-      
-      if (content.sections.education) {
-        text.push('=== EDUCATION ===')
-        text.push(content.sections.education)
-        text.push('')
-      }
-      
-      if (content.sections.skills) {
-        text.push('=== SKILLS & TECHNOLOGIES ===')
-        text.push(content.sections.skills)
-        text.push('')
-      }
-      
-      if (content.sections.other) {
-        text.push('=== ADDITIONAL INFORMATION ===')
-        text.push(content.sections.other)
-        text.push('')
-      }
-    } else if (content) {
-      // Auto-fill flat structure format
-      console.log('📋 Using auto-fill flat structure format')
-      
-      if (!hasStructuredData && content.contact) {
-        text.push('=== CONTACT INFORMATION ===')
-        if (content.contact.fullName) text.push(`Name: ${content.contact.fullName}`)
-        if (content.contact.email) text.push(`Email: ${content.contact.email}`)
-        if (content.contact.phone) text.push(`Phone: ${content.contact.phone}`)
-        if (content.contact.location) text.push(`Location: ${content.contact.location}`)
-        text.push('')
-      }
-      
-      if (content.summary) {
-        text.push('=== PROFESSIONAL SUMMARY ===')
-        text.push(content.summary)
-        text.push('')
-      }
-      
-      if (content.experience && Array.isArray(content.experience)) {
-        text.push('=== WORK EXPERIENCE ===')
-        content.experience.forEach((job: any) => {
-          text.push(`${job.title} at ${job.company} (${job.startDate} - ${job.endDate || 'Present'})`)
-          if (job.description) text.push(job.description)
-          text.push('')
-        })
-      }
-      
-      if (content.education && Array.isArray(content.education)) {
-        text.push('=== EDUCATION ===')
-        content.education.forEach((edu: any) => {
-          text.push(`${edu.degree} from ${edu.school} (${edu.year || 'Year not specified'})`)
-        })
-        text.push('')
-      }
-      
-      if (content.skills && Array.isArray(content.skills)) {
-        text.push('=== SKILLS ===')
-        text.push(content.skills.join(', '))
-        text.push('')
-      }
+      text.push('')
     }
 
-    // Check for other structured fields that might be added later
-    if (resume.workExperience || resume.skills || resume.education) {
+    // 3. 🆕 WORK EXPERIENCE (NEW - Extract structured data)
+    if (resume.workExperience && Array.isArray(resume.workExperience) && resume.workExperience.length > 0) {
       hasStructuredData = true
-      console.log('📋 Found additional structured fields')
+      text.push('=== WORK EXPERIENCE (STRUCTURED) ===')
+      
+      resume.workExperience.forEach((job: any, index: number) => {
+        text.push(`Job ${index + 1}:`)
+        text.push(`• Position: ${job.jobTitle || 'Not specified'}`)
+        text.push(`• Company: ${job.company || 'Not specified'}`)
+        text.push(`• Duration: ${job.startDate || 'Start date not specified'} - ${job.endDate || 'Present'}`)
+        
+        if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
+          text.push(`• Key Achievements:`)
+          job.achievements.forEach((achievement: string) => {
+            text.push(`  - ${achievement}`)
+          })
+        }
+        
+        if (job.technologies && Array.isArray(job.technologies) && job.technologies.length > 0) {
+          text.push(`• Technologies/Tools Used: ${job.technologies.join(', ')}`)
+        }
+        text.push('')
+      })
+    }
+
+    // 4. 🆕 EDUCATION (NEW - Extract structured data)
+    if (resume.education && Array.isArray(resume.education) && resume.education.length > 0) {
+      hasStructuredData = true
+      text.push('=== EDUCATION (STRUCTURED) ===')
+      
+      resume.education.forEach((edu: any, index: number) => {
+        text.push(`Education ${index + 1}:`)
+        text.push(`• Degree: ${edu.degree || 'Not specified'}`)
+        text.push(`• Field of Study: ${edu.fieldOfStudy || 'Not specified'}`)
+        text.push(`• Institution: ${edu.institution || 'Not specified'}`)
+        text.push(`• Year: ${edu.graduationYear || 'Not specified'}`)
+        
+        if (edu.gpa) text.push(`• GPA: ${edu.gpa}`)
+        
+        if (edu.honors && Array.isArray(edu.honors) && edu.honors.length > 0) {
+          text.push(`• Honors/Awards: ${edu.honors.join(', ')}`)
+        }
+        
+        if (edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0) {
+          text.push(`• Relevant Coursework: ${edu.relevantCoursework.join(', ')}`)
+        }
+        text.push('')
+      })
+    }
+
+    // 5. 🆕 SKILLS (NEW - Extract structured data)
+    if (resume.skills) {
+      hasStructuredData = true
+      text.push('=== SKILLS & ABILITIES (STRUCTURED) ===')
+      
+      const skills = resume.skills
+      
+      if (skills.technical && Array.isArray(skills.technical) && skills.technical.length > 0) {
+        text.push(`Technical Skills: ${skills.technical.join(', ')}`)
+      }
+      
+      if (skills.tools && Array.isArray(skills.tools) && skills.tools.length > 0) {
+        text.push(`Tools & Software: ${skills.tools.join(', ')}`)
+      }
+      
+      if (skills.soft && Array.isArray(skills.soft) && skills.soft.length > 0) {
+        text.push(`Soft Skills: ${skills.soft.join(', ')}`)
+      }
+      
+      if (skills.certifications && Array.isArray(skills.certifications) && skills.certifications.length > 0) {
+        text.push(`Certifications: ${skills.certifications.join(', ')}`)
+      }
+      
+      if (skills.frameworks && Array.isArray(skills.frameworks) && skills.frameworks.length > 0) {
+        text.push(`Frameworks: ${skills.frameworks.join(', ')}`)
+      }
+      
+      if (skills.databases && Array.isArray(skills.databases) && skills.databases.length > 0) {
+        text.push(`Databases: ${skills.databases.join(', ')}`)
+      }
+      text.push('')
+    }
+
+    // 6. 🆕 ADDITIONAL SECTIONS (Future-ready)
+    if (resume.additionalSections) {
+      hasStructuredData = true
+      text.push('=== ADDITIONAL INFORMATION (STRUCTURED) ===')
+      text.push(resume.additionalSections)
+      text.push('')
+    }
+
+    // FALLBACK: Legacy content extraction (only if no structured data found)
+    if (!hasStructuredData) {
+      console.log('📋 No structured data found, falling back to legacy extraction...')
+      
+      const content = resume.currentContent
+      
+      if (content?.sections) {
+        // Legacy sections format
+        console.log('📋 Using legacy sections format')
+        
+        if (content.sections.contact) {
+          text.push('=== CONTACT INFORMATION (LEGACY) ===')
+          text.push(content.sections.contact)
+          text.push('')
+        }
+        
+        if (content.sections.summary) {
+          text.push('=== PROFESSIONAL SUMMARY (LEGACY) ===')
+          text.push(content.sections.summary)
+          text.push('')
+        }
+        
+        if (content.sections.experience) {
+          text.push('=== WORK EXPERIENCE (LEGACY) ===')
+          text.push(content.sections.experience)
+          text.push('')
+        }
+        
+        if (content.sections.education) {
+          text.push('=== EDUCATION (LEGACY) ===')
+          text.push(content.sections.education)
+          text.push('')
+        }
+        
+        if (content.sections.skills) {
+          text.push('=== SKILLS & TECHNOLOGIES (LEGACY) ===')
+          text.push(content.sections.skills)
+          text.push('')
+        }
+        
+        if (content.sections.other) {
+          text.push('=== ADDITIONAL INFORMATION (LEGACY) ===')
+          text.push(content.sections.other)
+          text.push('')
+        }
+      } else if (content) {
+        // Auto-fill flat structure format
+        console.log('📋 Using auto-fill flat structure format')
+        
+        if (content.contact) {
+          text.push('=== CONTACT INFORMATION (AUTO-FILL) ===')
+          if (content.contact.fullName) text.push(`Name: ${content.contact.fullName}`)
+          if (content.contact.email) text.push(`Email: ${content.contact.email}`)
+          if (content.contact.phone) text.push(`Phone: ${content.contact.phone}`)
+          if (content.contact.location) text.push(`Location: ${content.contact.location}`)
+          text.push('')
+        }
+        
+        if (content.summary) {
+          text.push('=== PROFESSIONAL SUMMARY (AUTO-FILL) ===')
+          text.push(content.summary)
+          text.push('')
+        }
+        
+        if (content.experience && Array.isArray(content.experience)) {
+          text.push('=== WORK EXPERIENCE (AUTO-FILL) ===')
+          content.experience.forEach((job: any) => {
+            text.push(`${job.title} at ${job.company} (${job.startDate} - ${job.endDate || 'Present'})`)
+            if (job.description) text.push(job.description)
+            text.push('')
+          })
+        }
+        
+        if (content.education && Array.isArray(content.education)) {
+          text.push('=== EDUCATION (AUTO-FILL) ===')
+          content.education.forEach((edu: any) => {
+            text.push(`${edu.degree} from ${edu.school} (${edu.year || 'Year not specified'})`)
+          })
+          text.push('')
+        }
+        
+        if (content.skills && Array.isArray(content.skills)) {
+          text.push('=== SKILLS (AUTO-FILL) ===')
+          text.push(content.skills.join(', '))
+          text.push('')
+        }
+      }
     }
 
     const extractedText = text.join('\n')
-    console.log('✅ Extracted text length:', extractedText.length)
+    console.log('✅ Enhanced extraction complete!')
     console.log('📊 Structured data available:', hasStructuredData)
+    console.log('📄 Total extracted text length:', extractedText.length)
+    console.log('📋 Data format:', hasStructuredData ? 'STRUCTURED (Premium)' : 'Legacy/Auto-fill')
     
     return {
       structuredText: extractedText,
