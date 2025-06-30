@@ -14,7 +14,9 @@ import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import AutoFillButton from '@/components/auto-fill-button'
 import ContactInfoSection from '@/components/resume/ContactInfoSection'
-import { ContactInfo, StructuredResumeData } from '@/types/resume'
+import WorkExperienceSection from '@/components/resume/WorkExperienceSection'
+import SkillsSection from '@/components/resume/SkillsSection'
+import { ContactInfo, StructuredResumeData, WorkExperience, SkillsStructure } from '@/types/resume'
 import { 
   ArrowLeft, 
   Save, 
@@ -89,10 +91,15 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
                 <p className="text-gray-700 text-[5px]">{truncateText(resumeData.summary, 30)}</p>
               </div>
             )}
-            {(resumeData?.experience) && (
+            {(resumeData?.experience || resumeData?.workExperience) && (
               <div>
                 <h2 className="font-semibold text-gray-800 uppercase tracking-wide text-[5px]">Experience</h2>
-                <div className="text-gray-700 text-[5px]">{truncateText(resumeData.experience, 40)}</div>
+                <div className="text-gray-700 text-[5px]">
+                  {resumeData?.workExperience ? 
+                    truncateText(resumeData.workExperience[0]?.jobTitle + ' - ' + resumeData.workExperience[0]?.company, 40) :
+                    truncateText(resumeData.experience, 40)
+                  }
+                </div>
               </div>
             )}
           </div>
@@ -130,10 +137,10 @@ interface ResumeData {
     }
   }
   currentContent: any
-  // New structured fields
+  // Structured fields
   contactInfo?: ContactInfo
-  workExperience?: any[]
-  skills?: any
+  workExperience?: WorkExperience[]
+  skills?: SkillsStructure
   education?: any[]
 }
 
@@ -160,7 +167,7 @@ export default function ResumeEditorPage() {
     other: ""
   })
 
-  // NEW: Structured data state
+  // Structured data state
   const [structuredData, setStructuredData] = useState<StructuredResumeData>({
     contactInfo: undefined,
     professionalSummary: undefined,
@@ -232,19 +239,99 @@ export default function ResumeEditorPage() {
     return lines.join('\n')
   }
 
-  // NEW: Handler for structured contact data
+  const convertWorkExperienceToLegacy = (workExperience: WorkExperience[]): string => {
+    if (!workExperience || workExperience.length === 0) return ''
+    
+    return workExperience.map(job => {
+      const header = `${job.jobTitle} - ${job.company} (${job.startDate} - ${job.endDate === 'present' ? 'Present' : job.endDate})`
+      const location = job.location ? `\nLocation: ${job.location}` : ''
+      const achievements = job.achievements && job.achievements.length > 0 && job.achievements[0]?.trim() 
+        ? '\n' + job.achievements.filter(a => a.trim()).map(a => `• ${a}`).join('\n')
+        : ''
+      const technologies = job.technologies && job.technologies.length > 0 
+        ? `\nTechnologies: ${job.technologies.join(', ')}`
+        : ''
+      
+      return header + location + achievements + technologies
+    }).join('\n\n')
+  }
+
+  const convertSkillsToLegacy = (skills: SkillsStructure): string => {
+    if (!skills) return ''
+    
+    const sections = []
+    
+    if (skills.technical.length > 0) {
+      sections.push(`Programming Languages: ${skills.technical.join(', ')}`)
+    }
+    if (skills.frameworks.length > 0) {
+      sections.push(`Frameworks & Libraries: ${skills.frameworks.join(', ')}`)
+    }
+    if (skills.tools.length > 0) {
+      sections.push(`Development Tools: ${skills.tools.join(', ')}`)
+    }
+    if (skills.cloud.length > 0) {
+      sections.push(`Cloud Platforms: ${skills.cloud.join(', ')}`)
+    }
+    if (skills.databases.length > 0) {
+      sections.push(`Databases: ${skills.databases.join(', ')}`)
+    }
+    if (skills.soft.length > 0) {
+      sections.push(`Soft Skills: ${skills.soft.join(', ')}`)
+    }
+    if (skills.certifications.length > 0) {
+      sections.push(`Certifications: ${skills.certifications.join(', ')}`)
+    }
+    
+    return sections.join('\n')
+  }
+
+  // Handler for structured contact data
   const handleContactInfoChange = (contactInfo: ContactInfo) => {
-    // Update structured data
     setStructuredData(prev => ({
       ...prev,
       contactInfo: contactInfo
     }))
     
-    // Also update legacy format for backward compatibility
+    // Update legacy format for backward compatibility
     const legacyContact = convertStructuredContactToLegacy(contactInfo)
     setEditedSections(prev => ({
       ...prev,
       contact: legacyContact
+    }))
+    
+    setHasChanges(true)
+  }
+
+  // Handler for structured work experience data
+  const handleWorkExperienceChange = (workExperience: WorkExperience[]) => {
+    setStructuredData(prev => ({
+      ...prev,
+      workExperience: workExperience
+    }))
+    
+    // Update legacy format for backward compatibility
+    const legacyExperience = convertWorkExperienceToLegacy(workExperience)
+    setEditedSections(prev => ({
+      ...prev,
+      experience: legacyExperience
+    }))
+    
+    setHasChanges(true)
+  }
+
+  // Handler for structured skills data
+  const handleSkillsChange = (skills: SkillsStructure) => {
+    setStructuredData(prev => ({
+      ...prev,
+      skills: skills
+    }))
+    
+    // Update legacy format for backward compatibility
+    const legacySkills = convertSkillsToLegacy(skills)
+    setEditedSections(prev => ({
+      ...prev,
+      skills: legacySkills
     }))
     
     setHasChanges(true)
@@ -309,7 +396,7 @@ export default function ResumeEditorPage() {
     // Update the edited sections
     setEditedSections(convertedSections)
 
-    // NEW: Convert to structured data if possible
+    // Convert to structured data if possible
     if (convertedSections.contact) {
       const structuredContact = convertLegacyContactToStructured(convertedSections.contact)
       if (structuredContact) {
@@ -375,22 +462,39 @@ export default function ResumeEditorPage() {
         
         setEditedSections(sections)
 
-        // NEW: Handle structured data
+        // Handle structured data
+        const newStructuredData: StructuredResumeData = {
+          contactInfo: undefined,
+          professionalSummary: undefined,
+          workExperience: [],
+          education: [],
+          skills: undefined,
+          projects: [],
+          additionalSections: undefined
+        }
+
+        // Load structured contact info
         if (data.resume.contactInfo) {
-          setStructuredData(prev => ({
-            ...prev,
-            contactInfo: data.resume.contactInfo
-          }))
+          newStructuredData.contactInfo = data.resume.contactInfo
         } else if (sections.contact) {
           // Convert legacy contact data to structured format
           const convertedContact = convertLegacyContactToStructured(sections.contact)
           if (convertedContact) {
-            setStructuredData(prev => ({
-              ...prev,
-              contactInfo: convertedContact
-            }))
+            newStructuredData.contactInfo = convertedContact
           }
         }
+
+        // Load structured work experience
+        if (data.resume.workExperience) {
+          newStructuredData.workExperience = data.resume.workExperience
+        }
+
+        // Load structured skills
+        if (data.resume.skills) {
+          newStructuredData.skills = data.resume.skills
+        }
+
+        setStructuredData(newStructuredData)
       } else {
         console.error('Failed to fetch resume:', data.error)
         router.push('/dashboard')
@@ -403,7 +507,7 @@ export default function ResumeEditorPage() {
     }
   }
 
-  // Save changes - UPDATED to include structured data
+  // Save changes - UPDATED to include all structured data
   const handleSave = async () => {
     if (!resume || !hasChanges) return
 
@@ -415,16 +519,17 @@ export default function ResumeEditorPage() {
         sections: editedSections
       }
 
-      // Include structured data in the save
+      // Include all structured data in the save
       const saveData = {
         title: editedTitle,
         currentContent: updatedContent,
-        // NEW: Include structured fields
+        // Include structured fields
         contactInfo: structuredData.contactInfo,
-        // Add other structured fields as you build them:
-        // workExperience: structuredData.workExperience,
-        // skills: structuredData.skills,
+        workExperience: structuredData.workExperience,
+        skills: structuredData.skills,
+        // Add other structured fields as needed:
         // education: structuredData.education,
+        // projects: structuredData.projects,
       }
 
       const response = await fetch(`/api/resumes/${resumeId}`, {
@@ -442,7 +547,9 @@ export default function ResumeEditorPage() {
           ...prev, 
           title: editedTitle, 
           currentContent: updatedContent,
-          contactInfo: structuredData.contactInfo 
+          contactInfo: structuredData.contactInfo,
+          workExperience: structuredData.workExperience,
+          skills: structuredData.skills
         } : null)
         setHasChanges(false)
         console.log('✅ Resume saved successfully')
@@ -466,10 +573,14 @@ export default function ResumeEditorPage() {
     setHasChanges(true)
   }
 
-  // Check if resume is complete enough for next step
+  // Check if resume is complete enough for next step - UPDATED for structured data
   const isResumeComplete = () => {
-    const requiredSections = ['contact', 'summary', 'experience']
-    return requiredSections.every(section => editedSections[section as keyof typeof editedSections]?.trim().length > 20)
+    // Check structured data first, then fall back to legacy
+    const hasContact = structuredData.contactInfo?.email || editedSections.contact?.trim().length > 20
+    const hasSummary = editedSections.summary?.trim().length > 20
+    const hasExperience = (structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience?.trim().length > 20
+    
+    return hasContact && hasSummary && hasExperience
   }
 
   // Handle next step
@@ -483,16 +594,18 @@ export default function ResumeEditorPage() {
     router.push(`/dashboard/resume/${resumeId}/job-description`)
   }
 
-  // Helper function to get preview data
+  // Helper function to get preview data - UPDATED for structured data
   const getPreviewData = () => {
     return {
       title: editedTitle,
-      contactInfo: structuredData.contactInfo || editedSections.contact,
+      contactInfo: structuredData.contactInfo,
       contact: editedSections.contact,
       summary: editedSections.summary,
       experience: editedSections.experience,
+      workExperience: structuredData.workExperience,
       education: editedSections.education,
-      skills: editedSections.skills
+      skills: editedSections.skills,
+      structuredSkills: structuredData.skills
     }
   }
 
@@ -702,7 +815,7 @@ export default function ResumeEditorPage() {
 
                   <div className="p-6">
                     <TabsContent value="edit" className="space-y-6 mt-0">
-                      {/* NEW: Structured Contact Information */}
+                      {/* Structured Contact Information */}
                       <ContactInfoSection
                         contactInfo={structuredData.contactInfo}
                         onChange={handleContactInfoChange}
@@ -724,20 +837,12 @@ export default function ResumeEditorPage() {
                         />
                       </div>
 
-                      {/* Work Experience */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-green-400" />
-                          Work Experience
-                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
-                        </Label>
-                        <Textarea
-                          value={editedSections.experience}
-                          onChange={(e) => handleSectionChange('experience', e.target.value)}
-                          placeholder="Job Title - Company Name (Start Date - End Date)&#10;• Key achievement with quantifiable results&#10;• Another achievement demonstrating relevant skills&#10;• Third achievement showing impact and value&#10;&#10;Previous Job Title - Company Name (Start Date - End Date)&#10;• Achievement or responsibility&#10;• Another key accomplishment..."
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[200px]"
-                        />
-                      </div>
+                      {/* Structured Work Experience */}
+                      <WorkExperienceSection
+                        workExperience={structuredData.workExperience}
+                        onChange={handleWorkExperienceChange}
+                        className="mb-6"
+                      />
 
                       {/* Education */}
                       <div className="space-y-3">
@@ -753,19 +858,12 @@ export default function ResumeEditorPage() {
                         />
                       </div>
 
-                      {/* Skills */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-yellow-400" />
-                          Skills & Technologies
-                        </Label>
-                        <Textarea
-                          value={editedSections.skills}
-                          onChange={(e) => handleSectionChange('skills', e.target.value)}
-                          placeholder="Technical Skills: JavaScript, Python, React, Node.js, SQL&#10;Tools & Platforms: Git, Docker, AWS, MongoDB, Jira&#10;Soft Skills: Leadership, Communication, Problem-solving, Team Collaboration"
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
-                        />
-                      </div>
+                      {/* Structured Skills */}
+                      <SkillsSection
+                        skills={structuredData.skills}
+                        onChange={handleSkillsChange}
+                        className="mb-6"
+                      />
 
                       {/* Other */}
                       <div className="space-y-3">
@@ -821,13 +919,41 @@ export default function ResumeEditorPage() {
                           </div>
                         )}
 
-                        {editedSections.experience && (
+                        {(editedSections.experience || structuredData.workExperience?.length) && (
                           <div>
                             <h3 className="text-lg font-semibold text-green-400 mb-2 flex items-center gap-2">
                               <Briefcase className="w-4 h-4" />
                               Work Experience
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.experience}</div>
+                            {structuredData.workExperience && structuredData.workExperience.length > 0 ? (
+                              <div className="space-y-4">
+                                {structuredData.workExperience.map((job, index) => (
+                                  <div key={job.id} className="border-l border-slate-600 pl-4">
+                                    <h4 className="font-semibold text-white">
+                                      {job.jobTitle} - {job.company}
+                                    </h4>
+                                    <p className="text-slate-400 text-sm">
+                                      {job.startDate} - {job.endDate === 'present' ? 'Present' : job.endDate}
+                                      {job.location && ` • ${job.location}`}
+                                    </p>
+                                    {job.achievements && job.achievements.length > 0 && job.achievements[0]?.trim() && (
+                                      <ul className="mt-2 space-y-1 text-slate-300">
+                                        {job.achievements.filter(a => a.trim()).map((achievement, i) => (
+                                          <li key={i} className="text-sm">• {achievement}</li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                    {job.technologies && job.technologies.length > 0 && (
+                                      <p className="mt-2 text-slate-400 text-sm">
+                                        <strong>Technologies:</strong> {job.technologies.join(', ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.experience}</div>
+                            )}
                           </div>
                         )}
 
@@ -841,13 +967,39 @@ export default function ResumeEditorPage() {
                           </div>
                         )}
 
-                        {editedSections.skills && (
+                        {(editedSections.skills || structuredData.skills) && (
                           <div>
                             <h3 className="text-lg font-semibold text-yellow-400 mb-2 flex items-center gap-2">
                               <Zap className="w-4 h-4" />
                               Skills & Technologies
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.skills}</div>
+                            {structuredData.skills ? (
+                              <div className="space-y-2">
+                                {structuredData.skills.technical.length > 0 && (
+                                  <div><strong>Programming Languages:</strong> {structuredData.skills.technical.join(', ')}</div>
+                                )}
+                                {structuredData.skills.frameworks.length > 0 && (
+                                  <div><strong>Frameworks & Libraries:</strong> {structuredData.skills.frameworks.join(', ')}</div>
+                                )}
+                                {structuredData.skills.tools.length > 0 && (
+                                  <div><strong>Development Tools:</strong> {structuredData.skills.tools.join(', ')}</div>
+                                )}
+                                {structuredData.skills.cloud.length > 0 && (
+                                  <div><strong>Cloud Platforms:</strong> {structuredData.skills.cloud.join(', ')}</div>
+                                )}
+                                {structuredData.skills.databases.length > 0 && (
+                                  <div><strong>Databases:</strong> {structuredData.skills.databases.join(', ')}</div>
+                                )}
+                                {structuredData.skills.soft.length > 0 && (
+                                  <div><strong>Soft Skills:</strong> {structuredData.skills.soft.join(', ')}</div>
+                                )}
+                                {structuredData.skills.certifications.length > 0 && (
+                                  <div><strong>Certifications:</strong> {structuredData.skills.certifications.join(', ')}</div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.skills}</div>
+                            )}
                           </div>
                         )}
 
@@ -910,7 +1062,7 @@ export default function ResumeEditorPage() {
                 className="sticky top-6"
               />
 
-              {/* Progress Indicator */}
+              {/* Progress Indicator - UPDATED for structured data */}
               <Card className="glass-card border-white/10">
                 <CardHeader>
                   <CardTitle className="text-white text-lg">Progress</CardTitle>
@@ -918,7 +1070,7 @@ export default function ResumeEditorPage() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Contact Info</span>
-                    {(editedSections.contact?.length > 20 || structuredData.contactInfo) ? (
+                    {(structuredData.contactInfo?.email || editedSections.contact?.length > 20) ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
@@ -934,7 +1086,7 @@ export default function ResumeEditorPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Experience</span>
-                    {editedSections.experience.length > 20 ? (
+                    {(structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience.length > 20 ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
@@ -950,7 +1102,7 @@ export default function ResumeEditorPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Skills</span>
-                    {editedSections.skills.length > 5 ? (
+                    {(structuredData.skills && Object.values(structuredData.skills).some(arr => arr.length > 0)) || editedSections.skills.length > 5 ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
