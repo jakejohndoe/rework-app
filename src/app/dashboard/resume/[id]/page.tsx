@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import AutoFillButton from '@/components/auto-fill-button'
+import ContactInfoSection from '@/components/resume/ContactInfoSection'
+import { ContactInfo, StructuredResumeData } from '@/types/resume'
 import { 
   ArrowLeft, 
   Save, 
@@ -31,7 +33,14 @@ import {
 
 // Simple Resume Preview Component
 function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, className?: string }) {
-  const extractName = (contactInfo?: string) => {
+  const extractName = (contactInfo?: string | ContactInfo) => {
+    // Handle structured contact info
+    if (contactInfo && typeof contactInfo === 'object') {
+      const structured = contactInfo as ContactInfo
+      return `${structured.firstName} ${structured.lastName}`.trim() || resumeData?.title || 'Resume Preview'
+    }
+    
+    // Handle legacy string contact info
     if (!contactInfo || typeof contactInfo !== 'string') return resumeData?.title || 'Resume Preview'
     const lines = contactInfo.split('\n').filter(line => line.trim())
     const nameLine = lines.find(line => 
@@ -65,9 +74,12 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
               <h1 className="font-bold text-gray-900 truncate text-[6px]">
                 {name.toUpperCase()}
               </h1>
-              {(resumeData?.contactInfo || resumeData?.contact) && typeof (resumeData?.contactInfo || resumeData?.contact) === 'string' && (
+              {(resumeData?.contactInfo || resumeData?.contact) && (
                 <div className="text-gray-600 text-[5px]">
-                  {truncateText((resumeData?.contactInfo || resumeData?.contact).split('\n').slice(1).join(' '), 40)}
+                  {typeof (resumeData?.contactInfo || resumeData?.contact) === 'object' 
+                    ? `${(resumeData.contactInfo as ContactInfo).email} • ${(resumeData.contactInfo as ContactInfo).location}`
+                    : truncateText((resumeData?.contactInfo || resumeData?.contact).split('\n').slice(1).join(' '), 40)
+                  }
                 </div>
               )}
             </div>
@@ -118,6 +130,11 @@ interface ResumeData {
     }
   }
   currentContent: any
+  // New structured fields
+  contactInfo?: ContactInfo
+  workExperience?: any[]
+  skills?: any
+  education?: any[]
 }
 
 export default function ResumeEditorPage() {
@@ -142,6 +159,96 @@ export default function ResumeEditorPage() {
     skills: "",
     other: ""
   })
+
+  // NEW: Structured data state
+  const [structuredData, setStructuredData] = useState<StructuredResumeData>({
+    contactInfo: undefined,
+    professionalSummary: undefined,
+    workExperience: [],
+    education: [],
+    skills: undefined,
+    projects: [],
+    additionalSections: undefined
+  })
+
+  // Helper functions for data conversion
+  const convertLegacyContactToStructured = (contactString: string): ContactInfo | undefined => {
+    if (!contactString?.trim()) return undefined
+    
+    const lines = contactString.split('\n').filter(line => line.trim())
+    const contactInfo: Partial<ContactInfo> = {}
+    
+    lines.forEach(line => {
+      const trimmed = line.trim()
+      if (trimmed.includes('@')) {
+        contactInfo.email = trimmed
+      } else if (trimmed.match(/\d{3}[-.]?\d{3}[-.]?\d{4}/)) {
+        contactInfo.phone = trimmed
+      } else if (trimmed.includes('linkedin.com')) {
+        contactInfo.linkedin = trimmed
+      } else if (trimmed.includes('github.com')) {
+        contactInfo.githubUrl = trimmed
+      } else if (trimmed.includes('http')) {
+        contactInfo.website = trimmed
+      } else if (trimmed.includes(',')) {
+        contactInfo.location = trimmed
+      } else if (!contactInfo.firstName && !contactInfo.lastName) {
+        // First non-special line is likely the name
+        const nameParts = trimmed.split(' ')
+        contactInfo.firstName = nameParts[0] || ''
+        contactInfo.lastName = nameParts.slice(1).join(' ') || ''
+      }
+    })
+    
+    // Return only if we have minimum required data
+    if (contactInfo.firstName || contactInfo.lastName || contactInfo.email) {
+      return {
+        firstName: contactInfo.firstName || '',
+        lastName: contactInfo.lastName || '',
+        email: contactInfo.email || '',
+        phone: contactInfo.phone || '',
+        location: contactInfo.location || '',
+        linkedin: contactInfo.linkedin,
+        website: contactInfo.website,
+        githubUrl: contactInfo.githubUrl
+      }
+    }
+    
+    return undefined
+  }
+
+  const convertStructuredContactToLegacy = (contactInfo: ContactInfo): string => {
+    const lines = []
+    if (contactInfo.firstName || contactInfo.lastName) {
+      lines.push(`${contactInfo.firstName} ${contactInfo.lastName}`.trim())
+    }
+    if (contactInfo.email) lines.push(contactInfo.email)
+    if (contactInfo.phone) lines.push(contactInfo.phone)
+    if (contactInfo.linkedin) lines.push(contactInfo.linkedin)
+    if (contactInfo.website) lines.push(contactInfo.website)
+    if (contactInfo.githubUrl) lines.push(contactInfo.githubUrl)
+    if (contactInfo.location) lines.push(contactInfo.location)
+    
+    return lines.join('\n')
+  }
+
+  // NEW: Handler for structured contact data
+  const handleContactInfoChange = (contactInfo: ContactInfo) => {
+    // Update structured data
+    setStructuredData(prev => ({
+      ...prev,
+      contactInfo: contactInfo
+    }))
+    
+    // Also update legacy format for backward compatibility
+    const legacyContact = convertStructuredContactToLegacy(contactInfo)
+    setEditedSections(prev => ({
+      ...prev,
+      contact: legacyContact
+    }))
+    
+    setHasChanges(true)
+  }
 
   // Convert structured auto-fill data to string-based sections format
   const convertAutoFillDataToSections = (autoFillData: any) => {
@@ -201,6 +308,17 @@ export default function ResumeEditorPage() {
     
     // Update the edited sections
     setEditedSections(convertedSections)
+
+    // NEW: Convert to structured data if possible
+    if (convertedSections.contact) {
+      const structuredContact = convertLegacyContactToStructured(convertedSections.contact)
+      if (structuredContact) {
+        setStructuredData(prev => ({
+          ...prev,
+          contactInfo: structuredContact
+        }))
+      }
+    }
     
     // Mark as having changes so user can save
     setHasChanges(true)
@@ -256,6 +374,23 @@ export default function ResumeEditorPage() {
         }
         
         setEditedSections(sections)
+
+        // NEW: Handle structured data
+        if (data.resume.contactInfo) {
+          setStructuredData(prev => ({
+            ...prev,
+            contactInfo: data.resume.contactInfo
+          }))
+        } else if (sections.contact) {
+          // Convert legacy contact data to structured format
+          const convertedContact = convertLegacyContactToStructured(sections.contact)
+          if (convertedContact) {
+            setStructuredData(prev => ({
+              ...prev,
+              contactInfo: convertedContact
+            }))
+          }
+        }
       } else {
         console.error('Failed to fetch resume:', data.error)
         router.push('/dashboard')
@@ -268,7 +403,7 @@ export default function ResumeEditorPage() {
     }
   }
 
-  // Save changes
+  // Save changes - UPDATED to include structured data
   const handleSave = async () => {
     if (!resume || !hasChanges) return
 
@@ -280,21 +415,35 @@ export default function ResumeEditorPage() {
         sections: editedSections
       }
 
+      // Include structured data in the save
+      const saveData = {
+        title: editedTitle,
+        currentContent: updatedContent,
+        // NEW: Include structured fields
+        contactInfo: structuredData.contactInfo,
+        // Add other structured fields as you build them:
+        // workExperience: structuredData.workExperience,
+        // skills: structuredData.skills,
+        // education: structuredData.education,
+      }
+
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          title: editedTitle,
-          currentContent: updatedContent
-        })
+        body: JSON.stringify(saveData)
       })
 
       const data = await response.json()
       
       if (data.success) {
-        setResume(prev => prev ? { ...prev, title: editedTitle, currentContent: updatedContent } : null)
+        setResume(prev => prev ? { 
+          ...prev, 
+          title: editedTitle, 
+          currentContent: updatedContent,
+          contactInfo: structuredData.contactInfo 
+        } : null)
         setHasChanges(false)
         console.log('✅ Resume saved successfully')
       } else {
@@ -338,7 +487,7 @@ export default function ResumeEditorPage() {
   const getPreviewData = () => {
     return {
       title: editedTitle,
-      contactInfo: editedSections.contact,
+      contactInfo: structuredData.contactInfo || editedSections.contact,
       contact: editedSections.contact,
       summary: editedSections.summary,
       experience: editedSections.experience,
@@ -553,20 +702,12 @@ export default function ResumeEditorPage() {
 
                   <div className="p-6">
                     <TabsContent value="edit" className="space-y-6 mt-0">
-                      {/* Contact Information */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium flex items-center gap-2">
-                          <User className="w-4 h-4 text-primary-400" />
-                          Contact Information
-                          <Badge variant="outline" className="text-xs border-red-400/30 text-red-300">Required</Badge>
-                        </Label>
-                        <Textarea
-                          value={editedSections.contact}
-                          onChange={(e) => handleSectionChange('contact', e.target.value)}
-                          placeholder="Full Name&#10;Email Address&#10;Phone Number&#10;LinkedIn Profile&#10;Location (City, State)"
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[100px]"
-                        />
-                      </div>
+                      {/* NEW: Structured Contact Information */}
+                      <ContactInfoSection
+                        contactInfo={structuredData.contactInfo}
+                        onChange={handleContactInfoChange}
+                        className="mb-6"
+                      />
 
                       {/* Professional Summary */}
                       <div className="space-y-3">
@@ -648,13 +789,25 @@ export default function ResumeEditorPage() {
                           </div>
                         )}
                         
-                        {editedSections.contact && (
+                        {(editedSections.contact || structuredData.contactInfo) && (
                           <div>
                             <h3 className="text-lg font-semibold text-primary-400 mb-2 flex items-center gap-2">
                               <User className="w-4 h-4" />
                               Contact Information
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.contact}</div>
+                            {structuredData.contactInfo ? (
+                              <div className="space-y-1 text-slate-300">
+                                <div>{`${structuredData.contactInfo.firstName} ${structuredData.contactInfo.lastName}`.trim()}</div>
+                                <div>{structuredData.contactInfo.email}</div>
+                                <div>{structuredData.contactInfo.phone}</div>
+                                <div>{structuredData.contactInfo.location}</div>
+                                {structuredData.contactInfo.linkedin && <div>{structuredData.contactInfo.linkedin}</div>}
+                                {structuredData.contactInfo.website && <div>{structuredData.contactInfo.website}</div>}
+                                {structuredData.contactInfo.githubUrl && <div>{structuredData.contactInfo.githubUrl}</div>}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.contact}</div>
+                            )}
                           </div>
                         )}
 
@@ -765,7 +918,7 @@ export default function ResumeEditorPage() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Contact Info</span>
-                    {editedSections.contact?.length > 20 ? (
+                    {(editedSections.contact?.length > 20 || structuredData.contactInfo) ? (
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>

@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Get resume with S3 fields
+    // Get resume with S3 fields and new structured fields
     const resume = await prisma.resume.findFirst({
       where: {
         id: resumeId,
@@ -63,6 +63,21 @@ export async function PATCH(
     const { id: resumeId } = await params
     const body = await request.json()
 
+    // Extract all possible fields from the request body
+    const {
+      title,
+      currentContent,
+      content, // Legacy field name
+      // NEW: Structured fields
+      contactInfo,
+      professionalSummary,
+      workExperience,
+      education,
+      skills,
+      projects,
+      additionalSections
+    } = body
+
     // Get user first
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
@@ -72,18 +87,79 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Build the update data object
+    const updateData: any = {
+      updatedAt: new Date()
+    }
+
+    // Handle title
+    if (title !== undefined) {
+      updateData.title = title
+    }
+
+    // Handle legacy content field (backward compatibility)
+    if (currentContent !== undefined) {
+      updateData.currentContent = currentContent
+    } else if (content !== undefined) {
+      updateData.currentContent = content
+    }
+
+    // Handle new structured fields - only update if provided
+    if (contactInfo !== undefined) {
+      updateData.contactInfo = contactInfo
+    }
+
+    if (professionalSummary !== undefined) {
+      updateData.professionalSummary = professionalSummary
+    }
+
+    if (workExperience !== undefined) {
+      updateData.workExperience = workExperience
+    }
+
+    if (education !== undefined) {
+      updateData.education = education
+    }
+
+    if (skills !== undefined) {
+      updateData.skills = skills
+    }
+
+    if (projects !== undefined) {
+      updateData.projects = projects
+    }
+
+    if (additionalSections !== undefined) {
+      updateData.additionalSections = additionalSections
+    }
+
+    // Update completion tracking
+    if (contactInfo || workExperience || skills || education) {
+      // Calculate completion score based on structured data
+      let completionScore = 0
+      const maxScore = 100
+      
+      if (contactInfo?.firstName && contactInfo?.email) completionScore += 25
+      if (workExperience && Array.isArray(workExperience) && workExperience.length > 0) completionScore += 25
+      if (skills && Object.keys(skills).length > 0) completionScore += 25
+      if (education && Array.isArray(education) && education.length > 0) completionScore += 25
+
+      updateData.dataCompletionScore = completionScore
+      updateData.lastStructuredUpdate = new Date()
+    }
+
+    console.log('📝 Updating resume with data:', updateData)
+
     // Update resume
     const updatedResume = await prisma.resume.update({
       where: {
         id: resumeId,
         userId: user.id
       },
-      data: {
-        title: body.title,
-        currentContent: body.content,
-        updatedAt: new Date()
-      }
+      data: updateData
     })
+
+    console.log('✅ Resume updated successfully')
 
     return NextResponse.json({
       success: true,
@@ -91,14 +167,14 @@ export async function PATCH(
     })
 
   } catch (error) {
-    console.error('Resume update error:', error)
+    console.error('❌ Resume update error:', error)
     return NextResponse.json({ 
-      error: 'Failed to update resume' 
+      error: 'Failed to update resume',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
 
-// ADD THIS DELETE FUNCTION
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
