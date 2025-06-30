@@ -16,15 +16,10 @@ import {
   ArrowLeft, 
   ArrowRight,
   Target,
-  Download,
   CheckCircle,
   TrendingUp,
   Sparkles,
   Building,
-  MapPin,
-  DollarSign,
-  Clock,
-  Users,
   FileText,
   Save
 } from "lucide-react"
@@ -35,28 +30,31 @@ export default function JobDescriptionPage() {
   const router = useRouter()
   const resumeId = params.id as string
 
-  // Job Description State
   const [jobTitle, setJobTitle] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [jobLocation, setJobLocation] = useState("")
-  const [jobUrl, setJobUrl] = useState("")
   const [jobDescription, setJobDescription] = useState("")
   const [jobRequirements, setJobRequirements] = useState("")
   const [jobBenefits, setJobBenefits] = useState("")
   const [hasJobDescription, setHasJobDescription] = useState(false)
-  const [isFetchingJob, setIsFetchingJob] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [existingJobId, setExistingJobId] = useState<string | null>(null)
 
-  // Check if we have enough job info for next step
   const isJobComplete = () => {
     return jobTitle.trim().length > 3 && 
            companyName.trim().length > 2 && 
            jobDescription.trim().length > 100
   }
 
-  // Load existing job description on page load
+  const getDescriptionStatus = () => {
+    const length = jobDescription.length;
+    if (length < 100) return { color: 'text-red-400', message: 'Need more details for better analysis' };
+    if (length < 300) return { color: 'text-yellow-400', message: 'Good start! More details = better optimization' };
+    if (length < 600) return { color: 'text-green-400', message: 'Great! Perfect amount of detail' };
+    return { color: 'text-cyan-400', message: 'Excellent! Very detailed job description' };
+  };
+
   useEffect(() => {
     const loadExistingJobDescription = async () => {
       if (!resumeId) return
@@ -72,10 +70,9 @@ export default function JobDescriptionPage() {
             setJobTitle(job.jobTitle || '')
             setCompanyName(job.company || '')
             setJobDescription(job.jobDescription || '')
-            setJobUrl(job.jobUrl || '')
-            setJobLocation('') // Not stored in current schema, keeping for UI
-            setJobRequirements('') // Not stored in current schema, keeping for UI  
-            setJobBenefits('') // Not stored in current schema, keeping for UI
+            setJobLocation('')
+            setJobRequirements('')
+            setJobBenefits('')
             setExistingJobId(job.id)
             setHasJobDescription(job.jobDescription?.length > 100)
             
@@ -84,7 +81,6 @@ export default function JobDescriptionPage() {
         }
       } catch (error) {
         console.error('Error loading job description:', error)
-        // Silently fail - user can still enter new data
       } finally {
         setIsLoading(false)
       }
@@ -94,66 +90,6 @@ export default function JobDescriptionPage() {
       loadExistingJobDescription()
     }
   }, [resumeId, status])
-
-  const handleFetchJobDescription = async () => {
-    if (!jobUrl.trim()) return
-
-    try {
-      setIsFetchingJob(true)
-      
-      console.log('🔗 Fetching job description from URL:', jobUrl)
-      toast.loading('Fetching job details...', { id: 'fetch-job' })
-      
-      // TODO: Replace with real scraping API when implemented
-      // For now, keeping the mock functionality
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Mock response - replace with actual scraping logic later
-      const mockJobData = {
-        title: "Senior Software Engineer",
-        company: "TechCorp Inc.",
-        location: "San Francisco, CA (Remote)",
-        description: `We are seeking a talented Senior Software Engineer to join our growing engineering team. You will be responsible for designing, developing, and maintaining scalable web applications that serve millions of users worldwide.
-
-In this role, you will work closely with product managers, designers, and other engineers to deliver high-quality software solutions. You'll have the opportunity to work on cutting-edge technologies and contribute to architectural decisions that shape our platform.`,
-        requirements: `• 5+ years of experience in full-stack software development
-• Proficiency in modern JavaScript frameworks (React, Vue.js, or Angular)
-• Strong backend development skills with Node.js, Python, or Java
-• Experience with cloud platforms (AWS, Azure, or GCP)
-• Solid understanding of database design and optimization (SQL and NoSQL)
-• Familiarity with DevOps practices and CI/CD pipelines
-• Strong problem-solving skills and attention to detail
-• Excellent communication and collaboration abilities
-• Bachelor's degree in Computer Science or equivalent experience`,
-        benefits: `• Competitive salary and equity package
-• Comprehensive health, dental, and vision insurance
-• Flexible remote work options
-• Professional development budget ($2,000/year)
-• Unlimited PTO policy
-• 401(k) with company matching
-• Modern equipment and home office stipend
-• Team retreats and company events`
-      }
-      
-      // Auto-populate fields
-      setJobTitle(mockJobData.title)
-      setCompanyName(mockJobData.company)
-      setJobLocation(mockJobData.location)
-      setJobDescription(mockJobData.description)
-      setJobRequirements(mockJobData.requirements)
-      setJobBenefits(mockJobData.benefits)
-      setHasJobDescription(true)
-      
-      toast.success('Job details fetched successfully!', { id: 'fetch-job' })
-      console.log('✅ Job description fetched successfully')
-      
-    } catch (error) {
-      console.error('❌ Failed to fetch job description:', error)
-      toast.error('Failed to fetch job details. Please enter manually.', { id: 'fetch-job' })
-    } finally {
-      setIsFetchingJob(false)
-    }
-  }
 
   const handleSaveJobDescription = async () => {
     if (!isJobComplete()) {
@@ -174,7 +110,6 @@ In this role, you will work closely with product managers, designers, and other 
           jobTitle: jobTitle.trim(),
           company: companyName.trim(),
           jobDescription: jobDescription.trim(),
-          jobUrl: jobUrl.trim() || undefined,
           location: jobLocation.trim() || undefined,
           requirements: jobRequirements.trim() || undefined,
           benefits: jobBenefits.trim() || undefined,
@@ -203,11 +138,9 @@ In this role, you will work closely with product managers, designers, and other 
   }
 
   const handleNext = async () => {
-    // Save job description before proceeding
     const saved = await handleSaveJobDescription()
     
     if (saved) {
-      // Navigate to AI analysis page
       router.push(`/dashboard/resume/${resumeId}/analysis`)
     }
   }
@@ -216,7 +149,6 @@ In this role, you will work closely with product managers, designers, and other 
     router.push(`/dashboard/resume/${resumeId}`)
   }
 
-  // Loading state
   if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -230,7 +162,6 @@ In this role, you will work closely with product managers, designers, and other 
     )
   }
 
-  // Not authenticated
   if (status === "unauthenticated") {
     router.push("/auth/signin")
     return null
@@ -239,7 +170,6 @@ In this role, you will work closely with product managers, designers, and other 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="circuit-bg min-h-screen">
-        {/* Header */}
         <header className="border-b border-white/10 glass-dark">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
@@ -250,7 +180,6 @@ In this role, you will work closely with product managers, designers, and other 
                 </Button>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
-                {/* Step Indicator */}
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
@@ -302,55 +231,12 @@ In this role, you will work closely with product managers, designers, and other 
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Add Job Description</h1>
                 <p className="text-slate-400 text-lg">
-                  Paste the job description you're applying for so we can optimize your resume to match
+                  Enter the job details and description to optimize your resume for this specific role
                 </p>
               </div>
             </div>
 
-            {/* Quick Import Section */}
-            <Card className="glass-card border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  🔗 Quick Import from Job URL
-                  <Badge variant="outline" className="border-cyan-500/30 text-cyan-300 text-xs">
-                    Coming Soon
-                  </Badge>
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                  Paste a job URL from Indeed, LinkedIn, Glassdoor, or company career pages
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <Input
-                    value={jobUrl}
-                    onChange={(e) => setJobUrl(e.target.value)}
-                    placeholder="https://www.indeed.com/viewjob?jk=... or any job posting URL"
-                    className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-cyan-400"
-                  />
-                  <Button 
-                    onClick={handleFetchJobDescription}
-                    disabled={!jobUrl.trim() || isFetchingJob}
-                    className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 shrink-0 px-8"
-                  >
-                    {isFetchingJob ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
-                        Fetch Job
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-slate-500 flex items-center gap-2">
-                  <Sparkles className="w-3 h-3" />
-                  Currently shows demo data - real URL scraping coming soon!
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Manual Entry Section */}
+            {/* Job Entry Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Job Details */}
@@ -433,13 +319,13 @@ In this role, you will work closely with product managers, designers, and other 
                   <div className="border-t border-white/10 pt-4">
                     <h4 className="text-white text-sm font-medium mb-2">💡 Pro Tips:</h4>
                     <ul className="text-xs text-slate-400 space-y-1">
-                      <li>• Include the complete job description for best results</li>
-                      <li>• Copy requirements, responsibilities, and qualifications</li>
-                      <li>• Don't forget company culture and benefits info</li>
+                      <li>• Copy the complete job posting for best results</li>
+                      <li>• Include responsibilities and requirements</li>
+                      <li>• Add company culture and benefits info</li>
+                      <li>• More detail = better optimization</li>
                     </ul>
                   </div>
 
-                  {/* Save Progress Button */}
                   {isJobComplete() && (
                     <div className="border-t border-white/10 pt-4">
                       <Button 
@@ -467,7 +353,7 @@ In this role, you will work closely with product managers, designers, and other 
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <FileText className="w-5 h-5 text-cyan-400" />
-                  Job Description Content
+                  Job Description
                 </CardTitle>
                 <CardDescription className="text-slate-400">
                   Paste the complete job description, including responsibilities, requirements, and qualifications
@@ -482,8 +368,8 @@ In this role, you will work closely with product managers, designers, and other 
                       setJobDescription(e.target.value)
                       setHasJobDescription(e.target.value.length > 100)
                     }}
-                    placeholder="Paste the complete job description here, including:&#10;&#10;• Job overview and responsibilities&#10;• Required qualifications and skills&#10;• Preferred experience&#10;• Company information&#10;• Benefits and compensation details&#10;&#10;The more complete the description, the better we can optimize your resume!"
-                    className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-cyan-400 min-h-[200px]"
+                    placeholder="Paste or type the complete job description here, including:&#10;&#10;• Job overview and responsibilities&#10;• Required qualifications and skills&#10;• Preferred experience&#10;• Company information&#10;• Benefits and compensation details&#10;&#10;The more complete the description, the better we can optimize your resume!"
+                    className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-cyan-400 min-h-[250px]"
                   />
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-slate-500">
@@ -494,6 +380,9 @@ In this role, you will work closely with product managers, designers, and other 
                           Ready for analysis
                         </span>
                       )}
+                    </p>
+                    <p className={`text-xs ${getDescriptionStatus().color}`}>
+                      {getDescriptionStatus().message}
                     </p>
                   </div>
                 </div>
