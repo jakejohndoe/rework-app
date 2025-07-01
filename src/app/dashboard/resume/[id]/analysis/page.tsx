@@ -1,4 +1,6 @@
-// Enhanced src/app/dashboard/resume/[id]/analysis/page.tsx with category scoring
+// Updated Analysis Page with Enhanced AI Suggestions Integration
+// src/app/dashboard/resume/[id]/analysis/page.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -13,6 +15,7 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import Link from "next/link"
 import { DownloadButton } from "@/components/download-button"
+import EnhancedAISuggestionsTab from "@/components/resume/EnhancedAISuggestionsTab"
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -51,7 +54,7 @@ interface EnhancedAnalysisResult {
   atsScore: number
   readabilityScore: number
   completenessScore: number
-  // NEW: Category-specific scores
+  // Category-specific scores
   categoryScores: {
     contact: number
     experience: number
@@ -86,6 +89,7 @@ export default function EnhancedAnalysisPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [resumeRefreshTrigger, setResumeRefreshTrigger] = useState(0) // For refreshing after applying changes
 
   const analysisSteps = [
     "Loading resume content...",
@@ -114,7 +118,7 @@ export default function EnhancedAnalysisPage() {
     }
 
     loadOrStartAnalysis()
-  }, [resumeId, status])
+  }, [resumeId, status, resumeRefreshTrigger])
 
   const performEnhancedAnalysis = async () => {
     setIsAnalyzing(true)
@@ -176,6 +180,13 @@ export default function EnhancedAnalysisPage() {
 
   const handleBack = () => {
     router.push(`/dashboard/resume/${resumeId}/job-description`)
+  }
+
+  // Handle when changes are applied - refresh the resume data
+  const handleChangesApplied = () => {
+    console.log('🔄 Changes applied, refreshing resume data...')
+    setResumeRefreshTrigger(prev => prev + 1)
+    toast.success('🎉 Your resume has been optimized with AI suggestions!')
   }
 
   // Get category score color
@@ -391,11 +402,7 @@ export default function EnhancedAnalysisPage() {
                                 {score}%
                               </span>
                             </div>
-                            <Progress 
-                              value={score} 
-                              className="h-2"
-                              // Custom color based on score
-                            />
+                            <Progress value={score} className="h-2" />
                           </div>
                         ))}
                         
@@ -419,7 +426,7 @@ export default function EnhancedAnalysisPage() {
                 </Card>
 
                 {/* Enhanced Analysis Tabs */}
-                <Tabs defaultValue="overview" className="w-full">
+                <Tabs defaultValue="suggestions" className="w-full">
                   <TabsList className="grid w-full grid-cols-4 bg-white/5 border border-white/10">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-primary-500">
                       <TrendingUp className="w-4 h-4 mr-2" />
@@ -431,7 +438,7 @@ export default function EnhancedAnalysisPage() {
                     </TabsTrigger>
                     <TabsTrigger value="suggestions" className="data-[state=active]:bg-primary-500">
                       <Sparkles className="w-4 h-4 mr-2" />
-                      AI Suggestions
+                      AI Optimization
                     </TabsTrigger>
                     <TabsTrigger value="optimized" className="data-[state=active]:bg-primary-500">
                       <FileText className="w-4 h-4 mr-2" />
@@ -586,55 +593,13 @@ export default function EnhancedAnalysisPage() {
                     </div>
                   </TabsContent>
 
+                  {/* ENHANCED AI SUGGESTIONS TAB - This is the main new feature! */}
                   <TabsContent value="suggestions" className="space-y-4">
-                    <div className="space-y-4">
-                      {analysisResults.suggestions.map((suggestion, index) => (
-                        <Card key={index} className="glass-card border-white/10">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-white text-lg flex items-center gap-2">
-                                {getCategoryIcon(suggestion.section.toLowerCase())}
-                                {suggestion.section}
-                              </CardTitle>
-                              <div className="flex items-center gap-2">
-                                <Badge 
-                                  variant="secondary" 
-                                  className={
-                                    suggestion.impact === 'high' ? 'bg-red-500/20 text-red-300' :
-                                    suggestion.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                                    'bg-blue-500/20 text-blue-300'
-                                  }
-                                >
-                                  {suggestion.impact} impact
-                                </Badge>
-                                <Badge variant="outline" className="text-xs border-cyan-400/30 text-cyan-300">
-                                  AI Generated
-                                </Badge>
-                              </div>
-                            </div>
-                            <CardDescription className="text-slate-400">
-                              {suggestion.reason}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {suggestion.current && (
-                              <div>
-                                <p className="text-slate-300 text-sm font-medium mb-1">Current:</p>
-                                <p className="text-slate-400 text-sm bg-slate-800/50 rounded p-3 border border-slate-700">
-                                  {suggestion.current}
-                                </p>
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-slate-300 text-sm font-medium mb-1">AI-Suggested Improvement:</p>
-                              <p className="text-slate-200 text-sm bg-green-900/30 rounded p-3 border border-green-700">
-                                {suggestion.suggested}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    <EnhancedAISuggestionsTab
+                      suggestions={analysisResults.suggestions}
+                      resumeId={resumeId}
+                      onApplyChanges={handleChangesApplied}
+                    />
                   </TabsContent>
 
                   <TabsContent value="optimized" className="space-y-4">
@@ -706,7 +671,7 @@ export default function EnhancedAnalysisPage() {
                       <div>
                         <h3 className="text-white font-medium mb-1">🚀 Ready for Success?</h3>
                         <p className="text-slate-400 text-sm">
-                          Download your AI-optimized resume or refine it further with our suggestions
+                          Use the AI Optimization tab to swap suggestions, then download your enhanced resume
                         </p>
                       </div>
                       <div className="flex gap-3">
@@ -728,7 +693,7 @@ export default function EnhancedAnalysisPage() {
                         </Button>
                         <DownloadButton 
                           resumeId={resumeId}
-                          showVersions={false}
+                          showVersions={true}
                           showPreview={false}
                           className="btn-gradient gap-2"
                           variant="default"
