@@ -119,19 +119,23 @@ async function handleDownload(
       resumeData,
       template,
       colors,  // Pass colors to PDF generator
-      isOptimized
+      isOptimized,
+      resumeTitle: resume.title  // 🎯 ADD THIS LINE
     });
 
     // Generate PDF
     const buffer = await renderToBuffer(element);
     
     console.log('✅ PDF generated, size:', buffer.length);
+    console.log('📄 PDF title should be:', resume.title);
 
-    // Create descriptive filename
+    // Create descriptive filename - ALSO FIX THE FILENAME
     const versionText = isOptimized ? 'optimized' : 'original';
     const templateText = template || 'default';
     const colorText = options.colors ? 'custom' : 'default';
-    const filename = `${resume.title || 'resume'}-${versionText}-${templateText}-${colorText}-${Date.now()}.pdf`;
+    // Use actual resume title in filename too
+    const safeTitle = (resume.title || 'resume').replace(/[^a-zA-Z0-9-_]/g, '-');
+    const filename = `${safeTitle}-${versionText}-${templateText}-${Date.now()}.pdf`;
     
     return new NextResponse(buffer, {
       headers: {

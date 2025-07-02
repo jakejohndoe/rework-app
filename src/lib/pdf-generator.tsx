@@ -1,4 +1,4 @@
-// src/lib/pdf-generator.tsx - PART 1
+// src/lib/pdf-generator.tsx - PART 1 (UPDATED)
 import React from 'react';
 import {
   Document,
@@ -244,8 +244,8 @@ const createModernStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// Helper function to parse and extract resume data
-const extractResumeData = (resumeData: any) => {
+// UPDATED: Helper function to parse and extract resume data with resumeTitle
+const extractResumeData = (resumeData: any, resumeTitle?: string) => {
   let contactInfo = {};
   let professionalSummary = '';
   let workExperience: any[] = [];
@@ -317,13 +317,21 @@ const extractResumeData = (resumeData: any) => {
     console.error('Error parsing resume data:', error);
   }
 
+  // FIXED: Use resume title first, then contact info, then fallback
+  const fullName = (contactInfo as any)?.name || 
+                   (contactInfo as any)?.fullName || 
+                   ((contactInfo as any)?.firstName && (contactInfo as any)?.lastName ? 
+                     `${(contactInfo as any).firstName} ${(contactInfo as any).lastName}` : '') ||
+                   resumeTitle || 
+                   'Professional Resume';
+
   return {
     contactInfo,
     professionalSummary,
     workExperience,
     education,
     skills,
-    fullName: (contactInfo as any)?.name || (contactInfo as any)?.fullName || 'Professional Resume',
+    fullName: fullName.trim(),
     email: (contactInfo as any)?.email || '',
     phone: (contactInfo as any)?.phone || '',
     location: (contactInfo as any)?.location || '',
@@ -331,9 +339,11 @@ const extractResumeData = (resumeData: any) => {
   };
 };
 
-// Professional Template Component
-const ProfessionalTemplate = ({ resumeData, isOptimized, colors }: any) => {
-  const data = extractResumeData(resumeData);
+// PART 2 - Template Components (UPDATED with resumeTitle)
+
+// UPDATED: Professional Template Component
+const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
   const styles = createProfessionalStyles(colors);
 
   return (
@@ -418,9 +428,9 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors }: any) => {
   );
 };
 
-// Modern Template Component (Two-Column)
-const ModernTemplate = ({ resumeData, isOptimized, colors }: any) => {
-  const data = extractResumeData(resumeData);
+// UPDATED: Modern Template Component (Two-Column)
+const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
   const styles = createModernStyles(colors);
 
   // Generate skill levels for demo
@@ -514,13 +524,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors }: any) => {
   );
 };
 
-// Export the functions and components for Part 2
-export { 
-  getTemplateConfig, 
-  extractResumeData, 
-  ProfessionalTemplate, 
-  ModernTemplate 
-};
+// PART 3 - Minimal and Creative Template Styles & Components
 
 // Minimal Template Styles - Now Dynamic
 const createMinimalStyles = (colors: any) => StyleSheet.create({
@@ -750,9 +754,9 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// Minimal Template Component
-const MinimalTemplate = ({ resumeData, isOptimized, colors }: any) => {
-  const data = extractResumeData(resumeData);
+// UPDATED: Minimal Template Component
+const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
   const styles = createMinimalStyles(colors);
 
   return (
@@ -836,9 +840,11 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors }: any) => {
   );
 };
 
-// Creative Template Component
-const CreativeTemplate = ({ resumeData, isOptimized, colors }: any) => {
-  const data = extractResumeData(resumeData);
+// PART 4 - Creative Template Component and Main Document (FINAL)
+
+// UPDATED: Creative Template Component
+const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
   const styles = createCreativeStyles(colors);
 
   // Generate skill levels and categories
@@ -984,26 +990,37 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors }: any) => {
   );
 };
 
-// Main PDF Document Component
+// Export the functions and components for imports
+export { 
+  getTemplateConfig, 
+  extractResumeData, 
+  ProfessionalTemplate, 
+  ModernTemplate,
+  MinimalTemplate,
+  CreativeTemplate
+};
+
+// UPDATED: Main PDF Document Component
 const PDFDocument = (props: any) => {
-  const { resumeData = {}, template = 'professional', colors, isOptimized = false } = props;
+  const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle } = props;
   
   // Get template configuration with custom colors
   const config = getTemplateConfig(template, colors);
   console.log('📄 PDF Generator - Using colors:', colors);
   console.log('📄 PDF Generator - Template config:', config.colors);
+  console.log('📄 PDF Generator - Resume title:', resumeTitle);
 
   const renderTemplate = () => {
     switch (template) {
       case 'modern':
-        return <ModernTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} />;
+        return <ModernTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'minimal':
-        return <MinimalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} />;
+        return <MinimalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'creative':
-        return <CreativeTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} />;
+        return <CreativeTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'professional':
       default:
-        return <ProfessionalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} />;
+        return <ProfessionalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
     }
   };
 
