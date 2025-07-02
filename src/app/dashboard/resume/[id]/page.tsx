@@ -18,6 +18,7 @@ import WorkExperienceSection from '@/components/resume/WorkExperienceSection'
 import SkillsSection from '@/components/resume/SkillsSection'
 import EducationSection from '@/components/resume/EducationSection'
 import ProfessionalSummarySection from '@/components/resume/ProfessionalSummarySection'
+import { CollapsibleSectionWrapper } from '@/components/resume/CollapsibleSectionWrapper'
 import { ContactInfo, StructuredResumeData, WorkExperience, SkillsStructure, Education, ProfessionalSummary } from '@/types/resume'
 import { 
   ArrowLeft, 
@@ -926,53 +927,95 @@ export default function ResumeEditorPage() {
 
                   <div className="p-6">
                     <TabsContent value="edit" className="space-y-6 mt-0">
-                      {/* Structured Contact Information */}
-                      <ContactInfoSection
-                        contactInfo={structuredData.contactInfo}
-                        onChange={handleContactInfoChange}
-                        className="mb-6"
-                      />
-
-                      {/* Structured Professional Summary */}
-                      <ProfessionalSummarySection
-                        professionalSummary={structuredData.professionalSummary}
-                        onChange={handleProfessionalSummaryChange}
-                        className="mb-6"
-                      />
-
-                      {/* Structured Work Experience */}
-                      <WorkExperienceSection
-                        workExperience={structuredData.workExperience}
-                        onChange={handleWorkExperienceChange}
-                        className="mb-6"
-                      />
-
-                      {/* Structured Education */}
-                      <EducationSection
-                        education={structuredData.education}
-                        onChange={handleEducationChange}
-                        className="mb-6"
-                      />
-
-                      {/* Structured Skills */}
-                      <SkillsSection
-                        skills={structuredData.skills}
-                        onChange={handleSkillsChange}
-                        className="mb-6"
-                      />
-
-                      {/* Other */}
-                      <div className="space-y-3">
-                        <Label className="text-white font-medium">
-                          Additional Information
-                        </Label>
-                        <Textarea
-                          value={editedSections.other}
-                          onChange={(e) => handleSectionChange('other', e.target.value)}
-                          placeholder="Awards, certifications, volunteer work, projects, publications, languages, or other relevant information..."
-                          className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
+                      {/* Contact Information */}
+                      <CollapsibleSectionWrapper
+                        title="Contact Information"
+                        icon={<User className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!(structuredData.contactInfo?.email || editedSections.contact?.trim().length > 20)}
+                        defaultOpen={true}
+                      >
+                        <ContactInfoSection
+                          contactInfo={structuredData.contactInfo}
+                          onChange={handleContactInfoChange}
+                          className="mb-0"
                         />
-                      </div>
+                      </CollapsibleSectionWrapper>
+
+                      {/* Professional Summary */}
+                      <CollapsibleSectionWrapper
+                        title="Professional Summary"
+                        icon={<FileText className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!((structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary?.length > 20)}
+                        defaultOpen={false}
+                      >
+                        <ProfessionalSummarySection
+                          professionalSummary={structuredData.professionalSummary}
+                          onChange={handleProfessionalSummaryChange}
+                          className="mb-0"
+                        />
+                      </CollapsibleSectionWrapper>
+
+                      {/* Work Experience */}
+                      <CollapsibleSectionWrapper
+                        title="Work Experience"
+                        icon={<Briefcase className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!((structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience?.length > 20)}
+                        defaultOpen={false}
+                      >
+                        <WorkExperienceSection
+                          workExperience={structuredData.workExperience}
+                          onChange={handleWorkExperienceChange}
+                          className="mb-0"
+                        />
+                      </CollapsibleSectionWrapper>
+
+                      {/* Education */}
+                      <CollapsibleSectionWrapper
+                        title="Education"
+                        icon={<GraduationCap className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!((structuredData.education && structuredData.education.length > 0) || editedSections.education?.length > 5)}
+                        defaultOpen={false}
+                      >
+                        <EducationSection
+                          education={structuredData.education}
+                          onChange={handleEducationChange}
+                          className="mb-0"
+                        />
+                      </CollapsibleSectionWrapper>
+
+                      {/* Skills */}
+                      <CollapsibleSectionWrapper
+                        title="Skills & Expertise"
+                        icon={<Zap className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!((structuredData.skills && Object.values(structuredData.skills).some(arr => arr.length > 0)) || editedSections.skills?.length > 5)}
+                        defaultOpen={false}
+                      >
+                        <SkillsSection
+                          skills={structuredData.skills}
+                          onChange={handleSkillsChange}
+                          className="mb-0"
+                        />
+                      </CollapsibleSectionWrapper>
+
+                      {/* Additional Information */}
+                      <CollapsibleSectionWrapper
+                        title="Additional Information"
+                        icon={<Edit3 className="w-5 h-5 text-slate-300" />}
+                        isComplete={!!(editedSections.other && editedSections.other.length > 0)}
+                        defaultOpen={false}
+                      >
+                        <div className="space-y-3">
+                          <Label className="text-white font-medium">
+                            Additional Information
+                          </Label>
+                          <Textarea
+                            value={editedSections.other}
+                            onChange={(e) => handleSectionChange('other', e.target.value)}
+                            placeholder="Awards, certifications, volunteer work, projects, publications, languages, or other relevant information..."
+                            className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
+                          />
+                        </div>
+                      </CollapsibleSectionWrapper>
                     </TabsContent>
 
                     <TabsContent value="preview" className="mt-0">
