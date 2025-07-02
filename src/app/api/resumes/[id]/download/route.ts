@@ -33,7 +33,11 @@ export async function POST(
 async function handleDownload(
   request: NextRequest,
   params: { id: string },
-  options: { version?: 'original' | 'optimized'; template?: string } = {}
+  options: { 
+    version?: 'original' | 'optimized'; 
+    template?: string;
+    colors?: { primary: string; accent: string };
+  } = {}
 ) {
   try {
     const { id } = params;
@@ -99,17 +103,22 @@ async function handleDownload(
       }
     }
 
-    // Add template information
+    // Add template and colors information
     const template = options.template || 'professional';
+    const colors = options.colors || getDefaultColors(template);
+
     resumeData.template = template;
+    resumeData.colors = colors;
 
     console.log('📄 Creating PDF with template:', template);
+    console.log('🎨 Using colors:', colors);
     console.log('🎯 Data keys:', Object.keys(resumeData));
 
-    // Create React element
+    // Create React element with colors support
     const element = React.createElement(PDFResumeDocument, {
       resumeData,
       template,
+      colors,  // Pass colors to PDF generator
       isOptimized
     });
 
@@ -121,7 +130,8 @@ async function handleDownload(
     // Create descriptive filename
     const versionText = isOptimized ? 'optimized' : 'original';
     const templateText = template || 'default';
-    const filename = `${resume.title || 'resume'}-${versionText}-${templateText}-${Date.now()}.pdf`;
+    const colorText = options.colors ? 'custom' : 'default';
+    const filename = `${resume.title || 'resume'}-${versionText}-${templateText}-${colorText}-${Date.now()}.pdf`;
     
     return new NextResponse(buffer, {
       headers: {
@@ -136,4 +146,16 @@ async function handleDownload(
     console.error('❌ Error stack:', error.stack);
     return new NextResponse(`PDF Generation Error: ${error.message}`, { status: 500 });
   }
+}
+
+// Helper function to get default colors for templates
+function getDefaultColors(template: string) {
+  const defaultColors = {
+    professional: { primary: '#1e40af', accent: '#3b82f6' },
+    modern: { primary: '#4f46e5', accent: '#818cf8' },
+    minimal: { primary: '#059669', accent: '#10b981' },
+    creative: { primary: '#dc2626', accent: '#ef4444' }
+  };
+  
+  return defaultColors[template as keyof typeof defaultColors] || defaultColors.professional;
 }

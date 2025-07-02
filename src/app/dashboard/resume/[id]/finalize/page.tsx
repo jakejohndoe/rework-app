@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ArrowLeft, CheckCircle, Download, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
-import { PDFPreviewFrame } from '@/components/resume/PDFPreviewFrame'
+import { SVGResumePreview } from '@/components/resume/SVGResumePreview'
 
 interface Template {
   id: string
@@ -52,6 +52,16 @@ const templates: Template[] = [
   }
 ]
 
+// Color options for customization
+const colorOptions = [
+  { name: 'Professional Blue', primary: '#2563eb', accent: '#3b82f6' },
+  { name: 'Success Green', primary: '#059669', accent: '#10b981' },
+  { name: 'Creative Purple', primary: '#7c3aed', accent: '#8b5cf6' },
+  { name: 'Bold Red', primary: '#dc2626', accent: '#ef4444' },
+  { name: 'Modern Teal', primary: '#0891b2', accent: '#06b6d4' },
+  { name: 'Executive Gray', primary: '#374151', accent: '#6b7280' }
+]
+
 export default function FinalizePage() {
   const params = useParams()
   const router = useRouter()
@@ -59,7 +69,11 @@ export default function FinalizePage() {
   const resumeId = params.id as string
 
   const [selectedTemplate, setSelectedTemplate] = useState('professional')
-  const [showComparison, setShowComparison] = useState(true)
+  const [selectedColors, setSelectedColors] = useState({ 
+    primary: '#2563eb', 
+    accent: '#3b82f6' 
+  })
+  const [showComparison, setShowComparison] = useState(false) // Default to false (simplified view)
   const [isLoading, setIsLoading] = useState(true)
   const [isDownloading, setIsDownloading] = useState(false)
   const [resumeData, setResumeData] = useState<any>(null)
@@ -105,13 +119,14 @@ export default function FinalizePage() {
     try {
       toast.loading(`Generating ${version} resume PDF with ${templates.find(t => t.id === selectedTemplate)?.name} template...`, { id: 'download' })
       
-      // Use the fixed download API
+      // Use the fixed download API with colors
       const response = await fetch(`/api/resumes/${resumeId}/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           version,
-          template: selectedTemplate 
+          template: selectedTemplate,
+          colors: selectedColors
         })
       })
 
@@ -173,8 +188,8 @@ export default function FinalizePage() {
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
                 <div>
-                  <h1 className="text-white font-medium">Finalize & Download</h1>
-                  <p className="text-slate-400 text-sm">Choose your template and download your optimized resume</p>
+                  <h1 className="text-white font-medium">Choose Your Template & Colors</h1>
+                  <p className="text-slate-400 text-sm">Your resume is optimized - select your perfect design and colors</p>
                 </div>
               </div>
               
@@ -182,7 +197,7 @@ export default function FinalizePage() {
                 {resumeData?.lastOptimized && (
                   <Badge variant="secondary" className="bg-green-500/20 text-green-300">
                     <CheckCircle className="w-3 h-3 mr-1" />
-                    Optimized {new Date(resumeData.lastOptimized).toLocaleDateString()}
+                    AI Enhanced
                   </Badge>
                 )}
               </div>
@@ -190,32 +205,29 @@ export default function FinalizePage() {
           </div>
 
           {/* Success Message */}
-          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-green-500/30 rounded-xl p-8 mb-8">
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-green-500/30 rounded-xl p-6 mb-8">
             <div className="flex items-start space-x-4">
               <div className="bg-green-500 rounded-full p-2 mt-1">
-                <CheckCircle className="w-8 h-8 text-white" />
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">🎉 Resume Optimization Complete!</h1>
-                <p className="text-slate-400 text-lg">
-                  Your resume has been enhanced with AI suggestions. Now choose your perfect template and download.
+                <h1 className="text-2xl font-bold text-white mb-2">🎉 Resume Optimization Complete!</h1>
+                <p className="text-slate-400">
+                  Your resume has been enhanced with AI suggestions. Choose your template and colors below.
                 </p>
-                <Badge className="mt-2 bg-green-500/20 text-green-300 border-green-500/30">
-                  +5 AI Improvements Applied
-                </Badge>
               </div>
             </div>
           </div>
 
           {/* Template Selection */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-4">Choose Your Template</h2>
+            <h2 className="text-xl font-semibold text-white mb-6">Choose Your Template</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {templates.map((template) => (
                 <div
                   key={template.id}
                   onClick={() => setSelectedTemplate(template.id)}
-                  className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                  className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
                     selectedTemplate === template.id
                       ? 'border-cyan-400 bg-cyan-500/20'
                       : 'border-white/20 bg-white/5 hover:border-white/40'
@@ -227,12 +239,12 @@ export default function FinalizePage() {
                     </div>
                   )}
                   
-                  <div className={`w-full h-24 bg-gradient-to-br ${template.color} rounded-lg mb-4 flex items-center justify-center text-4xl`}>
+                  <div className={`w-full h-20 bg-gradient-to-br ${template.color} rounded-lg mb-3 flex items-center justify-center text-3xl`}>
                     {template.icon}
                   </div>
                   
                   <h3 className="text-white font-medium mb-1">{template.name}</h3>
-                  <p className="text-slate-400 text-sm">{template.description}</p>
+                  <p className="text-slate-400 text-sm leading-tight">{template.description}</p>
                   
                   {selectedTemplate === template.id && (
                     <div className="absolute inset-0 border-2 border-cyan-400 rounded-lg pointer-events-none">
@@ -246,10 +258,66 @@ export default function FinalizePage() {
             </div>
           </div>
 
-          {/* Preview & Compare */}
+{/* Color Customization - Compact Version */}
+<div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 mb-8">
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-lg font-semibold text-white mb-1">Colors</h2>
+      <p className="text-slate-400 text-sm">
+        {colorOptions.find(c => c.primary === selectedColors.primary)?.name || 'Custom'}
+      </p>
+    </div>
+    
+    <div className="flex items-center gap-2">
+      {colorOptions.map((option) => {
+        const isSelected = selectedColors.primary === option.primary
+        
+        return (
+          <button
+            key={option.name}
+            onClick={() => setSelectedColors({ primary: option.primary, accent: option.accent })}
+            className={`relative group transition-all duration-200 ${
+              isSelected ? 'scale-110' : 'hover:scale-105'
+            }`}
+            title={option.name}
+          >
+            {/* Color dot container */}
+            <div className={`w-10 h-10 rounded-full p-1 transition-all duration-200 ${
+              isSelected 
+                ? 'bg-white/30 shadow-lg ring-2 ring-white/50' 
+                : 'bg-white/10 hover:bg-white/20'
+            }`}>
+              {/* Primary color */}
+              <div 
+                className="w-full h-full rounded-full relative overflow-hidden"
+                style={{ 
+                  background: `linear-gradient(135deg, ${option.primary} 0%, ${option.accent} 100%)` 
+                }}
+              >
+                {/* Selection indicator */}
+                {isSelected && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white drop-shadow-md" />
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Tooltip on hover */}
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              {option.name}
+            </div>
+          </button>
+        )
+      })}
+    </div>
+  </div>
+</div>
+
+          {/* Preview Section */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Preview & Compare</h2>
+              <h2 className="text-xl font-semibold text-white">Preview Your Resume</h2>
               <Button
                 variant="outline"
                 size="sm"
@@ -264,7 +332,7 @@ export default function FinalizePage() {
                 ) : (
                   <>
                     <Eye className="w-4 h-4 mr-2" />
-                    Show Comparison
+                    Show Before/After
                   </>
                 )}
               </Button>
@@ -275,78 +343,88 @@ export default function FinalizePage() {
                 <p className="text-slate-400 mb-6">See the improvements made to your resume with AI optimization</p>
                 
                 {/* Before vs After Comparison */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <PDFPreviewFrame
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <SVGResumePreview
                     resumeId={resumeId}
                     version="original"
                     template={selectedTemplate}
                     title="Original Resume"
                     subtitle="Before AI optimization"
+                    colors={selectedColors}
                   />
                   
-                  <PDFPreviewFrame
+                  <SVGResumePreview
                     resumeId={resumeId}
                     version="optimized"
                     template={selectedTemplate}
                     title="Optimized Resume"
                     subtitle="Enhanced with AI suggestions"
+                    colors={selectedColors}
                   />
                 </div>
               </>
             ) : (
               <>
-                <p className="text-slate-400 mb-6">Viewing optimized resume with {selectedTemplate} template</p>
+                <p className="text-slate-400 mb-6">Your AI-optimized resume with the {templates.find(t => t.id === selectedTemplate)?.name} template</p>
                 
-                {/* Single Preview */}
-                <div className="max-w-2xl mx-auto">
-                  <PDFPreviewFrame
+                {/* Single Preview - Focus on Optimized */}
+                <div className="max-w-3xl mx-auto">
+                  <SVGResumePreview
                     resumeId={resumeId}
                     version="optimized"
                     template={selectedTemplate}
                     title="Your Optimized Resume"
                     subtitle="Ready for download"
+                    showDownload={true}
+                    onDownload={() => handleDownload('optimized')}
+                    colors={selectedColors}
                   />
                 </div>
               </>
             )}
           </div>
 
-          {/* Ready to Download */}
+          {/* Download Section - Focus on Optimized */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-white mb-2">Ready to Download!</h2>
                 <p className="text-slate-400">
-                  Your resume is optimized and ready. Choose your preferred version:
+                  Your AI-optimized resume is ready with the {templates.find(t => t.id === selectedTemplate)?.name} template and {colorOptions.find(c => c.primary === selectedColors.primary)?.name} colors
                 </p>
                 <div className="flex items-center space-x-2 mt-2">
-                  <Badge variant="outline" className="text-cyan-300 border-cyan-500/30">
-                    Template: {templates.find(t => t.id === selectedTemplate)?.name}
-                  </Badge>
                   <Badge variant="outline" className="text-green-300 border-green-500/30">
-                    +5 Improvements
+                    ✨ AI Enhanced
+                  </Badge>
+                  <Badge variant="outline" className="text-cyan-300 border-cyan-500/30">
+                    {templates.find(t => t.id === selectedTemplate)?.name} Template
+                  </Badge>
+                  <Badge variant="outline" className="text-purple-300 border-purple-500/30">
+                    {colorOptions.find(c => c.primary === selectedColors.primary)?.name}
                   </Badge>
                 </div>
               </div>
               
               <div className="flex items-center space-x-3">
+                {/* Secondary button for original */}
                 <Button
                   variant="outline"
                   onClick={() => handleDownload('original')}
                   disabled={isDownloading}
-                  className="text-white border-white/20 hover:bg-white/10"
+                  className="text-slate-400 border-slate-500/30 hover:bg-white/5"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download Original
                 </Button>
                 
+                {/* Primary button for optimized */}
                 <Button
                   onClick={() => handleDownload('optimized')}
                   disabled={isDownloading}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Optimized →
+                  Download Optimized Resume
                 </Button>
               </div>
             </div>
