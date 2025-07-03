@@ -12,7 +12,8 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import ResumeUploader from "@/components/resume-uploader"
 import { PDFThumbnail } from "@/components/pdf-thumbnail"
-import { QuickDownloadButton, DownloadButton } from "@/components/download-button" // ✅ NEW: Download buttons
+import { QuickDownloadButton, DownloadButton } from "@/components/download-button"
+import { SettingsModal } from "@/components/settings-modal" // 🔥 NEW: Settings modal
 import { 
   FileText, 
   Plus, 
@@ -26,13 +27,15 @@ import {
   Target,
   Clock,
   Trash2,
-  Download, // ✅ NEW: Download icon
-  Eye // ✅ NEW: Preview icon
+  Download,
+  Eye,
+  Brain // 🔥 NEW: Better icon for ReWork logo
 } from "lucide-react"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false) // 🔥 NEW: Settings modal state
   const [resumes, setResumes] = useState<any[]>([])
   const [isLoadingResumes, setIsLoadingResumes] = useState(true)
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null)
@@ -111,6 +114,12 @@ export default function DashboardPage() {
     }
   }
 
+  // 🔥 NEW: Handle AI Builder click
+  const handleAIBuilder = () => {
+    // For now, show alert - you can change this to navigate to AI builder page later
+    alert('🚀 AI Builder is coming soon! This feature will let you create a resume from scratch using AI.')
+  }
+
   // ✅ Helper function to format time ago
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -139,12 +148,20 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-primary rounded-lg"></div>
+                  {/* 🔥 FIXED: Real icon instead of colored square */}
+                  <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
                   <span className="text-xl font-bold gradient-text">ReWork</span>
                 </Link>
               </div>
               <div className="flex items-center space-x-4">
-                <Button variant="ghost" className="text-white hover:bg-white/10">
+                {/* 🔥 FIXED: Settings button now functional */}
+                <Button 
+                  variant="ghost" 
+                  className="text-white hover:bg-white/10"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
@@ -170,7 +187,7 @@ export default function DashboardPage() {
                   Welcome back, {session?.user?.name?.split(' ')[0] || 'there'}! 👋
                 </h1>
                 <p className="text-slate-300">
-                  Ready to optimize your resume for your next opportunity?
+                  Ready to enhance your resume for your next opportunity?
                 </p>
               </div>
               <Button 
@@ -184,59 +201,65 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Stats Overview */}
+          {/* Stats Overview - Industry-based metrics with real data where available */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="glass-card border-white/10">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-primary-400/20 rounded-lg">
-                    <FileText className="w-5 h-5 text-primary-400" />
+                    <FileText className="w-4 h-4 text-primary-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Active Resumes</p>
-                    <p className="text-2xl font-bold text-white">{isLoadingResumes ? '-' : currentResumes}</p>
+                    <p className="text-xs text-slate-400">Active Resumes</p>
+                    <p className="text-xl font-bold text-white">{isLoadingResumes ? '-' : currentResumes}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card border-white/10">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-secondary-400/20 rounded-lg">
-                    <Target className="w-5 h-5 text-secondary-400" />
+                    <Target className="w-4 h-4 text-secondary-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Applications</p>
-                    <p className="text-2xl font-bold text-white">12</p>
+                    <p className="text-xs text-slate-400">Applications</p>
+                    <p className="text-xl font-bold text-white">{resumes.reduce((total, resume) => total + (resume.applications || 0), 0)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card border-white/10">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-green-400/20 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-green-400" />
+                    <BarChart3 className="w-4 h-4 text-green-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Success Rate</p>
-                    <p className="text-2xl font-bold text-white">78%</p>
+                    <p className="text-xs text-slate-400">Response Rate</p>
+                    <p className="text-xl font-bold text-white">
+                      {currentResumes > 0 ? '23%' : '-'}
+                      <span className="text-xs text-slate-500 ml-1">avg</span>
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card border-white/10">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-yellow-400/20 rounded-lg">
-                    <Clock className="w-5 h-5 text-yellow-400" />
+                    <Clock className="w-4 h-4 text-yellow-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Avg. Time Saved</p>
-                    <p className="text-2xl font-bold text-white">4.2h</p>
+                    <p className="text-xs text-slate-400">Time Saved</p>
+                    <p className="text-xl font-bold text-white">
+                      {currentResumes > 0 ? `${(currentResumes * 3.2).toFixed(1)}h` : '-'}
+                      <span className="text-xs text-slate-500 ml-1">est</span>
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -268,11 +291,20 @@ export default function DashboardPage() {
                         <span className="text-xs opacity-80">Start with an existing resume</span>
                       </div>
                     </Button>
-                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 h-auto p-4 justify-start">
+                    
+                    {/* 🔥 FIXED: AI Builder button now shows "coming soon" */}
+                    <Button 
+                      variant="outline" 
+                      className="border-white/20 text-white hover:bg-white/10 h-auto p-4 justify-start relative overflow-hidden"
+                      onClick={handleAIBuilder}
+                    >
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2 mb-1">
                           <Sparkles className="w-4 h-4" />
                           <span className="font-medium">AI Builder</span>
+                          <Badge className="bg-yellow-600 text-white text-xs px-1 py-0">
+                            Soon
+                          </Badge>
                         </div>
                         <span className="text-xs opacity-60">Create from scratch with AI</span>
                       </div>
@@ -330,7 +362,7 @@ export default function DashboardPage() {
                               <div className="flex items-center gap-2 mb-1">
                                 <FileText className="w-4 h-4 text-cyan-400" />
                                 <h4 className="font-medium text-white truncate">{resume.title}</h4>
-                                {/* ✅ NEW: Quick download indicator */}
+                                {/* Changed back to "Optimized" */}
                                 {resume.lastOptimized && (
                                   <Badge variant="secondary" className="bg-green-400/20 text-green-300 text-xs">
                                     ✨ Optimized
@@ -356,7 +388,7 @@ export default function DashboardPage() {
                               </Badge>
                             </div>
                             
-                            {/* ✅ UPDATED: Action Buttons - REMOVED Download Button */}
+                            {/* Action Buttons */}
                             <div className="flex items-center space-x-2">
                               {/* Edit button */}
                               <Link href={`/dashboard/resume/${resume.id}`}>
@@ -365,7 +397,7 @@ export default function DashboardPage() {
                                 </Button>
                               </Link>
                               
-                              {/* Optimize button */}
+                              {/* Changed back to "Optimize" */}
                               <Link href={`/dashboard/resume/${resume.id}/job-description`}>
                                 <Button size="sm" className="btn-gradient">
                                   Optimize
@@ -389,7 +421,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           
-                          {/* ✅ KEEP: Sleek download options on hover */}
+                          {/* Download options on hover */}
                           <div className="mt-3 pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="text-xs text-slate-500">
@@ -413,6 +445,61 @@ export default function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* 🔥 NEW: Quick Stats - Fills empty space with useful data */}
+              {mockResumes.length > 0 && (
+                <Card className="glass-card border-white/10 bg-gradient-to-br from-slate-800/30 to-cyan-900/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-white flex items-center gap-2 text-lg">
+                      <BarChart3 className="w-5 h-5 text-cyan-400" />
+                      Quick Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-slate-700/30 rounded-lg">
+                        <p className="text-2xl font-bold text-cyan-400">
+                          {mockResumes.reduce((total, resume) => total + (resume.wordCount || 850), 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">Words Optimized</p>
+                      </div>
+                      
+                      <div className="text-center p-3 bg-slate-700/30 rounded-lg">
+                        <p className="text-2xl font-bold text-green-400">
+                          {mockResumes.filter(r => r.lastOptimized).length}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">Resumes Enhanced</p>
+                      </div>
+                      
+                      <div className="text-center p-3 bg-slate-700/30 rounded-lg">
+                        <p className="text-2xl font-bold text-purple-400">
+                          {mockResumes.reduce((total, resume) => total + (resume.applications || 0), 0)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">Applications Sent</p>
+                      </div>
+                      
+                      <div className="text-center p-3 bg-slate-700/30 rounded-lg">
+                        <p className="text-2xl font-bold text-yellow-400">
+                          {Math.max(...mockResumes.map(r => r.applications || 0), 0)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">Most Used Resume</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-lg border border-cyan-400/20">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-200 font-medium">Total Time Saved</p>
+                          <p className="text-xs text-slate-400">Based on industry averages</p>
+                        </div>
+                        <p className="text-xl font-bold text-cyan-300">
+                          {(currentResumes * 3.2).toFixed(1)}h
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -458,44 +545,6 @@ export default function DashboardPage() {
                       </Button>
                     </>
                   )}
-                </CardContent>
-              </Card>
-
-              {/* ✅ FIXED: Download Quick Actions */}
-              <Card className="glass-card border border-white/20 bg-slate-800/50">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Download className="w-5 h-5 text-green-400" />
-                    Quick Downloads
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {mockResumes.length > 0 ? (
-                      <>
-                        <p className="text-sm text-slate-300 mb-3">Recent resumes:</p>
-                        {mockResumes.slice(0, 2).map((resume) => (
-                          <div key={resume.id} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600/50">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-white font-medium truncate">{resume.title}</p>
-                              <p className="text-xs text-slate-300">
-                                {resume.lastOptimized ? 'Optimized' : 'Original'}
-                              </p>
-                            </div>
-                            <QuickDownloadButton 
-                              resumeId={resume.id}
-                              className="ml-2 text-xs px-2 py-1 h-auto border-slate-500 text-slate-200 hover:text-white hover:border-slate-400"
-                            />
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-sm text-slate-300">No resumes to download yet.</p>
-                        <p className="text-xs text-slate-400 mt-1">Upload a resume to get started!</p>
-                      </div>
-                    )}
-                  </div>
                 </CardContent>
               </Card>
 
@@ -548,7 +597,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Upload Resume Modal */}
+          {/* 🔥 FIXED: Upload Resume Modal with correct file limits and alternative choose files action */}
           {isUploadOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               {/* Backdrop */}
@@ -575,14 +624,53 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                   
+                  {/* Alternative option for starting from scratch */}
+                  <div className="mb-6 p-4 bg-gradient-to-r from-purple-900/30 to-cyan-900/30 rounded-lg border border-purple-400/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium mb-1">Don't have a resume yet?</h3>
+                        <p className="text-slate-300 text-sm">Start from scratch with our editor or AI-powered builder</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link href="/dashboard/resume/new">
+                          <Button 
+                            variant="outline" 
+                            className="border-cyan-400/50 text-cyan-300 hover:bg-cyan-400/10"
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Blank Editor
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          className="border-purple-400/50 text-purple-300 hover:bg-purple-400/10"
+                          onClick={handleAIBuilder}
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          AI Builder
+                          <Badge className="bg-yellow-600 text-white text-xs px-1 py-0 ml-2">
+                            Soon
+                          </Badge>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 🔥 FIXED: Corrected maxFiles to 3 */}
                   <ResumeUploader
                     onUploadComplete={handleUploadComplete}
-                    maxFiles={5}
+                    maxFiles={3}
                   />
                 </div>
               </div>
             </div>
           )}
+
+          {/* 🔥 NEW: Settings Modal */}
+          <SettingsModal 
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+          />
         </main>
       </div>
     </div>
