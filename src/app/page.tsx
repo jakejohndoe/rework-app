@@ -187,28 +187,30 @@ export default function HomePage() {
             <h1 className="text-6xl md:text-8xl font-bold mb-10 leading-[0.9] tracking-tight relative">
               <div 
                 className={`transition-all duration-1000 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-                style={isMounted ? {
-                  backgroundImage: `linear-gradient(45deg, 
-                    hsl(${180 + mousePosition.x * 0.1}, 70%, 60%) 0%,
-                    hsl(${200 + mousePosition.y * 0.05}, 80%, 70%) 25%,
-                    hsl(${220 + mousePosition.x * 0.05}, 75%, 65%) 50%,
-                    hsl(${240 + mousePosition.y * 0.1}, 85%, 75%) 75%,
-                    hsl(${260 + mousePosition.x * 0.08}, 80%, 70%) 100%)`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                } : {
-                  backgroundImage: 'linear-gradient(45deg, hsl(200, 70%, 60%) 0%, hsl(220, 80%, 70%) 50%, hsl(240, 75%, 65%) 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
               >
-                <span className="hover:scale-105 transition-transform duration-300 inline-block cursor-pointer">
+                <span 
+                  className="hover:scale-105 transition-transform duration-300 inline-block cursor-pointer"
+                  style={isMounted ? {
+                    backgroundImage: `linear-gradient(45deg, 
+                      hsl(${180 + mousePosition.x * 0.1}, 70%, 60%) 0%,
+                      hsl(${200 + mousePosition.y * 0.05}, 80%, 70%) 25%,
+                      hsl(${220 + mousePosition.x * 0.05}, 75%, 65%) 50%,
+                      hsl(${240 + mousePosition.y * 0.1}, 85%, 75%) 75%,
+                      hsl(${260 + mousePosition.x * 0.08}, 80%, 70%) 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  } : {
+                    backgroundImage: 'linear-gradient(45deg, hsl(200, 70%, 60%) 0%, hsl(220, 80%, 70%) 50%, hsl(240, 75%, 65%) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}
+                >
                   smart tech,
                 </span>
                 <br />
-                <span className="text-slate-300 hover:scale-105 transition-all duration-300 inline-block mr-3 cursor-pointer">for</span>
+                <span className="text-slate-300 hover:text-slate-100 hover:scale-105 transition-all duration-300 inline-block mr-3 cursor-pointer">for</span>
                 <span 
                   className="hover:scale-105 transition-transform duration-300 inline-block cursor-pointer"
                   style={isMounted ? {
@@ -234,10 +236,10 @@ export default function HomePage() {
             {/* Enhanced Description with Staggered Animation */}
             <div className="max-w-3xl mx-auto mb-14">
               <p className={`text-xl md:text-2xl text-slate-200 mb-4 font-medium hover:text-white transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '400ms' }}>
-                transform your resume in seconds with revolutionary ai optimization.
+                transform your resume in seconds with revolutionary optimization.
               </p>
               <p className={`text-lg text-slate-300 leading-relaxed hover:text-slate-200 transition-all duration-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '600ms' }}>
-                upload once • customize for any job • download professional pdfs instantly
+                upload • optimize • dominate
               </p>
             </div>
             
