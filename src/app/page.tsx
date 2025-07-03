@@ -11,7 +11,8 @@ import {
   Download,
   Sparkles,
   Target,
-  Clock
+  Clock,
+  ArrowRight
 } from "lucide-react"
 
 export default function HomePage() {
@@ -25,7 +26,6 @@ export default function HomePage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {/* TODO: Replace with actual ReWork icon/logo */}
                 <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
@@ -81,62 +81,67 @@ export default function HomePage() {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-12">
-          {/* Hero Section */}
-          <div className="text-center mb-16">
-            <Badge className="mb-6 bg-primary-400/20 text-primary-300 border-primary-400/30">
+        <main className="container mx-auto px-4 py-16">
+          {/* Hero Section - IMPROVED */}
+          <div className="text-center mb-20">
+            <Badge className="mb-8 bg-primary-400/20 text-primary-300 border-primary-400/30 px-4 py-2">
               ✨ AI-Powered Resume Optimization
             </Badge>
-            <h1 className="text-5xl font-bold mb-6">
+            
+            {/* Enhanced Hero Title */}
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
               <span className="gradient-text">Smart Tech,</span>
               <br />
-              <span className="text-white">For Smarter Jobs</span>
+              <span className="text-white">For Smarter </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Jobs</span>
             </h1>
-            <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              Transform your resume in seconds with AI-powered optimization. 
-              Upload once, customize for any job, and download professional PDFs instantly.
-            </p>
             
-            {session ? (
-              <div className="flex gap-4 justify-center">
+            {/* Improved Description with Better Spacing */}
+            <div className="max-w-3xl mx-auto mb-12">
+              <p className="text-xl md:text-2xl text-slate-200 mb-4 font-medium">
+                Transform your resume in seconds with revolutionary AI optimization.
+              </p>
+              <p className="text-lg text-slate-300 leading-relaxed">
+                Upload once • Customize for any job • Download professional PDFs instantly
+              </p>
+            </div>
+            
+            {/* Enhanced CTA Section */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+              {session ? (
                 <Link href="/loading/dashboard">
-                  <Button size="lg" className="btn-gradient animate-glow">
+                  <Button size="lg" className="btn-gradient animate-glow text-lg px-8 py-4 group">
                     Create Resume
+                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Link href="/templates">
-                  <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                    View Templates
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="flex gap-4 justify-center">
+              ) : (
                 <Button 
                   size="lg" 
-                  className="btn-gradient animate-glow"
+                  className="btn-gradient animate-glow text-lg px-8 py-4 group"
                   onClick={() => signIn()}
                 >
                   Start Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Link href="/templates">
-                  <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                    View Demo
-                  </Button>
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
+            
+            {/* Trust Indicator */}
+            <p className="text-sm text-slate-400 font-medium">
+              🔒 No credit card required • 3 free resumes • Cancel anytime
+            </p>
           </div>
 
           {/* Quick Stats for Logged-in Users */}
           {session && (
-            <div className="mb-16">
-              <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <div className="mb-20">
+              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {/* Downloads This Month */}
-                <Card className="glass-card border-blue-400/20">
+                <Card className="glass-card border-blue-400/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-105">
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400 mb-1">
+                      <div className="text-3xl font-bold text-blue-400 mb-2">
                         {(session.user as any)?.downloadsThisMonth || 0}
                       </div>
                       <div className="text-sm text-slate-300">
@@ -147,10 +152,10 @@ export default function HomePage() {
                 </Card>
 
                 {/* Resumes Created */}
-                <Card className="glass-card border-green-400/20">
+                <Card className="glass-card border-green-400/20 hover:border-green-400/40 transition-all duration-300 hover:scale-105">
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400 mb-1">
+                      <div className="text-3xl font-bold text-green-400 mb-2">
                         {session.user?.resumesCreated || 0} / 3
                       </div>
                       <div className="text-sm text-slate-300 mb-3">
@@ -166,10 +171,10 @@ export default function HomePage() {
                 </Card>
 
                 {/* Templates Used */}
-                <Card className="glass-card border-purple-400/20">
+                <Card className="glass-card border-purple-400/20 hover:border-purple-400/40 transition-all duration-300 hover:scale-105">
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400 mb-1">
+                      <div className="text-3xl font-bold text-purple-400 mb-2">
                         {(session.user as any)?.templatesUsed || 0}
                       </div>
                       <div className="text-sm text-slate-300">
@@ -183,38 +188,38 @@ export default function HomePage() {
           )}
 
           {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
-            <Card className="glass-card border-white/10 hover:border-primary-400/30 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg mb-4 animate-float flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
+            <Card className="glass-card border-white/10 hover:border-primary-400/30 transition-all duration-300 hover:scale-105 group">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl mb-6 mx-auto animate-float flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Brain className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-white">AI Optimization</CardTitle>
-                <CardDescription className="text-slate-300">
+                <CardTitle className="text-white text-xl mb-3">AI Optimization</CardTitle>
+                <CardDescription className="text-slate-300 text-base leading-relaxed">
                   Smart keyword matching and content optimization tailored to any job description
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="glass-card border-white/10 hover:border-secondary-400/30 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-blue-500 rounded-lg mb-4 animate-float flex items-center justify-center" style={{ animationDelay: '1s' }}>
-                  <FileText className="w-6 h-6 text-white" />
+            <Card className="glass-card border-white/10 hover:border-secondary-400/30 transition-all duration-300 hover:scale-105 group">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-blue-500 rounded-2xl mb-6 mx-auto animate-float flex items-center justify-center group-hover:scale-110 transition-transform" style={{ animationDelay: '1s' }}>
+                  <FileText className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-white">Professional Templates</CardTitle>
-                <CardDescription className="text-slate-300">
+                <CardTitle className="text-white text-xl mb-3">Professional Templates</CardTitle>
+                <CardDescription className="text-slate-300 text-base leading-relaxed">
                   ATS-friendly templates with real-time color customization and perfect formatting
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="glass-card border-white/10 hover:border-primary-400/30 transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mb-4 animate-float flex items-center justify-center" style={{ animationDelay: '2s' }}>
-                  <Download className="w-6 h-6 text-white" />
+            <Card className="glass-card border-white/10 hover:border-primary-400/30 transition-all duration-300 hover:scale-105 group">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-teal-500 rounded-2xl mb-6 mx-auto animate-float flex items-center justify-center group-hover:scale-110 transition-transform" style={{ animationDelay: '2s' }}>
+                  <Download className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-white">Instant Export</CardTitle>
-                <CardDescription className="text-slate-300">
+                <CardTitle className="text-white text-xl mb-3">Instant Export</CardTitle>
+                <CardDescription className="text-slate-300 text-base leading-relaxed">
                   Download polished, job-specific PDFs ready for immediate application
                 </CardDescription>
               </CardHeader>
@@ -222,69 +227,70 @@ export default function HomePage() {
           </div>
 
           {/* Social Proof / Value Props */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="glass-card border-primary-400/20">
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <Card className="glass-card border-primary-400/20 hover:border-primary-400/40 transition-all duration-300 hover:scale-105">
               <CardHeader>
-                <CardTitle className="text-primary-400 flex items-center gap-2">
-                  <Target className="w-5 h-5" />
+                <CardTitle className="text-primary-400 flex items-center gap-3 text-xl">
+                  <Target className="w-6 h-6" />
                   Why ReWork Works
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 text-sm text-slate-300">
-                  <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="space-y-4 text-base text-slate-300">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0"></div>
                     <span>Real-time color customization that competitors don't offer</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0"></div>
                     <span>Perfect preview-to-PDF consistency every time</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0"></div>
                     <span>AI optimization that actually improves your chances</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0"></div>
                     <span>Professional results in seconds, not hours</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-secondary-400/20">
+            <Card className="glass-card border-secondary-400/20 hover:border-secondary-400/40 transition-all duration-300 hover:scale-105">
               <CardHeader>
-                <CardTitle className="text-secondary-400 flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
+                <CardTitle className="text-secondary-400 flex items-center gap-3 text-xl">
+                  <Clock className="w-6 h-6" />
                   Get Started Today
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 text-sm text-slate-300">
+                <div className="space-y-4 text-base text-slate-300">
                   <div className="flex justify-between items-center">
                     <span>✅ Upload your current resume</span>
-                    <Badge variant="secondary" className="bg-green-400/20 text-green-300 text-xs">30 seconds</Badge>
+                    <Badge variant="secondary" className="bg-green-400/20 text-green-300 text-sm px-3 py-1">30 seconds</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>✅ AI analyzes and optimizes content</span>
-                    <Badge variant="secondary" className="bg-blue-400/20 text-blue-300 text-xs">1 minute</Badge>
+                    <Badge variant="secondary" className="bg-blue-400/20 text-blue-300 text-sm px-3 py-1">1 minute</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>✅ Customize colors and template</span>
-                    <Badge variant="secondary" className="bg-purple-400/20 text-purple-300 text-xs">30 seconds</Badge>
+                    <Badge variant="secondary" className="bg-purple-400/20 text-purple-300 text-sm px-3 py-1">30 seconds</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>✅ Download professional PDF</span>
-                    <Badge variant="secondary" className="bg-teal-400/20 text-teal-300 text-xs">Instant</Badge>
+                    <Badge variant="secondary" className="bg-teal-400/20 text-teal-300 text-sm px-3 py-1">Instant</Badge>
                   </div>
-                  <div className="pt-3 border-t border-white/10">
+                  <div className="pt-4 border-t border-white/10">
                     {!session && (
                       <Button 
                         onClick={() => signIn()} 
-                        className="w-full btn-gradient"
+                        className="w-full btn-gradient group"
                         size="sm"
                       >
                         Start Your Free Trial
+                        <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     )}
                   </div>
@@ -295,7 +301,7 @@ export default function HomePage() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-white/10 glass-dark mt-16">
+        <footer className="border-t border-white/10 glass-dark mt-20">
           <div className="container mx-auto px-4 py-8 text-center">
             <p className="text-slate-400">
               © 2025 ReWork • Professional Resume Optimization Platform
