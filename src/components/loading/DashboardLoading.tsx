@@ -1,19 +1,37 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { FileText, User, Briefcase, GraduationCap, Star, CheckCircle } from 'lucide-react'
+import { FileText, User, Briefcase, GraduationCap, Star, CheckCircle, Brain } from 'lucide-react'
 
 export default function DashboardLoading() {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState(new Set<number>())
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const [isMounted, setIsMounted] = useState(false)
 
   const steps = [
-    { icon: User, text: "Loading your profile...", delay: 0 },
-    { icon: FileText, text: "Preparing resume editor...", delay: 800 },
-    { icon: Briefcase, text: "Setting up templates...", delay: 1600 },
-    { icon: GraduationCap, text: "Initializing AI optimizer...", delay: 2400 },
-    { icon: Star, text: "Almost ready...", delay: 3200 }
+    { icon: User, text: "loading your profile...", delay: 0 },
+    { icon: FileText, text: "preparing resume editor...", delay: 800 },
+    { icon: Briefcase, text: "setting up templates...", delay: 1600 },
+    { icon: GraduationCap, text: "initializing ai optimizer...", delay: 2400 },
+    { icon: Star, text: "almost ready...", delay: 3200 }
   ]
+
+  // Client-side mount check
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Mouse tracking for premium effects
+  useEffect(() => {
+    if (!isMounted) return
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX / window.innerWidth * 100, y: e.clientY / window.innerHeight * 100 })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [isMounted])
 
   useEffect(() => {
     const timers = steps.map((step, index) => 
@@ -29,84 +47,126 @@ export default function DashboardLoading() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Floating Particles Background */}
+      {isMounted && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
+              style={{
+                left: `${(i * 13 + 10) % 90 + 5}%`,
+                top: `${(i * 17 + 15) % 80 + 10}%`,
+                animationDelay: `${(i * 0.3) % 3}s`,
+                animationDuration: `${3 + (i % 3)}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Dynamic Gradient Mesh Background */}
+      {isMounted && (
+        <div 
+          className="absolute inset-0 opacity-30 transition-all duration-1000"
+          style={{
+            backgroundImage: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(139, 92, 246, 0.3) 0%, transparent 70%)`
+          }}
+        />
+      )}
+
+      {/* Circuit Background */}
       <div className="circuit-bg absolute inset-0"></div>
+
+      {/* Noise Texture Overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
       
-      <div className="relative z-10 max-w-2xl mx-auto px-6">
-        {/* Header */}
+      <div className="relative z-10 max-w-4xl mx-auto px-6 py-12">
+        {/* Premium Header */}
         <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-secondary-500 rounded-2xl mx-auto mb-4 flex items-center justify-center animate-pulse">
-            <FileText className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
+            <Brain className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Taking you to your dashboard
+          <h1 className="text-4xl font-bold mb-4">
+            <span className="gradient-text">taking you to your dashboard</span>
           </h1>
-          <p className="text-slate-400">
-            Setting up your personalized resume workspace
+          <p className="text-slate-400 text-lg">
+            setting up your personalized resume workspace
           </p>
         </div>
 
-        {/* Resume Paper Animation */}
-        <div className="relative mb-12">
-          <div className="bg-white rounded-lg shadow-2xl p-8 mx-auto max-w-md transform perspective-1000 animate-float">
-            {/* Resume Header */}
-            <div className="border-b border-slate-200 pb-4 mb-4">
-              <div className={`h-6 bg-gradient-to-r from-slate-300 to-slate-200 rounded transition-all duration-1000 mb-2 ${
-                completedSteps.has(0) ? 'from-primary-400 to-secondary-500' : ''
-              }`}></div>
-              <div className={`h-4 bg-slate-200 rounded w-3/4 transition-all duration-1000 delay-200 ${
-                completedSteps.has(0) ? 'bg-slate-700' : ''
-              }`}></div>
-            </div>
+        {/* Premium Resume Paper Animation */}
+        <div className="relative mb-12 flex justify-center">
+          <div className="glass-card p-8 max-w-md w-full animate-float relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5"></div>
+            
+            <div className="relative z-10">
+              {/* Resume Header */}
+              <div className="border-b border-slate-300/30 pb-4 mb-4">
+                <div className={`h-6 rounded transition-all duration-1000 mb-2 ${
+                  completedSteps.has(0) ? 'btn-gradient' : 'bg-gradient-to-r from-slate-300 to-slate-200'
+                }`}></div>
+                <div className={`h-4 rounded w-3/4 transition-all duration-1000 delay-200 ${
+                  completedSteps.has(0) ? 'bg-slate-700' : 'bg-slate-200'
+                }`}></div>
+              </div>
 
-            {/* Experience Section */}
-            <div className="mb-4">
-              <div className={`h-4 bg-slate-200 rounded w-1/2 mb-2 transition-all duration-1000 delay-400 ${
-                completedSteps.has(1) ? 'bg-slate-700' : ''
-              }`}></div>
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="mb-2">
-                  <div className={`h-3 bg-slate-100 rounded w-full mb-1 transition-all duration-1000 ${
-                    completedSteps.has(1) ? 'bg-slate-300' : ''
-                  }`} style={{ transitionDelay: `${600 + i * 200}ms` }}></div>
-                  <div className={`h-3 bg-slate-100 rounded w-4/5 transition-all duration-1000 ${
-                    completedSteps.has(1) ? 'bg-slate-300' : ''
-                  }`} style={{ transitionDelay: `${700 + i * 200}ms` }}></div>
-                </div>
-              ))}
-            </div>
-
-            {/* Skills Section */}
-            <div className="mb-4">
-              <div className={`h-4 bg-slate-200 rounded w-1/3 mb-2 transition-all duration-1000 delay-1000 ${
-                completedSteps.has(2) ? 'bg-slate-700' : ''
-              }`}></div>
-              <div className="flex flex-wrap gap-1">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className={`h-6 bg-slate-100 rounded px-2 transition-all duration-1000 ${
-                    completedSteps.has(2) ? 'bg-primary-100' : ''
-                  }`} style={{ 
-                    transitionDelay: `${1200 + i * 100}ms`,
-                    width: `${Math.random() * 40 + 60}px`
-                  }}></div>
+              {/* Experience Section */}
+              <div className="mb-4">
+                <div className={`h-4 rounded w-1/2 mb-2 transition-all duration-1000 delay-400 ${
+                  completedSteps.has(1) ? 'bg-slate-700' : 'bg-slate-200'
+                }`}></div>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="mb-2">
+                    <div className={`h-3 rounded w-full mb-1 transition-all duration-1000 ${
+                      completedSteps.has(1) ? 'bg-slate-300' : 'bg-slate-100'
+                    }`} style={{ transitionDelay: `${600 + i * 200}ms` }}></div>
+                    <div className={`h-3 rounded w-4/5 transition-all duration-1000 ${
+                      completedSteps.has(1) ? 'bg-slate-300' : 'bg-slate-100'
+                    }`} style={{ transitionDelay: `${700 + i * 200}ms` }}></div>
+                  </div>
                 ))}
+              </div>
+
+              {/* Skills Section */}
+              <div className="mb-4">
+                <div className={`h-4 rounded w-1/3 mb-2 transition-all duration-1000 delay-1000 ${
+                  completedSteps.has(2) ? 'bg-slate-700' : 'bg-slate-200'
+                }`}></div>
+                <div className="flex flex-wrap gap-1">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className={`h-6 rounded px-2 transition-all duration-1000 ${
+                      completedSteps.has(2) ? 'bg-cyan-200' : 'bg-slate-100'
+                    }`} style={{ 
+                      transitionDelay: `${1200 + i * 100}ms`,
+                      width: `${Math.random() * 40 + 60}px`
+                    }}></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Education Section */}
+              <div>
+                <div className={`h-4 rounded w-2/5 mb-2 transition-all duration-1000 delay-1800 ${
+                  completedSteps.has(3) ? 'bg-slate-700' : 'bg-slate-200'
+                }`}></div>
+                <div className={`h-3 rounded w-full mb-1 transition-all duration-1000 delay-2000 ${
+                  completedSteps.has(3) ? 'bg-slate-300' : 'bg-slate-100'
+                }`}></div>
+                <div className={`h-3 rounded w-3/4 transition-all duration-1000 delay-2200 ${
+                  completedSteps.has(3) ? 'bg-slate-300' : 'bg-slate-100'
+                }`}></div>
               </div>
             </div>
 
-            {/* Education Section */}
-            <div>
-              <div className={`h-4 bg-slate-200 rounded w-2/5 mb-2 transition-all duration-1000 delay-1800 ${
-                completedSteps.has(3) ? 'bg-slate-700' : ''
-              }`}></div>
-              <div className={`h-3 bg-slate-100 rounded w-full mb-1 transition-all duration-1000 delay-2000 ${
-                completedSteps.has(3) ? 'bg-slate-300' : ''
-              }`}></div>
-              <div className={`h-3 bg-slate-100 rounded w-3/4 transition-all duration-1000 delay-2200 ${
-                completedSteps.has(3) ? 'bg-slate-300' : ''
-              }`}></div>
-            </div>
-
-            {/* Completion Checkmark */}
+            {/* Premium Completion Checkmark */}
             {completedSteps.has(4) && (
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
                 <CheckCircle className="w-6 h-6 text-white" />
@@ -114,49 +174,49 @@ export default function DashboardLoading() {
             )}
           </div>
 
-          {/* Floating Elements */}
-          <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary-400/20 rounded-full animate-ping"></div>
-          <div className="absolute -bottom-8 -right-8 w-12 h-12 bg-secondary-400/20 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+          {/* Premium Floating Elements */}
+          <div className="absolute -top-8 -left-8 w-16 h-16 bg-cyan-400/20 rounded-full animate-ping"></div>
+          <div className="absolute -bottom-8 -right-8 w-12 h-12 bg-purple-400/20 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
         </div>
 
-        {/* Progress Steps */}
-        <div className="space-y-3">
+        {/* Premium Progress Steps */}
+        <div className="space-y-4 mb-8">
           {steps.map((step, index) => {
             const Icon = step.icon
             const isActive = currentStep >= index
             const isComplete = completedSteps.has(index)
             
             return (
-              <div key={index} className={`flex items-center space-x-4 transition-all duration-500 ${
+              <div key={index} className={`flex items-center space-x-4 transition-all duration-500 hover:scale-[1.02] ${
                 isActive ? 'opacity-100 transform translate-x-0' : 'opacity-30 transform translate-x-4'
               }`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
                   isComplete 
-                    ? 'bg-green-500' 
+                    ? 'bg-green-500 animate-pulse' 
                     : isActive 
-                      ? 'bg-primary-400 animate-pulse' 
+                      ? 'btn-gradient animate-glow' 
                       : 'bg-slate-600'
                 }`}>
                   {isComplete ? (
-                    <CheckCircle className="w-5 h-5 text-white" />
+                    <CheckCircle className="w-6 h-6 text-white" />
                   ) : (
-                    <Icon className="w-5 h-5 text-white" />
+                    <Icon className="w-6 h-6 text-white" />
                   )}
                 </div>
-                <div className={`text-lg transition-all duration-500 ${
+                <div className={`text-lg font-medium transition-all duration-500 ${
                   isComplete 
                     ? 'text-green-400' 
                     : isActive 
-                      ? 'text-white' 
+                      ? 'gradient-text' 
                       : 'text-slate-500'
                 }`}>
                   {step.text}
                 </div>
                 {isActive && !isComplete && (
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 )}
               </div>
@@ -164,19 +224,41 @@ export default function DashboardLoading() {
           })}
         </div>
 
-        {/* Progress Bar */}
+        {/* Premium Progress Bar */}
         <div className="mt-8">
-          <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full glass rounded-full h-3 overflow-hidden relative">
+            {/* Background shimmer */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent animate-pulse"></div>
+            
             <div 
-              className="h-full bg-gradient-to-r from-primary-400 to-secondary-500 transition-all duration-1000 ease-out"
+              className="h-full btn-gradient transition-all duration-1000 ease-out relative overflow-hidden"
               style={{ width: `${(completedSteps.size / steps.length) * 100}%` }}
-            ></div>
+            >
+              {/* Moving light effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+              
+              {/* Shimmer sweep */}
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                style={{ animation: 'shimmer-sweep 2s infinite linear' }}
+              ></div>
+            </div>
           </div>
-          <div className="text-center mt-2 text-sm text-slate-400">
-            {Math.round((completedSteps.size / steps.length) * 100)}% complete
+          <div className="text-center mt-3 text-lg">
+            <span className="gradient-text font-bold">
+              {Math.round((completedSteps.size / steps.length) * 100)}% complete
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Premium CSS Animations */}
+      <style jsx>{`
+        @keyframes shimmer-sweep {
+          0% { transform: translateX(-100%) skewX(12deg); }
+          100% { transform: translateX(300%) skewX(12deg); }
+        }
+      `}</style>
     </div>
   )
 }

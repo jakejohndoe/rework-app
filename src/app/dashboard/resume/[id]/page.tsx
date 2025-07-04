@@ -33,7 +33,9 @@ import {
   Clock,
   Download,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Brain,
+  Sparkles
 } from "lucide-react"
 
 // Simple Resume Preview Component
@@ -65,15 +67,21 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
   const name = extractName(resumeData?.contactInfo || resumeData?.contact)
 
   return (
-    <Card className={`glass-card border-white/10 ${className}`}>
+    <Card className={`glass-card border-white/10 hover:scale-[1.02] transition-all duration-300 ${className}`}>
       <CardHeader>
         <CardTitle className="text-white text-lg flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary-400" />
-          Resume Preview
+          <div className="w-5 h-5 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center">
+            <FileText className="w-3 h-3 text-white" />
+          </div>
+          <span className="gradient-text">live preview</span>
+          <div className="flex items-center space-x-1 bg-green-500/20 px-2 py-1 rounded-full ml-auto">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-green-400">live</span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="w-48 h-64 bg-white rounded-sm shadow-lg border border-gray-200 overflow-hidden relative transition-all duration-300 transform-gpu hover:shadow-xl hover:scale-[1.02] mx-auto">
+        <div className="w-48 h-64 bg-white rounded-sm shadow-lg border border-gray-200 overflow-hidden relative transition-all duration-300 transform-gpu hover:shadow-xl hover:scale-[1.02] mx-auto group">
           <div className="text-[8px] p-2 space-y-0.5 h-full overflow-hidden">
             <div className="border-b border-gray-200 pb-1">
               <h1 className="font-bold text-gray-900 truncate text-[6px]">
@@ -122,6 +130,9 @@ function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, 
               </div>
             )}
           </div>
+          
+          {/* Premium glow effect on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-sm"></div>
         </div>
       </CardContent>
     </Card>
@@ -175,6 +186,9 @@ export default function ResumeEditorPage() {
   const [isSaving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("edit")
   const [hasChanges, setHasChanges] = useState(false)
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const [isMounted, setIsMounted] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   // Editable content state
   const [editedTitle, setEditedTitle] = useState("")
@@ -197,6 +211,23 @@ export default function ResumeEditorPage() {
     projects: [],
     additionalSections: undefined
   })
+
+  // Client-side mount check and premium effects
+  useEffect(() => {
+    setIsMounted(true)
+    setTimeout(() => setIsLoaded(true), 100)
+  }, [])
+
+  // Mouse tracking for premium effects
+  useEffect(() => {
+    if (!isMounted) return
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX / window.innerWidth * 100, y: e.clientY / window.innerHeight * 100 })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [isMounted])
 
   // Helper functions for data conversion
   const convertLegacyContactToStructured = (contactString: string): ContactInfo | undefined => {
@@ -727,14 +758,42 @@ export default function ResumeEditorPage() {
     }
   }, [status, resumeId])
 
-  // Loading state
+  // Loading state with premium design
   if (status === "loading" || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="circuit-bg min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        {/* Premium Loading Background */}
+        {isMounted && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
+                style={{
+                  left: `${(i * 13 + 10) % 90 + 5}%`,
+                  top: `${(i * 17 + 15) % 80 + 10}%`,
+                  animationDelay: `${(i * 0.3) % 3}s`,
+                  animationDuration: `${3 + (i % 3)}s`
+                }}
+              />
+            ))}
+          </div>
+        )}
+        
+        <div className="circuit-bg min-h-screen flex items-center justify-center relative z-10">
           <div className="text-center">
-            <div className="w-12 h-12 border-2 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-400">Loading resume...</p>
+            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
+              <Brain className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold mb-4">
+              <span className="gradient-text">loading your resume</span>
+            </h1>
+            <div className="flex justify-center space-x-1 mb-4">
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            <p className="text-slate-400">preparing your resume editor...</p>
           </div>
         </div>
       </div>
@@ -750,15 +809,21 @@ export default function ResumeEditorPage() {
   // Resume not found
   if (!resume) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="circuit-bg min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        <div className="circuit-bg min-h-screen flex items-center justify-center relative z-10">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white mb-4">Resume not found</h1>
+            <h1 className="text-3xl font-bold mb-4">
+              <span className="gradient-text">resume not found</span>
+            </h1>
+            <p className="text-slate-400 mb-8">the resume you're looking for doesn't exist or has been deleted</p>
             <Link href="/dashboard">
-              <Button className="btn-gradient">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
+              <button className="px-6 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+                <div className="relative z-10 flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  back to dashboard
+                </div>
+              </button>
             </Link>
           </div>
         </div>
@@ -767,65 +832,112 @@ export default function ResumeEditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="circuit-bg min-h-screen">
-        {/* Header */}
-        <header className="border-b border-white/10 glass-dark">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Premium Background Effects */}
+      {isMounted && (
+        <>
+          {/* Floating Particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
+                style={{
+                  left: `${(i * 13 + 10) % 90 + 5}%`,
+                  top: `${(i * 17 + 15) % 80 + 10}%`,
+                  animationDelay: `${(i * 0.3) % 3}s`,
+                  animationDuration: `${3 + (i % 3)}s`
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Dynamic Gradient Mesh */}
+          <div 
+            className="absolute inset-0 opacity-30 transition-all duration-1000"
+            style={{
+              backgroundImage: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(139, 92, 246, 0.3) 0%, transparent 70%)`
+            }}
+          />
+        </>
+      )}
+
+      {/* Circuit Background */}
+      <div className="circuit-bg absolute inset-0"></div>
+
+      {/* Noise Texture Overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
+
+      <div className="circuit-bg min-h-screen relative z-10">
+        {/* Premium Header with Enhanced Glassmorphism */}
+        <header className="border-b border-white/10 backdrop-blur-xl bg-slate-900/30 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
+                {/* Brand Logo */}
+                <div className="flex items-center space-x-2 group">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
+                </div>
+                
                 <Link href="/dashboard">
-                  <Button variant="ghost" className="text-white hover:bg-white/10">
+                  <Button variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Dashboard
+                    dashboard
                   </Button>
                 </Link>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
-                {/* Step Indicator */}
+                {/* Enhanced Step Indicator */}
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full btn-gradient flex items-center justify-center animate-glow">
                       <span className="text-sm font-bold text-white">1</span>
                     </div>
-                    <span className="text-white font-medium">Edit Resume</span>
+                    <span className="text-white font-medium gradient-text">edit resume</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
                       <span className="text-sm font-bold text-slate-400">2</span>
                     </div>
-                    <span className="text-slate-400">Job Description</span>
+                    <span className="text-slate-400">job description</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
                       <span className="text-sm font-bold text-slate-400">3</span>
                     </div>
-                    <span className="text-slate-400">AI Analysis</span>
+                    <span className="text-slate-400">ai analysis</span>
                   </div>
                 </div>
               </div>
               
               <div className="flex items-center space-x-3">
                 {hasChanges && (
-                  <Badge variant="secondary" className="bg-yellow-400/20 text-yellow-300">
+                  <Badge className="bg-amber-400/20 text-amber-300 border border-amber-400/30 hover:bg-amber-400/30 transition-colors animate-pulse">
                     <Clock className="w-3 h-3 mr-1" />
-                    Unsaved changes
+                    unsaved changes
                   </Badge>
                 )}
                 <Button
                   onClick={handleSave}
                   disabled={!hasChanges || isSaving}
-                  variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:scale-105 transition-all duration-300 disabled:opacity-50"
                 >
                   {isSaving ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? 'saving...' : 'save'}
                 </Button>
               </div>
             </div>
@@ -837,32 +949,37 @@ export default function ResumeEditorPage() {
             {/* Main Editor */}
             <div className="lg:col-span-3 space-y-6">
               
-              {/* Resume Title with Auto-Fill */}
-              <Card className="glass-card border-white/10">
+              {/* Resume Title with Auto-Fill - Enhanced */}
+              <Card className={`glass-card border-white/10 hover:scale-[1.01] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-white flex items-center gap-2">
-                        <Edit3 className="w-5 h-5 text-primary-400" />
-                        Resume Title
+                        <div className="w-6 h-6 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center">
+                          <Edit3 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="gradient-text">resume title</span>
                       </CardTitle>
                       <CardDescription className="text-slate-400">
-                        Give your resume a clear, descriptive title
+                        give your resume a clear, descriptive title
                       </CardDescription>
                     </div>
                     
-                    {/* Auto-Fill Button */}
+                    {/* Enhanced Auto-Fill Button */}
                     {resume?.s3Key && (
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className="text-sm text-slate-300 font-medium">Speed up editing!</p>
-                          <p className="text-xs text-slate-400">Auto-fill from your uploaded PDF</p>
+                          <p className="text-sm text-slate-300 font-medium flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-cyan-400" />
+                            speed up editing!
+                          </p>
+                          <p className="text-xs text-slate-400">auto-fill from your uploaded pdf</p>
                         </div>
                         <AutoFillButton
                           resumeId={resumeId}
                           onAutoFillComplete={handleAutoFillComplete}
                           disabled={false}
-                          className="shrink-0"
+                          className="shrink-0 hover:scale-105 transition-all duration-300"
                         />
                       </div>
                     )}
@@ -872,22 +989,22 @@ export default function ResumeEditorPage() {
                   <Input
                     value={editedTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
-                    className="bg-white/5 border-white/20 text-white text-lg font-medium placeholder:text-slate-400 focus:border-primary-400"
+                    className="bg-slate-800/50 border-slate-600 text-white text-lg font-medium placeholder:text-slate-400 hover:border-cyan-400/50 focus:border-cyan-400 transition-all duration-300 focus:scale-[1.01]"
                     placeholder="e.g. John Smith - Software Engineer Resume"
                   />
                   
-                  {/* Auto-fill help text for empty forms */}
+                  {/* Enhanced auto-fill help text */}
                   {resume?.s3Key && !editedSections?.contact && !editedSections?.summary && (
-                    <div className="mt-4 p-4 bg-blue-500/10 border border-blue-400/20 rounded-lg">
+                    <div className="mt-4 p-4 glass border border-cyan-400/20 rounded-lg hover:border-cyan-400/30 transition-all duration-300">
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                          <span className="text-blue-300 text-sm">✨</span>
+                        <div className="flex-shrink-0 w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                          <Sparkles className="w-4 h-4 text-cyan-300" />
                         </div>
                         <div>
-                          <h4 className="text-blue-300 font-medium text-sm mb-1">Pro Tip: Auto-fill your resume!</h4>
-                          <p className="text-blue-200/80 text-sm">
-                            Click the "Auto-fill from PDF" button above to automatically populate all sections with information from your uploaded resume. 
-                            You can then edit and refine the content as needed.
+                          <h4 className="text-cyan-300 font-medium text-sm mb-1">✨ pro tip: auto-fill your resume!</h4>
+                          <p className="text-cyan-200/80 text-sm">
+                            click the "auto-fill from pdf" button above to automatically populate all sections with information from your uploaded resume. 
+                            you can then edit and refine the content as needed.
                           </p>
                         </div>
                       </div>
@@ -896,31 +1013,31 @@ export default function ResumeEditorPage() {
                 </CardContent>
               </Card>
 
-              {/* Content Tabs */}
+              {/* Enhanced Content Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="glass-card border-white/10 rounded-xl">
+                <div className={`glass-card border-white/10 rounded-xl hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '200ms' }}>
                   <div className="p-6 pb-0">
                     <TabsList className="glass-dark border-white/10 p-1">
                       <TabsTrigger 
                         value="edit" 
-                        className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300"
+                        className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-300 hover:bg-white/5 transition-all duration-300"
                       >
                         <Edit3 className="w-4 h-4 mr-2" />
-                        Edit Sections
+                        edit sections
                       </TabsTrigger>
                       <TabsTrigger 
                         value="preview" 
-                        className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300"
+                        className="data-[state=active]:bg-purple-400/20 data-[state=active]:text-purple-300 hover:bg-white/5 transition-all duration-300"
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        Preview
+                        preview
                       </TabsTrigger>
                       <TabsTrigger 
                         value="raw" 
-                        className="data-[state=active]:bg-primary-400/20 data-[state=active]:text-primary-300"
+                        className="data-[state=active]:bg-emerald-400/20 data-[state=active]:text-emerald-300 hover:bg-white/5 transition-all duration-300"
                       >
                         <FileText className="w-4 h-4 mr-2" />
-                        Raw Text
+                        raw text
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -930,7 +1047,7 @@ export default function ResumeEditorPage() {
                       {/* Contact Information */}
                       <CollapsibleSectionWrapper
                         title="Contact Information"
-                        icon={<User className="w-5 h-5 text-slate-300" />}
+                        icon={<User className="w-5 h-5 text-cyan-300" />}
                         isComplete={!!(structuredData.contactInfo?.email || editedSections.contact?.trim().length > 20)}
                         defaultOpen={true}
                       >
@@ -944,7 +1061,7 @@ export default function ResumeEditorPage() {
                       {/* Professional Summary */}
                       <CollapsibleSectionWrapper
                         title="Professional Summary"
-                        icon={<FileText className="w-5 h-5 text-slate-300" />}
+                        icon={<FileText className="w-5 h-5 text-purple-300" />}
                         isComplete={!!((structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary?.length > 20)}
                         defaultOpen={false}
                       >
@@ -958,7 +1075,7 @@ export default function ResumeEditorPage() {
                       {/* Work Experience */}
                       <CollapsibleSectionWrapper
                         title="Work Experience"
-                        icon={<Briefcase className="w-5 h-5 text-slate-300" />}
+                        icon={<Briefcase className="w-5 h-5 text-emerald-300" />}
                         isComplete={!!((structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience?.length > 20)}
                         defaultOpen={false}
                       >
@@ -972,7 +1089,7 @@ export default function ResumeEditorPage() {
                       {/* Education */}
                       <CollapsibleSectionWrapper
                         title="Education"
-                        icon={<GraduationCap className="w-5 h-5 text-slate-300" />}
+                        icon={<GraduationCap className="w-5 h-5 text-blue-300" />}
                         isComplete={!!((structuredData.education && structuredData.education.length > 0) || editedSections.education?.length > 5)}
                         defaultOpen={false}
                       >
@@ -986,7 +1103,7 @@ export default function ResumeEditorPage() {
                       {/* Skills */}
                       <CollapsibleSectionWrapper
                         title="Skills & Expertise"
-                        icon={<Zap className="w-5 h-5 text-slate-300" />}
+                        icon={<Zap className="w-5 h-5 text-amber-300" />}
                         isComplete={!!((structuredData.skills && Object.values(structuredData.skills).some(arr => arr.length > 0)) || editedSections.skills?.length > 5)}
                         defaultOpen={false}
                       >
@@ -1012,7 +1129,7 @@ export default function ResumeEditorPage() {
                             value={editedSections.other}
                             onChange={(e) => handleSectionChange('other', e.target.value)}
                             placeholder="Awards, certifications, volunteer work, projects, publications, languages, or other relevant information..."
-                            className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-primary-400 min-h-[120px]"
+                            className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 hover:border-cyan-400/50 focus:border-cyan-400 transition-all duration-300 focus:scale-[1.01] min-h-[120px]"
                           />
                         </div>
                       </CollapsibleSectionWrapper>
@@ -1022,25 +1139,25 @@ export default function ResumeEditorPage() {
                       <div className="space-y-6 text-white">
                         {editedTitle && (
                           <div className="text-center">
-                            <h1 className="text-2xl font-bold gradient-text mb-2">{editedTitle}</h1>
+                            <h1 className="text-3xl font-bold gradient-text mb-2">{editedTitle}</h1>
                           </div>
                         )}
                         
                         {(editedSections.contact || structuredData.contactInfo) && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-primary-400 mb-2 flex items-center gap-2">
-                              <User className="w-4 h-4" />
+                          <div className="glass-card p-4 border-cyan-400/20">
+                            <h3 className="text-lg font-semibold text-cyan-400 mb-3 flex items-center gap-2">
+                              <User className="w-5 h-5" />
                               Contact Information
                             </h3>
                             {structuredData.contactInfo ? (
                               <div className="space-y-1 text-slate-300">
-                                <div>{`${structuredData.contactInfo.firstName} ${structuredData.contactInfo.lastName}`.trim()}</div>
+                                <div className="font-medium">{`${structuredData.contactInfo.firstName} ${structuredData.contactInfo.lastName}`.trim()}</div>
                                 <div>{structuredData.contactInfo.email}</div>
                                 <div>{structuredData.contactInfo.phone}</div>
                                 <div>{structuredData.contactInfo.location}</div>
-                                {structuredData.contactInfo.linkedin && <div>{structuredData.contactInfo.linkedin}</div>}
-                                {structuredData.contactInfo.website && <div>{structuredData.contactInfo.website}</div>}
-                                {structuredData.contactInfo.githubUrl && <div>{structuredData.contactInfo.githubUrl}</div>}
+                                {structuredData.contactInfo.linkedin && <div className="text-cyan-300">{structuredData.contactInfo.linkedin}</div>}
+                                {structuredData.contactInfo.website && <div className="text-cyan-300">{structuredData.contactInfo.website}</div>}
+                                {structuredData.contactInfo.githubUrl && <div className="text-cyan-300">{structuredData.contactInfo.githubUrl}</div>}
                               </div>
                             ) : (
                               <div className="whitespace-pre-wrap text-slate-300">{editedSections.contact}</div>
@@ -1049,79 +1166,82 @@ export default function ResumeEditorPage() {
                         )}
 
                         {(editedSections.summary || structuredData.professionalSummary) && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-secondary-400 mb-2 flex items-center gap-2">
-                              <FileText className="w-4 h-4" />
+                          <div className="glass-card p-4 border-purple-400/20">
+                            <h3 className="text-lg font-semibold text-purple-400 mb-3 flex items-center gap-2">
+                              <FileText className="w-5 h-5" />
                               Professional Summary
                             </h3>
                             {structuredData.professionalSummary ? (
                               <div className="space-y-2 text-slate-300">
-                                <div className="whitespace-pre-wrap">{structuredData.professionalSummary.summary}</div>
+                                <div className="whitespace-pre-wrap leading-relaxed">{structuredData.professionalSummary.summary}</div>
                                 {structuredData.professionalSummary.targetRole && (
                                   <p className="text-slate-400 text-sm">
-                                    <strong>Target Role:</strong> {structuredData.professionalSummary.targetRole}
+                                    <strong className="text-purple-300">Target Role:</strong> {structuredData.professionalSummary.targetRole}
                                   </p>
                                 )}
                                 {structuredData.professionalSummary.keyStrengths.length > 0 && (
                                   <p className="text-slate-400 text-sm">
-                                    <strong>Key Strengths:</strong> {structuredData.professionalSummary.keyStrengths.join(', ')}
+                                    <strong className="text-purple-300">Key Strengths:</strong> {structuredData.professionalSummary.keyStrengths.join(', ')}
                                   </p>
                                 )}
                               </div>
                             ) : (
-                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.summary}</div>
+                              <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{editedSections.summary}</div>
                             )}
                           </div>
                         )}
 
                         {(editedSections.experience || structuredData.workExperience?.length) && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-green-400 mb-2 flex items-center gap-2">
-                              <Briefcase className="w-4 h-4" />
+                          <div className="glass-card p-4 border-emerald-400/20">
+                            <h3 className="text-lg font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                              <Briefcase className="w-5 h-5" />
                               Work Experience
                             </h3>
                             {structuredData.workExperience && structuredData.workExperience.length > 0 ? (
                               <div className="space-y-4">
                                 {structuredData.workExperience.map((job, index) => (
-                                  <div key={job.id} className="border-l border-slate-600 pl-4">
-                                    <h4 className="font-semibold text-white">
+                                  <div key={job.id} className="border-l border-emerald-600 pl-4 hover:border-emerald-400 transition-colors duration-300">
+                                    <h4 className="font-semibold text-white text-lg">
                                       {job.jobTitle} - {job.company}
                                     </h4>
-                                    <p className="text-slate-400 text-sm">
+                                    <p className="text-slate-400 text-sm mb-2">
                                       {job.startDate} - {job.endDate === 'present' ? 'Present' : job.endDate}
                                       {job.location && ` • ${job.location}`}
                                     </p>
                                     {job.achievements && job.achievements.length > 0 && job.achievements[0]?.trim() && (
                                       <ul className="mt-2 space-y-1 text-slate-300">
                                         {job.achievements.filter(a => a.trim()).map((achievement, i) => (
-                                          <li key={i} className="text-sm">• {achievement}</li>
+                                          <li key={i} className="text-sm flex items-start gap-2">
+                                            <span className="text-emerald-400 mt-1">•</span>
+                                            <span>{achievement}</span>
+                                          </li>
                                         ))}
                                       </ul>
                                     )}
                                     {job.technologies && job.technologies.length > 0 && (
                                       <p className="mt-2 text-slate-400 text-sm">
-                                        <strong>Tools/Software:</strong> {job.technologies.join(', ')}
+                                        <strong className="text-emerald-300">Tools/Software:</strong> {job.technologies.join(', ')}
                                       </p>
                                     )}
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.experience}</div>
+                              <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{editedSections.experience}</div>
                             )}
                           </div>
                         )}
 
                         {(editedSections.education || structuredData.education?.length) && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-blue-400 mb-2 flex items-center gap-2">
-                              <GraduationCap className="w-4 h-4" />
+                          <div className="glass-card p-4 border-blue-400/20">
+                            <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center gap-2">
+                              <GraduationCap className="w-5 h-5" />
                               Education
                             </h3>
                             {structuredData.education && structuredData.education.length > 0 ? (
                               <div className="space-y-3">
                                 {structuredData.education.map((edu, index) => (
-                                  <div key={edu.id} className="border-l border-slate-600 pl-4">
+                                  <div key={edu.id} className="border-l border-blue-600 pl-4 hover:border-blue-400 transition-colors duration-300">
                                     <h4 className="font-semibold text-white">
                                       {edu.degree} in {edu.field}
                                     </h4>
@@ -1131,71 +1251,74 @@ export default function ResumeEditorPage() {
                                     </p>
                                     {edu.honors && edu.honors.length > 0 && (
                                       <p className="text-slate-300 text-sm mt-1">
-                                        <strong>Honors:</strong> {edu.honors.join(', ')}
+                                        <strong className="text-blue-300">Honors:</strong> {edu.honors.join(', ')}
                                       </p>
                                     )}
                                     {edu.relevantCoursework && edu.relevantCoursework.length > 0 && (
                                       <p className="text-slate-300 text-sm mt-1">
-                                        <strong>Relevant Coursework:</strong> {edu.relevantCoursework.join(', ')}
+                                        <strong className="text-blue-300">Relevant Coursework:</strong> {edu.relevantCoursework.join(', ')}
                                       </p>
                                     )}
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.education}</div>
+                              <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{editedSections.education}</div>
                             )}
                           </div>
                         )}
 
                         {(editedSections.skills || structuredData.skills) && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-yellow-400 mb-2 flex items-center gap-2">
-                              <Zap className="w-4 h-4" />
+                          <div className="glass-card p-4 border-amber-400/20">
+                            <h3 className="text-lg font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                              <Zap className="w-5 h-5" />
                               Skills & Abilities
                             </h3>
                             {structuredData.skills ? (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {structuredData.skills.technical.length > 0 && (
-                                  <div><strong>Core Job Skills:</strong> {structuredData.skills.technical.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Core Job Skills:</strong> <span className="text-slate-300">{structuredData.skills.technical.join(', ')}</span></div>
                                 )}
                                 {structuredData.skills.tools.length > 0 && (
-                                  <div><strong>Software & Tools:</strong> {structuredData.skills.tools.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Software & Tools:</strong> <span className="text-slate-300">{structuredData.skills.tools.join(', ')}</span></div>
                                 )}
                                 {structuredData.skills.soft.length > 0 && (
-                                  <div><strong>Soft Skills:</strong> {structuredData.skills.soft.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Soft Skills:</strong> <span className="text-slate-300">{structuredData.skills.soft.join(', ')}</span></div>
                                 )}
                                 {structuredData.skills.certifications.length > 0 && (
-                                  <div><strong>Certifications & Licenses:</strong> {structuredData.skills.certifications.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Certifications & Licenses:</strong> <span className="text-slate-300">{structuredData.skills.certifications.join(', ')}</span></div>
                                 )}
                                 {structuredData.skills.frameworks.length > 0 && (
-                                  <div><strong>Industry Knowledge:</strong> {structuredData.skills.frameworks.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Industry Knowledge:</strong> <span className="text-slate-300">{structuredData.skills.frameworks.join(', ')}</span></div>
                                 )}
                                 {structuredData.skills.databases.length > 0 && (
-                                  <div><strong>Languages:</strong> {structuredData.skills.databases.join(', ')}</div>
+                                  <div><strong className="text-amber-300">Languages:</strong> <span className="text-slate-300">{structuredData.skills.databases.join(', ')}</span></div>
                                 )}
                               </div>
                             ) : (
-                              <div className="whitespace-pre-wrap text-slate-300">{editedSections.skills}</div>
+                              <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{editedSections.skills}</div>
                             )}
                           </div>
                         )}
 
                         {editedSections.other && (
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-400 mb-2">
+                          <div className="glass-card p-4 border-slate-400/20">
+                            <h3 className="text-lg font-semibold text-slate-400 mb-3">
                               Additional Information
                             </h3>
-                            <div className="whitespace-pre-wrap text-slate-300">{editedSections.other}</div>
+                            <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{editedSections.other}</div>
                           </div>
                         )}
                       </div>
                     </TabsContent>
 
                     <TabsContent value="raw" className="mt-0">
-                      <div className="bg-black/20 p-4 rounded-lg border border-white/10">
-                        <h3 className="text-white font-medium mb-3">Original Extracted Text</h3>
-                        <div className="text-slate-300 text-sm whitespace-pre-wrap font-mono">
+                      <div className="glass-card p-4 border-emerald-400/20">
+                        <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-emerald-400" />
+                          <span className="gradient-text">original extracted text</span>
+                        </h3>
+                        <div className="text-slate-300 text-sm whitespace-pre-wrap font-mono bg-black/20 p-4 rounded-lg border border-white/10 max-h-96 overflow-y-auto">
                           {resume.originalContent.rawText}
                         </div>
                       </div>
@@ -1204,119 +1327,159 @@ export default function ResumeEditorPage() {
                 </div>
               </Tabs>
 
-              {/* Next Step Button */}
-              <Card className="glass-card border-white/10">
+              {/* Enhanced Next Step Button */}
+              <Card className={`glass-card border-white/10 hover:scale-[1.01] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '400ms' }}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-white font-medium mb-1">Ready for the next step?</h3>
+                      <h3 className="text-white font-medium mb-1 flex items-center gap-2">
+                        <span className="gradient-text">ready for the next step?</span>
+                        {isResumeComplete() && <CheckCircle2 className="w-5 h-5 text-green-400" />}
+                      </h3>
                       <p className="text-slate-400 text-sm">
                         {isResumeComplete() 
-                          ? "Your resume looks great! Let's add a job description to optimize it."
-                          : "Complete the required sections (Contact, Summary, Experience) to continue."
+                          ? "your resume looks great! let's add a job description to optimize it."
+                          : "complete the required sections (contact, summary, experience) to continue."
                         }
                       </p>
                     </div>
-                    <Button 
+                    <button 
                       onClick={handleNext}
                       disabled={!isResumeComplete()}
-                      className="btn-gradient"
-                      size="lg"
+                      className="px-8 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      {isResumeComplete() && <CheckCircle2 className="w-4 h-4 mr-2" />}
-                      Next: Job Description
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                      <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+                      <div className="relative z-10 flex items-center gap-2">
+                        next: job description
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                      </div>
+                    </button>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Sidebar */}
+            {/* Enhanced Sidebar */}
             <div className="space-y-6">
               {/* Resume Preview */}
-              <SimpleResumePreview 
-                resumeData={getPreviewData()}
-                className="sticky top-6"
-              />
+              <div className={`transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '600ms' }}>
+                <SimpleResumePreview 
+                  resumeData={getPreviewData()}
+                  className="sticky top-6"
+                />
+              </div>
 
-              {/* Progress Indicator - UPDATED for structured data */}
-              <Card className="glass-card border-white/10">
+              {/* Enhanced Progress Indicator */}
+              <Card className={`glass-card border-white/10 hover:scale-[1.02] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '700ms' }}>
                 <CardHeader>
-                  <CardTitle className="text-white text-lg">Progress</CardTitle>
+                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                    <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="gradient-text">completion progress</span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Contact Info</span>
-                    {(structuredData.contactInfo?.email || editedSections.contact?.length > 20) ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Summary</span>
-                    {(structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary.length > 20 ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Experience</span>
-                    {(structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience.length > 20 ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Education</span>
-                    {(structuredData.education && structuredData.education.length > 0) || editedSections.education.length > 5 ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Skills</span>
-                    {(structuredData.skills && Object.values(structuredData.skills).some(arr => arr.length > 0)) || editedSections.skills.length > 5 ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
-                    )}
-                  </div>
+                <CardContent className="space-y-4">
+                  {[
+                    { 
+                      label: 'contact info', 
+                      completed: (structuredData.contactInfo?.email || editedSections.contact?.length > 20),
+                      icon: User,
+                      color: 'text-cyan-400'
+                    },
+                    { 
+                      label: 'summary', 
+                      completed: (structuredData.professionalSummary?.summary?.length ?? 0) > 20 || editedSections.summary.length > 20,
+                      icon: FileText,
+                      color: 'text-purple-400'
+                    },
+                    { 
+                      label: 'experience', 
+                      completed: (structuredData.workExperience && structuredData.workExperience.length > 0) || editedSections.experience.length > 20,
+                      icon: Briefcase,
+                      color: 'text-emerald-400'
+                    },
+                    { 
+                      label: 'education', 
+                      completed: (structuredData.education && structuredData.education.length > 0) || editedSections.education.length > 5,
+                      icon: GraduationCap,
+                      color: 'text-blue-400'
+                    },
+                    { 
+                      label: 'skills', 
+                      completed: (structuredData.skills && Object.values(structuredData.skills).some(arr => arr.length > 0)) || editedSections.skills.length > 5,
+                      icon: Zap,
+                      color: 'text-amber-400'
+                    }
+                  ].map((item, index) => (
+                    <div key={item.label} className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg transition-all duration-300">
+                      <div className="flex items-center gap-2">
+                        <item.icon className={`w-4 h-4 ${item.color}`} />
+                        <span className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">{item.label}</span>
+                      </div>
+                      {item.completed ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-400 animate-pulse" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-slate-600 group-hover:border-slate-500 transition-colors"></div>
+                      )}
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 
-              {/* File Info */}
-              <Card className="glass-card border-white/10">
+              {/* Enhanced File Info */}
+              <Card className={`glass-card border-white/10 hover:scale-[1.02] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '800ms' }}>
                 <CardHeader>
-                  <CardTitle className="text-white text-lg">File Information</CardTitle>
+                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                    <div className="w-5 h-5 bg-gradient-to-br from-slate-400 to-slate-600 rounded-lg flex items-center justify-center">
+                      <FileText className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="gradient-text">file information</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Original file:</span>
-                    <span className="text-white">{resume.originalContent.metadata.originalFileName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">File size:</span>
-                    <span className="text-white">{(resume.originalContent.metadata.fileSize / 1024).toFixed(1)} KB</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Type:</span>
-                    <span className="text-white">{resume.originalContent.metadata.fileType.split('/')[1].toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Last modified:</span>
-                    <span className="text-white">{new Date(resume.updatedAt).toLocaleDateString()}</span>
-                  </div>
+                  {[
+                    { label: 'original file', value: resume.originalContent.metadata.originalFileName },
+                    { label: 'file size', value: `${(resume.originalContent.metadata.fileSize / 1024).toFixed(1)} KB` },
+                    { label: 'type', value: resume.originalContent.metadata.fileType.split('/')[1].toUpperCase() },
+                    { label: 'last modified', value: new Date(resume.updatedAt).toLocaleDateString() }
+                  ].map((item, index) => (
+                    <div key={item.label} className="flex justify-between hover:bg-white/5 p-2 rounded-lg transition-all duration-300 group">
+                      <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{item.label}:</span>
+                      <span className="text-white group-hover:text-cyan-300 transition-colors font-medium">{item.value}</span>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
           </div>
         </main>
       </div>
+
+      {/* Premium CSS Animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+          from {
+            box-shadow: 0 0 20px rgba(44, 199, 208, 0.2);
+          }
+          to {
+            box-shadow: 0 0 30px rgba(44, 199, 208, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+          }
+        }
+        
+        .animate-glow {
+          animation: glow 2s ease-in-out infinite alternate;
+        }
+      `}</style>
     </div>
   )
 }

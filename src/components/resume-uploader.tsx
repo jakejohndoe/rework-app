@@ -48,15 +48,32 @@ export default function ResumeUploader({
         const formData = new FormData()
         formData.append('file', uploadingFile.file)
 
+        // Enhanced progress simulation that NEVER gets stuck
         const progressInterval = setInterval(() => {
           setUploadingFiles(prev => 
-            prev.map(f => 
-              f.id === uploadingFile.id 
-                ? { ...f, progress: Math.min(f.progress + Math.random() * 30, 90) }
-                : f
-            )
+            prev.map(f => {
+              if (f.id === uploadingFile.id) {
+                let increment;
+                // Different increment rates for different stages
+                if (f.progress < 30) {
+                  increment = Math.random() * 15 + 5 // 5-20% increments (fast start)
+                } else if (f.progress < 60) {
+                  increment = Math.random() * 10 + 3 // 3-13% increments (steady)
+                } else if (f.progress < 85) {
+                  increment = Math.random() * 5 + 2 // 2-7% increments (slower)
+                } else if (f.progress < 95) {
+                  increment = Math.random() * 2 + 0.5 // 0.5-2.5% increments (realistic final processing)
+                } else {
+                  increment = Math.random() * 0.5 + 0.1 // 0.1-0.6% increments (almost done, but still moving!)
+                }
+                
+                const newProgress = Math.min(f.progress + increment, 99.5) // Never quite reach 100 until server responds
+                return { ...f, progress: newProgress }
+              }
+              return f
+            })
           )
-        }, 200)
+        }, 250) // Slightly faster updates for more responsiveness
 
         const response = await fetch('/api/resumes/upload', {
           method: 'POST',
@@ -142,7 +159,7 @@ export default function ResumeUploader({
           transition-all duration-500 ease-out
           ${isDragActive 
             ? 'scale-[1.03] border-transparent bg-gradient-to-br from-cyan-500/15 via-purple-500/8 to-emerald-500/15' 
-            : 'hover:scale-[1.01] border-slate-700/50 hover:border-slate-600/70 bg-slate-800/30'
+            : 'hover:scale-[1.01] border-slate-700/50 hover:border-slate-600/70 glass-card'
           }
           ${isDragReject ? 'border-red-400/70 bg-red-500/10' : ''}
         `}
@@ -153,7 +170,7 @@ export default function ResumeUploader({
       >
         <input {...getInputProps()} />
         
-        {/* Radar Sweep Effect - More Subtle */}
+        {/* Radar Sweep Effect */}
         {isDragActive && (
           <div className="absolute inset-0">
             <div 
@@ -167,7 +184,7 @@ export default function ResumeUploader({
           </div>
         )}
 
-        {/* Grid Pattern Background - Lighter */}
+        {/* Grid Pattern Background */}
         <div className={`
           absolute inset-0 opacity-0 transition-opacity duration-500
           ${isDragActive ? 'opacity-20' : ''}
@@ -192,7 +209,7 @@ export default function ResumeUploader({
           {/* Multi-layered Icon Container */}
           <div className="relative mb-8">
             
-            {/* Outer Ring - More Subtle Morph */}
+            {/* Outer Ring */}
             <div className={`
               absolute inset-0 w-24 h-24 rounded-full
               transition-all duration-700 ease-out
@@ -206,7 +223,7 @@ export default function ResumeUploader({
               animation: isDragActive ? 'outer-ring-pulse 2s ease-in-out infinite' : 'none'
             }} />
             
-            {/* Middle Ring - Gentler Counter Rotation */}
+            {/* Middle Ring */}
             <div className={`
               absolute inset-2 w-20 h-20 rounded-full border-2
               transition-all duration-500 ease-out
@@ -220,24 +237,23 @@ export default function ResumeUploader({
               animation: isDragActive ? 'counter-rotate 4s linear infinite' : 'none'
             }} />
             
-            {/* Inner Core - Gentler Glow */}
+            {/* Inner Core */}
             <div className={`
               relative w-24 h-24 rounded-full flex items-center justify-center
-              transition-all duration-400 ease-out
+              transition-all duration-400 ease-out glass-card
               ${isDragActive 
                 ? 'bg-gradient-to-br from-cyan-500/25 to-purple-500/25 scale-105' 
-                : 'bg-slate-800/80 scale-100'
+                : 'scale-100'
               }
             `}
             style={{
               transform: 'translateZ(0)',
-              backdropFilter: 'blur(10px)',
               boxShadow: isDragActive 
                 ? '0 0 30px rgba(44, 199, 208, 0.3), inset 0 0 15px rgba(147, 51, 234, 0.2)' 
                 : '0 0 10px rgba(0, 0, 0, 0.3)'
             }}>
               
-              {/* Morphing Upload Icon - Gentler Glow */}
+              {/* Morphing Upload Icon */}
               <Upload 
                 className={`
                   w-10 h-10 transition-all duration-400
@@ -281,7 +297,7 @@ export default function ResumeUploader({
             `}>
               {isDragActive 
                 ? 'SCANNING FILES...' 
-                : 'Drag & Drop Your Resume'
+                : 'drag & drop your resume'
               }
             </h3>
             
@@ -293,8 +309,8 @@ export default function ResumeUploader({
               }
             `}>
               {isDragActive 
-                ? 'AI processing ready • Release to upload'
-                : 'Advanced AI-powered resume optimization awaits'
+                ? 'ai processing ready • release to upload'
+                : 'advanced ai-powered resume optimization awaits'
               }
             </p>
             
@@ -305,21 +321,21 @@ export default function ResumeUploader({
             `}>
               <span className="flex items-center gap-1">
                 <div className={`w-2 h-2 rounded-full ${isDragActive ? 'bg-green-400 animate-pulse' : 'bg-slate-500'}`} />
-                PDF • DOCX
+                pdf • docx
               </span>
               <span className="flex items-center gap-1">
                 <div className={`w-2 h-2 rounded-full ${isDragActive ? 'bg-cyan-400 animate-pulse' : 'bg-slate-500'}`} />
-                Max {maxFiles} files
+                max {maxFiles} files
               </span>
               <span className="flex items-center gap-1">
                 <div className={`w-2 h-2 rounded-full ${isDragActive ? 'bg-purple-400 animate-pulse' : 'bg-slate-500'}`} />
-                10MB each
+                10mb each
               </span>
             </div>
           </div>
         </div>
 
-        {/* Gentler Holographic Edge Effect */}
+        {/* Holographic Edge Effect */}
         <div className={`
           absolute inset-0 rounded-2xl pointer-events-none
           transition-all duration-500
@@ -335,74 +351,233 @@ export default function ResumeUploader({
         }} />
       </div>
 
-      {/* Upload Progress Section */}
+      {/* Enhanced Upload Progress Section with Smart Movement */}
       {uploadingFiles.length > 0 && (
         <div className="mt-6 space-y-3">
-          <h4 className="text-sm font-medium text-slate-300 mb-3">
-            Processing Files ({uploadingFiles.length})
+          <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            processing files ({uploadingFiles.length})
           </h4>
           
           {uploadingFiles.map((uploadingFile) => (
-            <Card key={uploadingFile.id} className="glass-card p-4 border border-cyan-500/20">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0">
-                  {uploadingFile.status === 'completed' ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                  ) : uploadingFile.status === 'error' ? (
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                  ) : (
-                    <div className="relative">
-                      <FileText className="w-5 h-5 text-cyan-400" />
-                      <div className="absolute inset-0 animate-ping">
-                        <FileText className="w-5 h-5 text-cyan-400 opacity-30" />
+            <div key={uploadingFile.id} className="relative">
+              <Card className="glass-card p-4 relative hover:scale-[1.01] transition-all duration-300">
+                {/* Dynamic background animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+                
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="flex-shrink-0">
+                    {uploadingFile.status === 'completed' ? (
+                      <div className="relative">
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                        <div className="absolute inset-0 animate-ping">
+                          <CheckCircle className="w-5 h-5 text-green-400 opacity-30" />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    ) : uploadingFile.status === 'error' ? (
+                      <div className="relative">
+                        <AlertCircle className="w-5 h-5 text-red-400" />
+                        <div className="absolute inset-0 animate-pulse">
+                          <AlertCircle className="w-5 h-5 text-red-400 opacity-50" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <FileText className="w-5 h-5 text-cyan-400" />
+                        <div className="absolute inset-0 animate-ping">
+                          <FileText className="w-5 h-5 text-cyan-400 opacity-30" />
+                        </div>
+                        {/* Scanning animation around icon */}
+                        <div className="absolute inset-0 rounded-full border border-cyan-400/30" style={{ animation: 'scanning-ring 2s linear infinite' }}></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-200 truncate flex items-center gap-2">
+                      {uploadingFile.file.name}
+                      {uploadingFile.status === 'uploading' && (
+                        <span className="text-xs text-cyan-400 animate-pulse">• processing...</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {(uploadingFile.file.size / 1024 / 1024).toFixed(1)} mb
+                    </p>
+                  </div>
+                  
+                  <div className="flex-shrink-0 w-32">
+                    {uploadingFile.status === 'uploading' && (
+                      <div className="space-y-2">
+                        {/* Enhanced Progress Bar with Smart Movement */}
+                        <div className="relative">
+                          <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+                            {/* Background shimmer effect */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent animate-pulse"></div>
+                            
+                            {/* Main progress bar with final-stage glow */}
+                            <div 
+                              className={`h-full btn-gradient rounded-full transition-all duration-300 ease-out relative overflow-hidden ${
+                                uploadingFile.progress > 95 ? 'animate-pulse' : ''
+                              }`}
+                              style={{ 
+                                width: `${uploadingFile.progress}%`,
+                                animation: uploadingFile.progress > 95 ? 'final-stage-glow 1.5s ease-in-out infinite' : 'none'
+                              }}
+                            >
+                              {/* Moving light effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                              
+                              {/* Enhanced shimmer sweep effect that speeds up during final stages */}
+                              <div 
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                                style={{
+                                  animation: uploadingFile.progress > 90 
+                                    ? 'shimmer-sweep 1s infinite linear' 
+                                    : 'shimmer-sweep 2s infinite linear',
+                                  transform: 'translateX(-100%)'
+                                }}
+                              ></div>
+                            </div>
+                            
+                            {/* Smart movement when progress might be stuck - now works through 99% */}
+                            {uploadingFile.progress > 10 && uploadingFile.progress < 99.5 && (
+                              <div className="absolute inset-0">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-cyan-400/30 to-purple-500/30 rounded-full w-6"
+                                  style={{
+                                    animation: 'smart-pulse 2s ease-in-out infinite',
+                                    transform: `translateX(${Math.min(uploadingFile.progress * 0.8, 85)}%)`,
+                                    transition: 'transform 1s ease-out'
+                                  }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Enhanced AI Processing Status with Engaging Messages */}
+                          <div className="flex items-center justify-between text-xs mt-1">
+                            <div className="flex items-center gap-1">
+                              {uploadingFile.progress < 20 && (
+                                <span className="text-cyan-400 animate-pulse flex items-center gap-1">
+                                  <span>🔍</span> scanning document...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 20 && uploadingFile.progress < 40 && (
+                                <span className="text-purple-400 animate-pulse flex items-center gap-1">
+                                  <span>🧠</span> ai reading content...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 40 && uploadingFile.progress < 60 && (
+                                <span className="text-blue-400 animate-pulse flex items-center gap-1">
+                                  <span>⚡</span> parsing experience...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 60 && uploadingFile.progress < 75 && (
+                                <span className="text-emerald-400 animate-pulse flex items-center gap-1">
+                                  <span>✨</span> enhancing keywords...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 75 && uploadingFile.progress < 85 && (
+                                <span className="text-amber-400 animate-pulse flex items-center gap-1">
+                                  <span>🎯</span> optimizing format...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 85 && uploadingFile.progress < 92 && (
+                                <span className="text-pink-400 animate-pulse flex items-center gap-1">
+                                  <span>🔧</span> fine-tuning details...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 92 && uploadingFile.progress < 96 && (
+                                <span className="text-indigo-400 animate-pulse flex items-center gap-1">
+                                  <span>🎨</span> polishing perfection...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 96 && uploadingFile.progress < 99 && (
+                                <span className="text-violet-400 animate-pulse flex items-center gap-1">
+                                  <span>🚀</span> adding secret sauce...
+                                </span>
+                              )}
+                              {uploadingFile.progress >= 99 && (
+                                <span className="text-green-400 animate-bounce flex items-center gap-1">
+                                  <span>🎉</span> almost perfect...
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-slate-400 font-medium">
+                              {Math.round(uploadingFile.progress)}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {uploadingFile.status === 'completed' && (
+                      <div className="text-center">
+                        <span className="text-xs text-green-400 font-medium flex items-center gap-1 justify-center">
+                          <CheckCircle className="w-3 h-3" />
+                          complete
+                        </span>
+                        <p className="text-xs text-slate-500 mt-1">ready to edit</p>
+                      </div>
+                    )}
+                    
+                    {uploadingFile.status === 'error' && (
+                      <div className="text-center">
+                        <span className="text-xs text-red-400 font-medium flex items-center gap-1 justify-center">
+                          <AlertCircle className="w-3 h-3" />
+                          failed
+                        </span>
+                        <p className="text-xs text-slate-500 mt-1">try again</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeUploadingFile(uploadingFile.id)}
+                    className="flex-shrink-0 h-8 w-8 p-0 hover:bg-slate-700/50 hover:scale-110 transition-all text-slate-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 truncate">
-                    {uploadingFile.file.name}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {(uploadingFile.file.size / 1024 / 1024).toFixed(1)} MB
-                  </p>
+              </Card>
+              
+              {/* Success celebration animation - now outside the overflow container */}
+              {uploadingFile.status === 'completed' && (
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-bounce shadow-[0_0_15px_rgba(34,197,94,0.5)] z-20">
+                  <CheckCircle className="w-5 h-5 text-white" />
                 </div>
-                
-                <div className="flex-shrink-0 w-24">
-                  {uploadingFile.status === 'uploading' && (
-                    <Progress 
-                      value={uploadingFile.progress} 
-                      className="h-2 bg-slate-700"
-                    />
-                  )}
-                  {uploadingFile.status === 'completed' && (
-                    <span className="text-xs text-green-400 font-medium">
-                      ✓ Complete
-                    </span>
-                  )}
-                  {uploadingFile.status === 'error' && (
-                    <span className="text-xs text-red-400 font-medium">
-                      ✗ Failed
-                    </span>
-                  )}
-                </div>
-                
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => removeUploadingFile(uploadingFile.id)}
-                  className="flex-shrink-0 h-8 w-8 p-0 hover:bg-slate-700/50"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </Card>
+              )}
+            </div>
           ))}
+          
+          {/* Overall Progress Summary */}
+          {uploadingFiles.length > 1 && (
+            <div className="mt-4 p-3 glass-card">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-300">overall progress</span>
+                <span className="text-sm font-medium text-cyan-400">
+                  {Math.round((uploadingFiles.filter(f => f.status === 'completed').length / uploadingFiles.length) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-700/50 rounded-full h-2">
+                <div 
+                  className="h-full btn-gradient rounded-full transition-all duration-500 ease-out relative overflow-hidden"
+                  style={{ width: `${(uploadingFiles.filter(f => f.status === 'completed').length / uploadingFiles.length) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                {uploadingFiles.filter(f => f.status === 'completed').length} of {uploadingFiles.length} files processed
+              </p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Advanced CSS Animations */}
+      {/* Complete CSS Animations */}
       <style jsx>{`
         @keyframes radar-sweep {
           0% { 
@@ -452,6 +627,46 @@ export default function ResumeUploader({
           100% { 
             transform: translateZ(0) scale(2.5);
             opacity: 0;
+          }
+        }
+
+        @keyframes shimmer-sweep {
+          0% { transform: translateX(-100%) skewX(12deg); }
+          100% { transform: translateX(300%) skewX(12deg); }
+        }
+
+        @keyframes smart-pulse {
+          0%, 100% { 
+            opacity: 0.4;
+            transform: translateX(var(--tw-translate-x)) scale(0.8);
+          }
+          50% { 
+            opacity: 0.8;
+            transform: translateX(var(--tw-translate-x)) scale(1.1);
+          }
+        }
+
+        @keyframes scanning-ring {
+          0% { 
+            transform: scale(0.8) rotate(0deg);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.3) rotate(180deg);
+            opacity: 0.3;
+          }
+          100% { 
+            transform: scale(0.8) rotate(360deg);
+            opacity: 0.8;
+          }
+        }
+
+        @keyframes final-stage-glow {
+          0%, 100% {
+            box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6), 0 0 25px rgba(34, 197, 94, 0.4);
           }
         }
       `}</style>
