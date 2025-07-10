@@ -64,9 +64,37 @@ async function handleDownload(
 
     console.log('✅ Resume found:', resume.title);
 
+    // 🔍 DEBUG: Check resume data state
+    console.log('🔍 DEBUGGING RESUME DATA:');
+    console.log('📋 Resume ID:', id);
+    console.log('📅 Last Optimized:', resume.lastOptimized);
+    console.log('📊 ContactInfo exists:', !!resume.contactInfo);
+    console.log('📊 ProfessionalSummary exists:', !!resume.professionalSummary);
+    console.log('📊 WorkExperience exists:', !!resume.workExperience);
+    console.log('📊 Education exists:', !!resume.education);
+    console.log('📊 Skills exists:', !!resume.skills);
+
+    // Log the actual field contents (first 100 chars to avoid spam)
+    if (resume.contactInfo) {
+      console.log('📧 ContactInfo preview:', JSON.stringify(resume.contactInfo).substring(0, 100));
+    }
+    if (resume.professionalSummary) {
+      console.log('📝 Summary preview:', JSON.stringify(resume.professionalSummary).substring(0, 100));
+    }
+    if (resume.workExperience) {
+      console.log('💼 Experience preview:', JSON.stringify(resume.workExperience).substring(0, 100));
+    }
+
+    console.log('📋 Request options:', options);
+
     // Determine which version to use
     let resumeData: any = {};
     const isOptimized = options.version === 'optimized' || options.version === undefined;
+
+    console.log('🎯 isOptimized calculation:', isOptimized);
+    console.log('🎯 Condition check (contactInfo || professionalSummary || workExperience):', 
+      !!(resume.contactInfo || resume.professionalSummary || resume.workExperience));
+    console.log('🎯 Will use optimized version:', isOptimized && (resume.contactInfo || resume.professionalSummary || resume.workExperience));
 
     if (isOptimized && (resume.contactInfo || resume.professionalSummary || resume.workExperience)) {
       // Use structured data (optimized version)
@@ -113,6 +141,7 @@ async function handleDownload(
     console.log('📄 Creating PDF with template:', template);
     console.log('🎨 Using colors:', colors);
     console.log('🎯 Data keys:', Object.keys(resumeData));
+    console.log('🎯 Final isOptimized flag:', resumeData.isOptimized);
 
     // Create React element with colors support
     const element = React.createElement(PDFResumeDocument, {

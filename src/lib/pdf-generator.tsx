@@ -1,4 +1,4 @@
-// src/lib/pdf-generator.tsx - PART 1 (UPDATED)
+// src/lib/pdf-generator.tsx - COMPLETE FIXED VERSION
 import React from 'react';
 import {
   Document,
@@ -72,7 +72,7 @@ const getTemplateConfig = (template: string, customColors?: { primary: string; a
   return defaultConfigs[template as keyof typeof defaultConfigs] || defaultConfigs.professional;
 };
 
-// Professional Template Styles - Now Dynamic
+// Professional Template Styles - Dynamic
 const createProfessionalStyles = (colors: any) => StyleSheet.create({
   page: {
     padding: 40,
@@ -146,7 +146,7 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// Modern Template Styles - Now Dynamic
+// Modern Template Styles - Dynamic
 const createModernStyles = (colors: any) => StyleSheet.create({
   page: {
     flexDirection: 'row',
@@ -244,289 +244,7 @@ const createModernStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// UPDATED: Helper function to parse and extract resume data with resumeTitle
-const extractResumeData = (resumeData: any, resumeTitle?: string) => {
-  let contactInfo = {};
-  let professionalSummary = '';
-  let workExperience: any[] = [];
-  let education: any[] = [];
-  let skills: any[] = [];
-
-  try {
-    // Parse contact info
-    if (resumeData.contactInfo) {
-      if (typeof resumeData.contactInfo === 'string') {
-        contactInfo = JSON.parse(resumeData.contactInfo);
-      } else {
-        contactInfo = resumeData.contactInfo;
-      }
-    }
-
-    // Parse professional summary
-    if (resumeData.professionalSummary) {
-      if (typeof resumeData.professionalSummary === 'string') {
-        const parsed = JSON.parse(resumeData.professionalSummary);
-        professionalSummary = parsed.optimized || parsed.summary || parsed;
-      } else {
-        professionalSummary = resumeData.professionalSummary.optimized || resumeData.professionalSummary.summary || resumeData.professionalSummary;
-      }
-    }
-
-    // Parse work experience
-    if (resumeData.workExperience) {
-      if (typeof resumeData.workExperience === 'string') {
-        workExperience = JSON.parse(resumeData.workExperience);
-      } else {
-        workExperience = resumeData.workExperience;
-      }
-      if (!Array.isArray(workExperience)) {
-        workExperience = [];
-      }
-    }
-
-    // Parse education
-    if (resumeData.education) {
-      if (typeof resumeData.education === 'string') {
-        education = JSON.parse(resumeData.education);
-      } else {
-        education = resumeData.education;
-      }
-      if (!Array.isArray(education)) {
-        education = [];
-      }
-    }
-
-    // Parse skills - handle different formats
-    if (resumeData.skills) {
-      if (typeof resumeData.skills === 'string') {
-        try {
-          skills = JSON.parse(resumeData.skills);
-        } catch (e) {
-          // If parsing fails, treat as comma-separated string
-          skills = resumeData.skills.split(',').map((s: string) => s.trim());
-        }
-      } else {
-        skills = resumeData.skills;
-      }
-      if (!Array.isArray(skills)) {
-        skills = [];
-      }
-    }
-
-  } catch (error) {
-    console.error('Error parsing resume data:', error);
-  }
-
-  // FIXED: Use resume title first, then contact info, then fallback
-  const fullName = (contactInfo as any)?.name || 
-                   (contactInfo as any)?.fullName || 
-                   ((contactInfo as any)?.firstName && (contactInfo as any)?.lastName ? 
-                     `${(contactInfo as any).firstName} ${(contactInfo as any).lastName}` : '') ||
-                   resumeTitle || 
-                   'Professional Resume';
-
-  return {
-    contactInfo,
-    professionalSummary,
-    workExperience,
-    education,
-    skills,
-    fullName: fullName.trim(),
-    email: (contactInfo as any)?.email || '',
-    phone: (contactInfo as any)?.phone || '',
-    location: (contactInfo as any)?.location || '',
-    linkedin: (contactInfo as any)?.linkedin || '',
-  };
-};
-
-// PART 2 - Template Components (UPDATED with resumeTitle)
-
-// UPDATED: Professional Template Component
-const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  const data = extractResumeData(resumeData, resumeTitle);
-  const styles = createProfessionalStyles(colors);
-
-  return (
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.name}>{data.fullName}</Text>
-        {data.professionalSummary && (
-          <Text style={styles.title}>
-            {data.professionalSummary.substring(0, 80) + '...'}
-          </Text>
-        )}
-        <View style={styles.contactRow}>
-          {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
-          {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
-          {data.location && <Text style={styles.contactItem}>{data.location}</Text>}
-          {data.linkedin && <Text style={styles.contactItem}>{data.linkedin}</Text>}
-        </View>
-      </View>
-
-      {/* Professional Summary */}
-      {data.professionalSummary && (
-        <View>
-          <Text style={styles.sectionTitle}>Professional Summary</Text>
-          <Text style={styles.content}>{data.professionalSummary}</Text>
-        </View>
-      )}
-
-      {/* Work Experience */}
-      {data.workExperience.length > 0 && (
-        <View>
-          <Text style={styles.sectionTitle}>Professional Experience</Text>
-          {data.workExperience.slice(0, 6).map((job: any, index: number) => (
-            <View key={index} style={{ marginBottom: 15 }}>
-              <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{job.title || job.position || 'Position'}</Text>
-                <Text style={styles.jobDate}>{job.startDate || '2020'} - {job.endDate || 'Present'}</Text>
-              </View>
-              <Text style={styles.company}>{job.company || 'Company Name'}</Text>
-              <Text style={styles.content}>
-                {job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Education */}
-      {data.education.length > 0 && (
-        <View>
-          <Text style={styles.sectionTitle}>Education</Text>
-          {data.education.slice(0, 3).map((edu: any, index: number) => (
-            <View key={index} style={{ marginBottom: 10 }}>
-              <View style={styles.jobHeader}>
-                <Text style={styles.jobTitle}>{edu.degree || 'Degree'}</Text>
-                <Text style={styles.jobDate}>{edu.year || edu.endDate || '2020'}</Text>
-              </View>
-              <Text style={styles.company}>{edu.institution || edu.school || 'University'}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Skills */}
-      {data.skills.length > 0 && (
-        <View>
-          <Text style={styles.sectionTitle}>Core Skills</Text>
-          <Text style={styles.content}>
-            {data.skills.slice(0, 12).map((skill: any) => 
-              typeof skill === 'string' ? skill : skill.name || skill
-            ).join(' • ')}
-          </Text>
-        </View>
-      )}
-
-      {isOptimized && (
-        <View style={{ marginTop: 30, alignItems: 'center' }}>
-          <Text style={{ fontSize: 9, color: colors.accent }}>✨ AI Enhanced Resume</Text>
-        </View>
-      )}
-    </Page>
-  );
-};
-
-// UPDATED: Modern Template Component (Two-Column)
-const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  const data = extractResumeData(resumeData, resumeTitle);
-  const styles = createModernStyles(colors);
-
-  // Generate skill levels for demo
-  const skillsWithLevels = data.skills.slice(0, 8).map((skill: any) => ({
-    name: typeof skill === 'string' ? skill : skill.name || skill,
-    level: Math.floor(Math.random() * 40) + 60 // 60-100%
-  }));
-
-  return (
-    <Page size="A4" style={styles.page}>
-      {/* Sidebar */}
-      <View style={styles.sidebar}>
-        <Text style={styles.name}>{data.fullName}</Text>
-        <Text style={styles.title}>
-          {data.professionalSummary ? data.professionalSummary.substring(0, 50) + '...' : 'Professional'}
-        </Text>
-
-        {/* Contact */}
-        <View style={styles.sidebarSection}>
-          <Text style={styles.sidebarTitle}>Contact</Text>
-          {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
-          {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
-          {data.location && <Text style={styles.contactItem}>{data.location}</Text>}
-          {data.linkedin && <Text style={styles.contactItem}>{data.linkedin}</Text>}
-        </View>
-
-        {/* Skills with Progress Bars */}
-        {skillsWithLevels.length > 0 && (
-          <View style={styles.sidebarSection}>
-            <Text style={styles.sidebarTitle}>Skills</Text>
-            {skillsWithLevels.map((skill: any, index: number) => (
-              <View key={index} style={styles.skillItem}>
-                <Text style={styles.skillName}>{skill.name}</Text>
-                <View style={styles.skillBar}>
-                  <View style={[styles.skillProgress, { width: `${skill.level}%` }]} />
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Education */}
-        {data.education.length > 0 && (
-          <View style={styles.sidebarSection}>
-            <Text style={styles.sidebarTitle}>Education</Text>
-            {data.education.slice(0, 2).map((edu: any, index: number) => (
-              <View key={index} style={{ marginBottom: 12 }}>
-                <Text style={[styles.skillName, { fontWeight: 'bold' }]}>{edu.degree || 'Degree'}</Text>
-                <Text style={styles.contactItem}>{edu.institution || edu.school || 'University'}</Text>
-                <Text style={styles.contactItem}>{edu.year || edu.endDate || '2020'}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* Main Content */}
-      <View style={styles.mainContent}>
-        {/* Professional Summary */}
-        {data.professionalSummary && (
-          <View>
-            <Text style={styles.mainSectionTitle}>About Me</Text>
-            <Text style={styles.jobDescription}>{data.professionalSummary}</Text>
-          </View>
-        )}
-
-        {/* Work Experience */}
-        {data.workExperience.length > 0 && (
-          <View>
-            <Text style={styles.mainSectionTitle}>Experience</Text>
-            {data.workExperience.slice(0, 5).map((job: any, index: number) => (
-              <View key={index} style={styles.experienceItem}>
-                <Text style={styles.jobTitleMain}>{job.title || job.position || 'Position'}</Text>
-                <Text style={styles.jobCompany}>{job.company || 'Company Name'}</Text>
-                <Text style={styles.jobDateMain}>{job.startDate || '2020'} - {job.endDate || 'Present'}</Text>
-                <Text style={styles.jobDescription}>
-                  {job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {isOptimized && (
-          <View style={{ marginTop: 20, alignItems: 'center' }}>
-            <Text style={{ fontSize: 9, color: colors.accent }}>✨ AI Enhanced Resume</Text>
-          </View>
-        )}
-      </View>
-    </Page>
-  );
-};
-
-// PART 3 - Minimal and Creative Template Styles & Components
-
-// Minimal Template Styles - Now Dynamic
+// Minimal Template Styles - Dynamic
 const createMinimalStyles = (colors: any) => StyleSheet.create({
   page: {
     padding: 50,
@@ -601,7 +319,7 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// Creative Template Styles - Now Dynamic
+// Creative Template Styles - Dynamic
 const createCreativeStyles = (colors: any) => StyleSheet.create({
   page: {
     padding: 0,
@@ -754,10 +472,342 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-// UPDATED: Minimal Template Component
+// FIXED: Helper function to parse and extract resume data with correct field mapping
+const extractResumeData = (resumeData: any, resumeTitle?: string) => {
+  let contactInfo = {};
+  let professionalSummary = '';
+  let workExperience: any[] = [];
+  let education: any[] = [];
+  let skills: any = {};
+
+  try {
+    // Parse contact info
+    if (resumeData.contactInfo || resumeData.contact) {
+      const contact = resumeData.contactInfo || resumeData.contact;
+      if (typeof contact === 'string') {
+        contactInfo = JSON.parse(contact);
+      } else {
+        contactInfo = contact;
+      }
+    }
+
+    // FIXED: Parse professional summary - handle object structure correctly
+    if (resumeData.professionalSummary) {
+      if (typeof resumeData.professionalSummary === 'string') {
+        try {
+          const parsed = JSON.parse(resumeData.professionalSummary);
+          professionalSummary = parsed.summary || parsed.optimized || parsed;
+        } catch (e) {
+          professionalSummary = resumeData.professionalSummary;
+        }
+      } else {
+        // It's an object - extract the summary field
+        professionalSummary = resumeData.professionalSummary.summary || 
+                             resumeData.professionalSummary.optimized || 
+                             resumeData.professionalSummary;
+      }
+    }
+
+    // FIXED: Parse work experience - handle the actual structure from apply-suggestions
+    if (resumeData.workExperience) {
+      if (typeof resumeData.workExperience === 'string') {
+        workExperience = JSON.parse(resumeData.workExperience);
+      } else {
+        workExperience = resumeData.workExperience;
+      }
+      if (!Array.isArray(workExperience)) {
+        workExperience = [];
+      }
+    }
+
+    // FIXED: Parse education - handle the actual structure
+    if (resumeData.education) {
+      if (typeof resumeData.education === 'string') {
+        education = JSON.parse(resumeData.education);
+      } else {
+        education = resumeData.education;
+      }
+      if (!Array.isArray(education)) {
+        education = [];
+      }
+    }
+
+    // FIXED: Parse skills - handle the structured object format from apply-suggestions
+    if (resumeData.skills) {
+      if (typeof resumeData.skills === 'string') {
+        try {
+          skills = JSON.parse(resumeData.skills);
+        } catch (e) {
+          // If parsing fails, treat as comma-separated string
+          skills = { technical: resumeData.skills.split(',').map((s: string) => s.trim()) };
+        }
+      } else {
+        skills = resumeData.skills;
+      }
+      
+      // Ensure it's an object, not an array
+      if (Array.isArray(skills)) {
+        skills = { technical: skills };
+      }
+    }
+
+  } catch (error) {
+    console.error('Error parsing resume data:', error);
+  }
+
+  // FIXED: Use resume title first, then contact info, then fallback
+  const fullName = (contactInfo as any)?.name || 
+                   (contactInfo as any)?.fullName || 
+                   ((contactInfo as any)?.firstName && (contactInfo as any)?.lastName ? 
+                     `${(contactInfo as any).firstName} ${(contactInfo as any).lastName}` : '') ||
+                   resumeTitle || 
+                   'Professional Resume';
+
+  return {
+    contactInfo,
+    professionalSummary,
+    workExperience,
+    education,
+    skills,
+    fullName: fullName.trim(),
+    email: (contactInfo as any)?.email || '',
+    phone: (contactInfo as any)?.phone || '',
+    location: (contactInfo as any)?.location || '',
+    linkedin: (contactInfo as any)?.linkedin || '',
+  };
+};
+
+// Helper function to extract skills array from skills object
+const extractSkillsArray = (skills: any): string[] => {
+  const skillsArray = [];
+  if (skills.technical && Array.isArray(skills.technical)) skillsArray.push(...skills.technical);
+  if (skills.frameworks && Array.isArray(skills.frameworks)) skillsArray.push(...skills.frameworks);
+  if (skills.tools && Array.isArray(skills.tools)) skillsArray.push(...skills.tools);
+  if (skills.cloud && Array.isArray(skills.cloud)) skillsArray.push(...skills.cloud);
+  if (skills.databases && Array.isArray(skills.databases)) skillsArray.push(...skills.databases);
+  if (skills.soft && Array.isArray(skills.soft)) skillsArray.push(...skills.soft);
+  
+  // Fallback to treating skills as simple array
+  if (skillsArray.length === 0 && Array.isArray(skills)) {
+    skillsArray.push(...skills);
+  }
+  
+  return skillsArray;
+};
+
+// FIXED: Professional Template Component
+const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
+  const styles = createProfessionalStyles(colors);
+  const skillsArray = extractSkillsArray(data.skills);
+
+  return (
+    <Page size="A4" style={styles.page}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.name}>{data.fullName}</Text>
+        {data.professionalSummary && (
+          <Text style={styles.title}>
+            {data.professionalSummary.length > 80 
+              ? data.professionalSummary.substring(0, 80) + '...'
+              : data.professionalSummary}
+          </Text>
+        )}
+        <View style={styles.contactRow}>
+          {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
+          {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
+          {data.location && <Text style={styles.contactItem}>{data.location}</Text>}
+          {data.linkedin && <Text style={styles.contactItem}>{data.linkedin}</Text>}
+        </View>
+      </View>
+
+      {/* Professional Summary */}
+      {data.professionalSummary && (
+        <View>
+          <Text style={styles.sectionTitle}>Professional Summary</Text>
+          <Text style={styles.content}>{data.professionalSummary}</Text>
+        </View>
+      )}
+
+      {/* Work Experience - FIXED FIELD MAPPING */}
+      {data.workExperience.length > 0 && (
+        <View>
+          <Text style={styles.sectionTitle}>Professional Experience</Text>
+          {data.workExperience.slice(0, 6).map((job: any, index: number) => (
+            <View key={index} style={{ marginBottom: 15 }}>
+              <View style={styles.jobHeader}>
+                <Text style={styles.jobTitle}>
+                  {job.jobTitle || job.title || job.position || 'Position'}
+                </Text>
+                <Text style={styles.jobDate}>
+                  {job.startDate || '2020'} - {job.endDate || 'Present'}
+                </Text>
+              </View>
+              <Text style={styles.company}>{job.company || 'Company Name'}</Text>
+              
+              <Text style={styles.content}>
+                {job.achievements && Array.isArray(job.achievements) 
+                  ? job.achievements.join('. ') + '.'
+                  : job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Education - FIXED FIELD MAPPING */}
+      {data.education.length > 0 && (
+        <View>
+          <Text style={styles.sectionTitle}>Education</Text>
+          {data.education.slice(0, 3).map((edu: any, index: number) => (
+            <View key={index} style={{ marginBottom: 10 }}>
+              <View style={styles.jobHeader}>
+                <Text style={styles.jobTitle}>
+                  {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+                </Text>
+                <Text style={styles.jobDate}>
+                  {edu.graduationYear || edu.year || edu.endDate || '2020'}
+                </Text>
+              </View>
+              <Text style={styles.company}>
+                {edu.institution || edu.school || 'University'}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Skills - FIXED FIELD MAPPING */}
+      {skillsArray.length > 0 && (
+        <View>
+          <Text style={styles.sectionTitle}>Core Skills</Text>
+          <Text style={styles.content}>
+            {skillsArray.slice(0, 12).join(' • ')}
+          </Text>
+        </View>
+      )}
+
+      {isOptimized && (
+        <View style={{ marginTop: 30, alignItems: 'center' }}>
+          <Text style={{ fontSize: 9, color: colors.accent }}>✨ AI Enhanced Resume</Text>
+        </View>
+      )}
+    </Page>
+  );
+};
+
+// FIXED: Modern Template Component
+const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  const data = extractResumeData(resumeData, resumeTitle);
+  const styles = createModernStyles(colors);
+  const skillsArray = extractSkillsArray(data.skills);
+
+  // Generate skill levels for demo
+  const skillsWithLevels = skillsArray.slice(0, 8).map((skill: any) => ({
+    name: typeof skill === 'string' ? skill : skill.name || skill,
+    level: Math.floor(Math.random() * 40) + 60 // 60-100%
+  }));
+
+  return (
+    <Page size="A4" style={styles.page}>
+      {/* Sidebar */}
+      <View style={styles.sidebar}>
+        <Text style={styles.name}>{data.fullName}</Text>
+        <Text style={styles.title}>
+          {data.professionalSummary 
+            ? data.professionalSummary.substring(0, 50) + '...' 
+            : 'Professional'}
+        </Text>
+
+        {/* Contact */}
+        <View style={styles.sidebarSection}>
+          <Text style={styles.sidebarTitle}>Contact</Text>
+          {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
+          {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
+          {data.location && <Text style={styles.contactItem}>{data.location}</Text>}
+          {data.linkedin && <Text style={styles.contactItem}>{data.linkedin}</Text>}
+        </View>
+
+        {/* Skills with Progress Bars */}
+        {skillsWithLevels.length > 0 && (
+          <View style={styles.sidebarSection}>
+            <Text style={styles.sidebarTitle}>Skills</Text>
+            {skillsWithLevels.map((skill: any, index: number) => (
+              <View key={index} style={styles.skillItem}>
+                <Text style={styles.skillName}>{skill.name}</Text>
+                <View style={styles.skillBar}>
+                  <View style={[styles.skillProgress, { width: `${skill.level}%` }]} />
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Education */}
+        {data.education.length > 0 && (
+          <View style={styles.sidebarSection}>
+            <Text style={styles.sidebarTitle}>Education</Text>
+            {data.education.slice(0, 2).map((edu: any, index: number) => (
+              <View key={index} style={{ marginBottom: 12 }}>
+                <Text style={[styles.skillName, { fontWeight: 'bold' }]}>
+                  {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+                </Text>
+                <Text style={styles.contactItem}>{edu.institution || edu.school || 'University'}</Text>
+                <Text style={styles.contactItem}>{edu.graduationYear || edu.year || edu.endDate || '2020'}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Main Content */}
+      <View style={styles.mainContent}>
+        {/* Professional Summary */}
+        {data.professionalSummary && (
+          <View>
+            <Text style={styles.mainSectionTitle}>About Me</Text>
+            <Text style={styles.jobDescription}>{data.professionalSummary}</Text>
+          </View>
+        )}
+
+        {/* Work Experience - FIXED FIELD MAPPING */}
+        {data.workExperience.length > 0 && (
+          <View>
+            <Text style={styles.mainSectionTitle}>Experience</Text>
+            {data.workExperience.slice(0, 5).map((job: any, index: number) => (
+              <View key={index} style={styles.experienceItem}>
+                <Text style={styles.jobTitleMain}>
+                  {job.jobTitle || job.title || job.position || 'Position'}
+                </Text>
+                <Text style={styles.jobCompany}>{job.company || 'Company Name'}</Text>
+                <Text style={styles.jobDateMain}>
+                  {job.startDate || '2020'} - {job.endDate || 'Present'}
+                </Text>
+                <Text style={styles.jobDescription}>
+                  {job.achievements && Array.isArray(job.achievements) 
+                    ? job.achievements.join('. ') + '.'
+                    : job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {isOptimized && (
+          <View style={{ marginTop: 20, alignItems: 'center' }}>
+            <Text style={{ fontSize: 9, color: colors.accent }}>✨ AI Enhanced Resume</Text>
+          </View>
+        )}
+      </View>
+    </Page>
+  );
+};
+
+// FIXED: Minimal Template Component
 const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
   const data = extractResumeData(resumeData, resumeTitle);
   const styles = createMinimalStyles(colors);
+  const skillsArray = extractSkillsArray(data.skills);
 
   return (
     <Page size="A4" style={styles.page}>
@@ -765,7 +815,9 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
       <View style={styles.header}>
         <Text style={styles.name}>{data.fullName}</Text>
         <Text style={styles.title}>
-          {data.professionalSummary ? data.professionalSummary.substring(0, 60) + '...' : 'Professional'}
+          {data.professionalSummary 
+            ? data.professionalSummary.substring(0, 60) + '...' 
+            : 'Professional'}
         </Text>
         <View style={styles.contactRow}>
           {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
@@ -783,50 +835,58 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
         </View>
       )}
 
-      {/* Work Experience */}
+      {/* Work Experience - FIXED FIELD MAPPING */}
       {data.workExperience.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Experience</Text>
           <View style={styles.divider} />
           {data.workExperience.slice(0, 5).map((job: any, index: number) => (
             <View key={index} style={styles.experienceHeader}>
-              <Text style={styles.jobTitleMinimal}>{job.title || job.position || 'Position'}</Text>
+              <Text style={styles.jobTitleMinimal}>
+                {job.jobTitle || job.title || job.position || 'Position'}
+              </Text>
               <View style={styles.jobMetadata}>
                 <Text style={styles.companyMinimal}>{job.company || 'Company Name'}</Text>
-                <Text style={styles.dateMinimal}>{job.startDate || '2020'} - {job.endDate || 'Present'}</Text>
+                <Text style={styles.dateMinimal}>
+                  {job.startDate || '2020'} - {job.endDate || 'Present'}
+                </Text>
               </View>
               <Text style={styles.content}>
-                {job.description || job.responsibilities || 'Managed key responsibilities and delivered results.'}
+                {job.achievements && Array.isArray(job.achievements) 
+                  ? job.achievements.join('. ') + '.'
+                  : job.description || job.responsibilities || 'Managed key responsibilities and delivered results.'}
               </Text>
             </View>
           ))}
         </View>
       )}
 
-      {/* Education */}
+      {/* Education - FIXED FIELD MAPPING */}
       {data.education.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
           <View style={styles.divider} />
           {data.education.slice(0, 3).map((edu: any, index: number) => (
             <View key={index} style={{ marginBottom: 15 }}>
-              <Text style={styles.jobTitleMinimal}>{edu.degree || 'Degree'}</Text>
+              <Text style={styles.jobTitleMinimal}>
+                {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+              </Text>
               <View style={styles.jobMetadata}>
                 <Text style={styles.companyMinimal}>{edu.institution || edu.school || 'University'}</Text>
-                <Text style={styles.dateMinimal}>{edu.year || edu.endDate || '2020'}</Text>
+                <Text style={styles.dateMinimal}>{edu.graduationYear || edu.year || edu.endDate || '2020'}</Text>
               </View>
             </View>
           ))}
         </View>
       )}
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+      {/* Skills - FIXED FIELD MAPPING */}
+      {skillsArray.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Skills</Text>
           <View style={styles.divider} />
           <Text style={styles.content}>
-            {data.skills.slice(0, 15).map((skill: any) => typeof skill === 'string' ? skill : skill.name || skill).join(' • ')}
+            {skillsArray.slice(0, 15).join(' • ')}
           </Text>
         </View>
       )}
@@ -840,22 +900,19 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
   );
 };
 
-// PART 4 - Creative Template Component and Main Document (FINAL)
-
-// UPDATED: Creative Template Component
+// FIXED: Creative Template Component
 const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
   const data = extractResumeData(resumeData, resumeTitle);
   const styles = createCreativeStyles(colors);
+  const skillsArray = extractSkillsArray(data.skills);
 
   // Generate skill levels and categories
-  const skillsWithLevels = data.skills.slice(0, 6).map((skill: any) => ({
+  const skillsWithLevels = skillsArray.slice(0, 6).map((skill: any) => ({
     name: typeof skill === 'string' ? skill : skill.name || skill,
     level: Math.floor(Math.random() * 30) + 70 // 70-100%
   }));
 
-  const remainingSkills = data.skills.slice(6, 15).map((skill: any) => 
-    typeof skill === 'string' ? skill : skill.name || skill
-  );
+  const remainingSkills = skillsArray.slice(6, 15);
 
   return (
     <Page size="A4" style={styles.page}>
@@ -866,7 +923,9 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
           <View style={styles.headerText}>
             <Text style={styles.nameCreative}>{data.fullName}</Text>
             <Text style={styles.titleCreative}>
-              {data.professionalSummary ? data.professionalSummary.substring(0, 50) + '...' : 'Creative Professional'}
+              {data.professionalSummary 
+                ? data.professionalSummary.substring(0, 50) + '...' 
+                : 'Creative Professional'}
             </Text>
           </View>
         </View>
@@ -914,13 +973,19 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
                 <Text style={styles.creativeSectionTitle}>Experience</Text>
                 {data.workExperience.slice(0, 4).map((job: any, index: number) => (
                   <View key={index} style={styles.experienceCard}>
-                    <Text style={styles.jobTitleCreative}>{job.title || job.position || 'Position'}</Text>
+                    <Text style={styles.jobTitleCreative}>
+                      {job.jobTitle || job.title || job.position || 'Position'}
+                    </Text>
                     <View style={styles.jobMetaCreative}>
                       <Text style={styles.companyCreative}>{job.company || 'Company Name'}</Text>
-                      <Text style={styles.dateCreative}>{job.startDate || '2020'} - {job.endDate || 'Present'}</Text>
+                      <Text style={styles.dateCreative}>
+                        {job.startDate || '2020'} - {job.endDate || 'Present'}
+                      </Text>
                     </View>
                     <Text style={styles.descriptionCreative}>
-                      {job.description || job.responsibilities || 'Delivered innovative solutions and exceeded performance targets.'}
+                      {job.achievements && Array.isArray(job.achievements) 
+                        ? job.achievements.join('. ') + '.'
+                        : job.description || job.responsibilities || 'Delivered innovative solutions and exceeded performance targets.'}
                     </Text>
                   </View>
                 ))}
@@ -962,16 +1027,18 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
               </View>
             )}
 
-            {/* Education */}
+            {/* Education - FIXED FIELD MAPPING */}
             {data.education.length > 0 && (
               <View>
                 <Text style={styles.creativeSectionTitle}>Education</Text>
                 {data.education.slice(0, 2).map((edu: any, index: number) => (
                   <View key={index} style={[styles.experienceCard, { backgroundColor: colors.light, borderLeftColor: colors.accent }]}>
-                    <Text style={styles.jobTitleCreative}>{edu.degree || 'Degree'}</Text>
+                    <Text style={styles.jobTitleCreative}>
+                      {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+                    </Text>
                     <View style={styles.jobMetaCreative}>
                       <Text style={styles.companyCreative}>{edu.institution || edu.school || 'University'}</Text>
-                      <Text style={styles.dateCreative}>{edu.year || edu.endDate || '2020'}</Text>
+                      <Text style={styles.dateCreative}>{edu.graduationYear || edu.year || edu.endDate || '2020'}</Text>
                     </View>
                   </View>
                 ))}
@@ -1000,7 +1067,7 @@ export {
   CreativeTemplate
 };
 
-// UPDATED: Main PDF Document Component
+// FIXED: Main PDF Document Component
 const PDFDocument = (props: any) => {
   const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle } = props;
   
