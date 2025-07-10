@@ -41,18 +41,45 @@
   }
 }
 
-/* Custom ReWork Design System */
+/* PERFORMANCE OPTIMIZATIONS */
+/* Disable expensive effects on mobile and low-end devices */
+@media (max-width: 1024px), (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-glow {
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  .circuit-bg {
+    background-image: linear-gradient(135deg, rgba(44, 199, 208, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%) !important;
+  }
+}
+
+/* Hardware acceleration for better performance */
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Custom ReWork Design System - OPTIMIZED */
 @layer utilities {
   .glass {
     @apply bg-white/10 backdrop-blur-sm border border-white/20;
+    /* Add hardware acceleration */
+    transform: translate3d(0, 0, 0);
   }
   
   .glass-dark {
     @apply bg-black/20 backdrop-blur-md border border-white/10;
+    /* Add hardware acceleration */
+    transform: translate3d(0, 0, 0);
   }
   
   .glass-card {
     @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl;
+    /* Add hardware acceleration */
+    transform: translate3d(0, 0, 0);
   }
   
   .gradient-text {
@@ -61,42 +88,72 @@
   
   .btn-gradient {
     @apply bg-gradient-to-r from-primary-400 to-secondary-500 hover:from-primary-500 hover:to-secondary-600 transition-all duration-300;
+    /* Optimize transitions */
+    transition-property: background-image, transform;
+    will-change: background-image;
   }
   
+  /* OPTIMIZED CIRCUIT BACKGROUND - Reduced complexity */
   .circuit-bg {
     background-image: 
-      radial-gradient(circle at 20% 50%, rgba(44, 199, 208, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, rgba(44, 199, 208, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 20% 50%, rgba(44, 199, 208, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 40%);
+    /* Removed third gradient for better performance */
   }
   
+  /* OPTIMIZED ANIMATIONS - GPU accelerated */
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float-optimized 4s ease-in-out infinite;
+    will-change: transform;
   }
   
   .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
+    animation: glow-optimized 3s ease-in-out infinite alternate;
+    will-change: transform, box-shadow;
+  }
+  
+  /* PERFORMANCE-OPTIMIZED HOVER EFFECTS */
+  .hover-scale {
+    transition: transform 0.2s ease;
+    will-change: transform;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  
+  .hover-scale-lg {
+    transition: transform 0.2s ease;
+    will-change: transform;
+  }
+  
+  .hover-scale-lg:hover {
+    transform: scale(1.05) translate3d(0, 0, 0);
   }
 }
 
-@keyframes float {
+/* OPTIMIZED KEYFRAMES - Use transform3d for GPU acceleration */
+@keyframes float-optimized {
   0%, 100% { 
-    transform: translateY(0px); 
+    transform: translate3d(0, 0, 0); 
   }
   50% { 
-    transform: translateY(-20px); 
+    transform: translate3d(0, -12px, 0); 
   }
 }
 
-@keyframes glow {
+@keyframes glow-optimized {
   from {
-    box-shadow: 0 0 20px rgba(44, 199, 208, 0.2);
+    transform: scale(1) translate3d(0, 0, 0);
+    box-shadow: 0 0 15px rgba(44, 199, 208, 0.15);
   }
   to {
-    box-shadow: 0 0 30px rgba(44, 199, 208, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+    transform: scale(1.01) translate3d(0, 0, 0);
+    box-shadow: 0 0 25px rgba(44, 199, 208, 0.25);
   }
 }
 
+/* PERFORMANCE OPTIMIZED SCROLLBAR */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -107,15 +164,90 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-gradient-to-b from-primary-400 to-secondary-500 rounded-full;
+  /* Optimize scrollbar animation */
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   @apply from-primary-500 to-secondary-600;
 }
 
+/* UTILITY CLASSES */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* PERFORMANCE UTILITIES */
+.disable-animations {
+  animation: none !important;
+  transition: none !important;
+}
+
+.enable-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* REDUCED MOTION PREFERENCES */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-float,
+  .animate-glow {
+    animation: none !important;
+  }
+}
+
+/* HIGH PERFORMANCE MODE - Add this class to body for maximum speed */
+.performance-mode .animate-float,
+.performance-mode .animate-glow,
+.performance-mode .hover-scale,
+.performance-mode .hover-scale-lg {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+.performance-mode .circuit-bg {
+  background-image: linear-gradient(135deg, rgba(44, 199, 208, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%) !important;
+}
+
+/* OPTIMIZED BACKDROP BLUR - Reduce blur intensity for better performance */
+.glass,
+.glass-dark,
+.glass-card {
+  backdrop-filter: blur(8px) !important; /* Reduced from default blur amount */
+}
+
+/* OPTIMIZED TRANSITIONS - Only animate necessary properties */
+.transition-optimized {
+  transition-property: transform, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* PERFORMANCE DEBUGGING - Remove in production */
+.perf-debug * {
+  outline: 1px solid rgba(255, 0, 0, 0.2) !important;
+}
+
+/* LOADING OPTIMIZATION */
+.loading-optimized {
+  animation: pulse 1s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
