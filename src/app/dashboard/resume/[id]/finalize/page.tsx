@@ -1,4 +1,4 @@
-// Enhanced Finalize Page with Premium Design System Applied
+// Enhanced Finalize Page with Premium Design System Applied - COMPLETE FIXED VERSION
 // src/app/dashboard/resume/[id]/finalize/page.tsx
 
 'use client'
@@ -54,6 +54,14 @@ const templates: Template[] = [
   }
 ]
 
+// Template color mapping - each template gets its matching default color
+const templateColorMap = {
+  professional: { primary: '#2563eb', accent: '#3b82f6' }, // Blue
+  modern: { primary: '#7c3aed', accent: '#8b5cf6' },        // Purple  
+  minimal: { primary: '#059669', accent: '#10b981' },       // Green
+  creative: { primary: '#dc2626', accent: '#ef4444' }       // Red/Orange
+}
+
 // Color options for customization
 const colorOptions = [
   { name: 'Professional Blue', primary: '#2563eb', accent: '#3b82f6' },
@@ -71,10 +79,10 @@ export default function EnhancedFinalizePage() {
   const resumeId = params.id as string
 
   const [selectedTemplate, setSelectedTemplate] = useState('professional')
-  const [selectedColors, setSelectedColors] = useState({ 
-    primary: '#2563eb', 
-    accent: '#3b82f6' 
-  })
+  // Dynamic default colors based on template instead of hardcoded blue
+  const [selectedColors, setSelectedColors] = useState(() => 
+    templateColorMap['professional']
+  )
   const [showComparison, setShowComparison] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -102,6 +110,11 @@ export default function EnhancedFinalizePage() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [isMounted])
 
+  // Update colors when template changes to match template defaults
+  useEffect(() => {
+    setSelectedColors(templateColorMap[selectedTemplate as keyof typeof templateColorMap])
+  }, [selectedTemplate])
+
   useEffect(() => {
     if (status === 'loading') return
     
@@ -128,8 +141,8 @@ export default function EnhancedFinalizePage() {
     }
   }
 
-  const handleBackToAnalysis = () => {
-    router.push(`/dashboard/resume/${resumeId}/analysis`)
+  const handleBackToDashboard = () => {
+    router.push(`/dashboard`)
   }
 
   const handleEditMore = () => {
@@ -302,11 +315,11 @@ export default function EnhancedFinalizePage() {
 
                 <Button 
                   variant="ghost" 
-                  onClick={handleBackToAnalysis}
+                  onClick={handleBackToDashboard}
                   className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  back to analysis
+                  back to dashboard
                 </Button>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
@@ -376,35 +389,7 @@ export default function EnhancedFinalizePage() {
               </div>
             </div>
 
-            {/* Enhanced Success Message */}
-            <div className={`glass-card border-green-500/30 p-8 hover:scale-[1.01] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '100ms' }}>
-              <div className="flex items-start space-x-6">
-                <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-4 animate-glow">
-                  <CheckCircle className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-3xl font-bold mb-3">
-                    <span className="gradient-text">resume optimization complete!</span>
-                  </h2>
-                  <p className="text-slate-300 text-lg mb-4">
-                    your resume has been enhanced with ai suggestions and is now ready for customization and download.
-                  </p>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-500/20 text-green-300 border border-green-500/30">
-                      ✨ AI Enhanced
-                    </Badge>
-                    <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      🎯 Job-Optimized
-                    </Badge>
-                    <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                      📄 Ready to Download
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Template Selection */}
+            {/* Enhanced Template Selection - FIXED BADGE POSITIONING */}
             <div className={`glass-card border-white/10 p-8 hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '200ms' }}>
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -426,13 +411,14 @@ export default function EnhancedFinalizePage() {
                     onClick={() => setSelectedTemplate(template.id)}
                     className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
                       selectedTemplate === template.id
-                        ? 'border-cyan-400 bg-cyan-500/20 shadow-lg shadow-cyan-500/25'
+                        ? 'border-cyan-400 bg-cyan-500/30 shadow-lg shadow-cyan-500/25 backdrop-blur-sm'
                         : 'border-white/20 glass hover:border-white/40'
                     } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                     style={{ transitionDelay: `${300 + index * 100}ms` }}
                   >
+                    {/* FIXED: Badge positioning - centered at top, no overlap */}
                     {template.recommended && (
-                      <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs px-3 py-1 rounded-full font-bold animate-pulse">
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs px-3 py-1 rounded-full font-bold animate-pulse z-10 shadow-lg">
                         👑 recommended
                       </div>
                     )}
@@ -445,7 +431,7 @@ export default function EnhancedFinalizePage() {
                     <p className="text-slate-400 text-sm leading-relaxed">{template.description}</p>
                     
                     {selectedTemplate === template.id && (
-                      <div className="absolute inset-0 border-2 border-cyan-400 rounded-xl pointer-events-none animate-pulse">
+                      <div className="absolute inset-0 border-2 border-cyan-400 rounded-xl pointer-events-none">
                         <div className="absolute top-3 left-3 bg-cyan-400 text-cyan-900 rounded-full p-1">
                           <CheckCircle className="w-5 h-5" />
                         </div>
@@ -456,21 +442,22 @@ export default function EnhancedFinalizePage() {
               </div>
             </div>
 
-            {/* Enhanced Color Customization */}
-            <div className={`glass-card border-white/10 p-8 hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '400ms' }}>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
-                    <Palette className="w-6 h-6 text-cyan-400" />
-                    <span className="gradient-text">color customization</span>
-                  </h2>
-                  <p className="text-slate-400">
-                    currently selected: <span className="text-white font-medium">
-                      {colorOptions.find(c => c.primary === selectedColors.primary)?.name || 'Custom'}
-                    </span>
-                  </p>
+            {/* Enhanced Color Customization - COMPACT LAYOUT */}
+            <div className={`glass-card border-white/10 p-6 hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '400ms' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <Palette className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <h3 className="text-lg font-bold gradient-text">color customization</h3>
+                      <p className="text-slate-400 text-sm">
+                        {colorOptions.find(c => c.primary === selectedColors.primary)?.name || 'Custom'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
+                {/* COMPACT: Horizontal Color Options */}
                 <div className="flex items-center gap-3">
                   {colorOptions.map((option, index) => {
                     const isSelected = selectedColors.primary === option.primary
@@ -480,36 +467,29 @@ export default function EnhancedFinalizePage() {
                         key={option.name}
                         onClick={() => setSelectedColors({ primary: option.primary, accent: option.accent })}
                         className={`relative group transition-all duration-300 ${
-                          isSelected ? 'scale-125' : 'hover:scale-110'
+                          isSelected ? 'scale-110' : 'hover:scale-105'
                         } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                         style={{ transitionDelay: `${500 + index * 50}ms` }}
                         title={option.name}
                       >
-                        {/* Color dot container */}
-                        <div className={`w-12 h-12 rounded-full p-1 transition-all duration-300 ${
+                        {/* Compact Color dot */}
+                        <div className={`w-10 h-10 rounded-full p-0.5 transition-all duration-300 ${
                           isSelected 
-                            ? 'bg-white/30 shadow-xl ring-2 ring-white/50' 
+                            ? 'bg-white/40 shadow-lg ring-2 ring-white/60' 
                             : 'glass hover:bg-white/20'
                         }`}>
-                          {/* Primary color */}
                           <div 
-                            className="w-full h-full rounded-full relative overflow-hidden shadow-lg"
+                            className="w-full h-full rounded-full relative overflow-hidden shadow-md"
                             style={{ 
                               background: `linear-gradient(135deg, ${option.primary} 0%, ${option.accent} 100%)` 
                             }}
                           >
-                            {/* Selection indicator */}
                             {isSelected && (
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <CheckCircle className="w-6 h-6 text-white drop-shadow-lg animate-pulse" />
+                                <CheckCircle className="w-5 h-5 text-white drop-shadow-lg" />
                               </div>
                             )}
                           </div>
-                        </div>
-                        
-                        {/* Enhanced Tooltip */}
-                        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 px-3 py-1 glass text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 border border-white/20">
-                          {option.name}
                         </div>
                       </button>
                     )

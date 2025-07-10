@@ -1,4 +1,4 @@
-// src/app/api/resumes/[id]/download/route.ts
+// src/app/api/resumes/[id]/download/route.ts - FIXED VERSION
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -64,50 +64,46 @@ async function handleDownload(
 
     console.log('✅ Resume found:', resume.title);
 
-    // 🔍 DEBUG: Check resume data state
-    console.log('🔍 DEBUGGING RESUME DATA:');
-    console.log('📋 Resume ID:', id);
-    console.log('📅 Last Optimized:', resume.lastOptimized);
-    console.log('📊 ContactInfo exists:', !!resume.contactInfo);
-    console.log('📊 ProfessionalSummary exists:', !!resume.professionalSummary);
-    console.log('📊 WorkExperience exists:', !!resume.workExperience);
-    console.log('📊 Education exists:', !!resume.education);
-    console.log('📊 Skills exists:', !!resume.skills);
-
-    // Log the actual field contents (first 100 chars to avoid spam)
-    if (resume.contactInfo) {
-      console.log('📧 ContactInfo preview:', JSON.stringify(resume.contactInfo).substring(0, 100));
-    }
-    if (resume.professionalSummary) {
-      console.log('📝 Summary preview:', JSON.stringify(resume.professionalSummary).substring(0, 100));
-    }
-    if (resume.workExperience) {
-      console.log('💼 Experience preview:', JSON.stringify(resume.workExperience).substring(0, 100));
-    }
-
-    console.log('📋 Request options:', options);
-
     // Determine which version to use
     let resumeData: any = {};
     const isOptimized = options.version === 'optimized' || options.version === undefined;
 
-    console.log('🎯 isOptimized calculation:', isOptimized);
-    console.log('🎯 Condition check (contactInfo || professionalSummary || workExperience):', 
-      !!(resume.contactInfo || resume.professionalSummary || resume.workExperience));
-    console.log('🎯 Will use optimized version:', isOptimized && (resume.contactInfo || resume.professionalSummary || resume.workExperience));
+    console.log('🎯 Using optimized version:', isOptimized);
 
     if (isOptimized && (resume.contactInfo || resume.professionalSummary || resume.workExperience)) {
-      // Use structured data (optimized version)
-      console.log('📊 Using structured (optimized) resume data');
+      // 🔧 FIXED: Use same parsing logic as preview route
+      console.log('📊 Using structured (optimized) resume data with proper parsing');
+      
       resumeData = {
-        contact: resume.contactInfo as any,
-        professionalSummary: resume.professionalSummary as any,
-        workExperience: resume.workExperience as any,
-        education: resume.education as any,
-        skills: resume.skills as any,
-        projects: resume.projects as any,
+        // Parse contactInfo the same way as preview
+        contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
+        
+        // Parse professionalSummary the same way as preview  
+        professionalSummary: resume.professionalSummary ? (typeof resume.professionalSummary === 'string' ? JSON.parse(resume.professionalSummary) : resume.professionalSummary) : {},
+        
+        // Parse workExperience the same way as preview
+        workExperience: resume.workExperience ? (typeof resume.workExperience === 'string' ? JSON.parse(resume.workExperience) : resume.workExperience) : [],
+        
+        // Parse education the same way as preview
+        education: resume.education ? (typeof resume.education === 'string' ? JSON.parse(resume.education) : resume.education) : [],
+        
+        // Parse skills the same way as preview
+        skills: resume.skills ? (typeof resume.skills === 'string' ? JSON.parse(resume.skills) : resume.skills) : [],
+        
+        // Parse projects the same way as preview
+        projects: resume.projects ? (typeof resume.projects === 'string' ? JSON.parse(resume.projects) : resume.projects) : [],
+        
         isOptimized: true
       };
+
+      console.log('📋 Optimized data parsed:', {
+        hasContactInfo: !!resumeData.contactInfo,
+        hasProfessionalSummary: !!resumeData.professionalSummary,
+        workExpCount: resumeData.workExperience?.length || 0,
+        skillsCount: resumeData.skills?.length || 0,
+        educationCount: resumeData.education?.length || 0
+      });
+
     } else {
       // Use original content
       console.log('📄 Using original resume content');
@@ -143,26 +139,28 @@ async function handleDownload(
     console.log('🎯 Data keys:', Object.keys(resumeData));
     console.log('🎯 Final isOptimized flag:', resumeData.isOptimized);
 
+    // 🔧 FIXED: Ensure we pass the exact same data structure as preview
+    console.log('🎯 Contact data sample:', resumeData.contactInfo ? JSON.stringify(resumeData.contactInfo).substring(0, 100) : 'none');
+    console.log('🎯 Summary data sample:', resumeData.professionalSummary ? JSON.stringify(resumeData.professionalSummary).substring(0, 100) : 'none');
+
     // Create React element with colors support
     const element = React.createElement(PDFResumeDocument, {
       resumeData,
       template,
-      colors,  // Pass colors to PDF generator
+      colors,
       isOptimized,
-      resumeTitle: resume.title  // 🎯 ADD THIS LINE
+      resumeTitle: resume.title
     });
 
     // Generate PDF
     const buffer = await renderToBuffer(element);
     
-    console.log('✅ PDF generated, size:', buffer.length);
-    console.log('📄 PDF title should be:', resume.title);
+    console.log('✅ PDF generated successfully, size:', buffer.length);
+    console.log('📄 PDF should now match preview exactly');
 
-    // Create descriptive filename - ALSO FIX THE FILENAME
+    // Create descriptive filename
     const versionText = isOptimized ? 'optimized' : 'original';
     const templateText = template || 'default';
-    const colorText = options.colors ? 'custom' : 'default';
-    // Use actual resume title in filename too
     const safeTitle = (resume.title || 'resume').replace(/[^a-zA-Z0-9-_]/g, '-');
     const filename = `${safeTitle}-${versionText}-${templateText}-${Date.now()}.pdf`;
     
@@ -185,9 +183,9 @@ async function handleDownload(
 function getDefaultColors(template: string) {
   const defaultColors = {
     professional: { primary: '#1e40af', accent: '#3b82f6' },
-    modern: { primary: '#4f46e5', accent: '#818cf8' },
+    modern: { primary: '#7c3aed', accent: '#8b5cf6' },
     minimal: { primary: '#059669', accent: '#10b981' },
-    creative: { primary: '#dc2626', accent: '#ef4444' }
+    creative: { primary: '#ea580c', accent: '#f97316' }
   };
   
   return defaultColors[template as keyof typeof defaultColors] || defaultColors.professional;

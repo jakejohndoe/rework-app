@@ -177,12 +177,18 @@ export default function SkillsSection({ skills, onChange, className = "" }: Skil
     setNewSkillInputs(prev => ({ ...prev, [category]: value }))
   }
 
+  // 🔧 FIXED: Enter key now handles commas correctly
   const handleKeyPress = (category: keyof SkillsStructure, e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       const skill = newSkillInputs[category] || ''
       if (skill.trim()) {
-        addSkill(category, skill)
+        // 🔧 FIX: Check for commas on Enter key too
+        if (skill.includes(',')) {
+          addMultipleSkills(category, skill)
+        } else {
+          addSkill(category, skill)
+        }
       }
     }
   }

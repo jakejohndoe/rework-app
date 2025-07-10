@@ -1,4 +1,4 @@
-// src/app/api/resumes/[id]/autofill/route.ts (TYPESCRIPT ERRORS FIXED)
+// FIXED: src/app/api/resumes/[id]/autofill/route.ts - Proper firstName/lastName handling
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -70,11 +70,11 @@ export async function POST(
       throw new Error(`Failed to get signed URL: ${signedUrlResult.error || 'Unknown error'}`);
     }
 
-    const downloadUrl = signedUrlResult.url; // Now TypeScript knows this is a string
+    const downloadUrl = signedUrlResult.url;
     
     // Fetch the PDF file from S3
     console.log('📥 Downloading PDF from S3...');
-    const response = await fetch(downloadUrl); // ✅ FIXED: No more TypeScript error
+    const response = await fetch(downloadUrl);
     
     if (!response.ok) {
       console.error('❌ Failed to fetch PDF from S3:', response.status, response.statusText);
@@ -94,6 +94,16 @@ export async function POST(
     console.log('🔍 Starting PDF text extraction and parsing...');
     const extractedData = await extractAndParseResume(pdfBuffer);
     
+    // 🔍 DEBUG: Log the extracted data to see what we actually got
+    console.log('🔍 DEBUGGING: Raw extracted contact data:', {
+      fullName: extractedData.contact.fullName,
+      email: extractedData.contact.email,
+      phone: extractedData.contact.phone,
+      location: extractedData.contact.location,
+      linkedin: extractedData.contact.linkedin,
+      website: extractedData.contact.website
+    });
+    
     console.log('✅ PDF parsing complete:', {
       hasContact: !!extractedData.contact.email,
       contactFields: Object.keys(extractedData.contact).length,
@@ -109,10 +119,32 @@ export async function POST(
       .split(/\s+/)
       .filter(word => word.length > 0).length;
 
-    // Transform extracted data to match database schema
+    // 🔧 FIXED: Properly handle firstName/lastName split
+    let firstName = '';
+    let lastName = '';
+    
+    if (extractedData.contact.fullName && extractedData.contact.fullName.trim()) {
+      const nameParts = extractedData.contact.fullName.trim().split(/\s+/);
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+      
+      console.log('👤 Name split:', {
+        fullName: extractedData.contact.fullName,
+        firstName,
+        lastName,
+        nameParts
+      });
+    } else {
+      console.log('⚠️ No fullName extracted, leaving firstName/lastName empty');
+    }
+
+    // 🔧 FIXED: Transform extracted data to match database schema with proper firstName/lastName
     const structuredContent = {
       contact: {
+        // Store both formats for compatibility
         fullName: extractedData.contact.fullName || '',
+        firstName: firstName,
+        lastName: lastName,
         email: extractedData.contact.email || '',
         phone: extractedData.contact.phone || '',
         location: extractedData.contact.location || '',
@@ -140,6 +172,9 @@ export async function POST(
       lastModified: new Date().toISOString(),
     };
 
+    // 🔍 DEBUG: Log the final structured content
+    console.log('💾 Final structured contact data being saved:', structuredContent.contact);
+
     // Create JSON-safe metadata
     const originalContentData = {
       rawText: extractedData.rawText,
@@ -152,7 +187,7 @@ export async function POST(
         s3Bucket: process.env.AWS_S3_BUCKET_NAME || '',
         extractionStatus: 'completed',
         extractedAt: new Date().toISOString(),
-        autoFillVersion: '1.0',
+        autoFillVersion: '1.1', // Updated version
         wordCount: wordCount,
       }
     };
@@ -182,6 +217,8 @@ export async function POST(
       hasEmail: !!extractedData.contact.email,
       hasPhone: !!extractedData.contact.phone,
       hasSummary: !!extractedData.summary,
+      hasFirstName: !!firstName,
+      hasLastName: !!lastName,
     };
 
     // Return success response

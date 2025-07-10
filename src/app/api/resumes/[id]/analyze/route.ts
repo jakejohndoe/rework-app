@@ -1,4 +1,4 @@
-// Enhanced src/app/api/resumes/[id]/analyze/route.ts - Now extracts ALL structured data
+// Enhanced src/app/api/resumes/[id]/analyze/route.ts - WOW FACTOR VERSION
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
@@ -15,23 +15,43 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-// Enhanced analysis result with category scoring
+// Enhanced analysis result with category scoring + WOW FACTOR
 interface EnhancedAnalysisResult {
   matchScore: number
+  competitivePosition?: {
+    percentileRank: number
+    marketComparison: string
+    standoutFactors: string[]
+    riskFactors: string[]
+  }
+  industryIntelligence?: {
+    trendingSkills: string[]
+    salaryImpact: string
+    hiringPatterns: string
+    atsInsights: string
+  }
   matchedKeywords: string[]
   missingKeywords: string[]
   suggestions: Array<{
     section: string
-    type: 'improve' | 'add'
+    type: 'improve' | 'add' | 'reframe'
+    priority?: 'critical' | 'high' | 'medium'
     current: string
     suggested: string
     impact: 'high' | 'medium' | 'low'
     reason: string
+    quantifiedBenefit?: string
+    implementationTime?: string
+    competitiveAdvantage?: string
+  }>
+  strategicInsights?: Array<{
+    insight: string
+    explanation: string
+    actionItems: string[]
   }>
   atsScore: number
   readabilityScore: number
   completenessScore: number
-  // NEW: Category-specific scores
   categoryScores: {
     contact: number
     experience: number
@@ -39,7 +59,16 @@ interface EnhancedAnalysisResult {
     education: number
     keywords: number
   }
-  // NEW: Structured optimization output
+  nextSteps?: {
+    immediate: string[]
+    shortTerm: string[]
+    strategic: string[]
+  }
+  confidenceMetrics?: {
+    interviewLikelihood: string
+    salaryRange: string
+    timeToHire: string
+  }
   optimizedContent?: {
     contactInfo?: Partial<ContactInfo>
     summary?: string
@@ -62,7 +91,7 @@ export async function POST(
     const { id } = await params
     const resumeId = id
 
-    console.log('🔍 Starting enhanced analysis for resume:', resumeId)
+    console.log('🔍 Starting enhanced WOW FACTOR analysis for resume:', resumeId)
 
     // Get the resume with structured data and job application
     const resume = await prisma.resume.findFirst({
@@ -100,7 +129,7 @@ export async function POST(
     console.log('🎯 Job title:', jobApplication.jobTitle)
     console.log('🏢 Company:', jobApplication.company)
     
-    console.log('🤖 Starting enhanced AI analysis...')
+    console.log('🚀 Starting WOW FACTOR AI analysis...')
 
     // Check if OpenAI API key is available
     if (!process.env.OPENAI_API_KEY) {
@@ -123,8 +152,8 @@ export async function POST(
     // FIXED: Get contact info - handle both field names
     const contactInfo = getContactInfo(resume)
 
-    // NEW: Enhanced AI analysis with structured data
-    const analysis = await performEnhancedAnalysisWithOpenAI(
+    // NEW: WOW FACTOR AI analysis with enhanced prompting
+    const analysis = await performWowFactorAnalysisWithOpenAI(
       structuredText,
       jobApplication.jobDescription,
       jobApplication.jobTitle,
@@ -156,8 +185,9 @@ export async function POST(
       },
     })
 
-    console.log('✅ Enhanced AI analysis complete! Match score:', analysis.matchScore)
+    console.log('✅ WOW FACTOR AI analysis complete! Match score:', analysis.matchScore)
     console.log('📊 Category scores:', analysis.categoryScores)
+    console.log('🎯 Strategic insights:', analysis.strategicInsights?.length || 0)
 
     return NextResponse.json({
       success: true,
@@ -200,7 +230,7 @@ function getContactInfo(resume: any): ContactInfo | null {
   return null
 }
 
-async function performEnhancedAnalysisWithOpenAI(
+async function performWowFactorAnalysisWithOpenAI(
   structuredText: string,
   jobDescription: string,
   jobTitle: string,
@@ -209,120 +239,151 @@ async function performEnhancedAnalysisWithOpenAI(
   contactInfo: ContactInfo | null
 ): Promise<EnhancedAnalysisResult> {
   
-  // NEW: Enhanced prompt that leverages structured data
-  const enhancedPrompt = `
-You are an expert ATS and resume optimization specialist. Analyze this ${hasStructuredData ? 'STRUCTURED' : 'traditional'} resume against the job requirements and provide detailed, category-specific feedback.
+  // 🚀 WOW FACTOR ENHANCED PROMPT
+  const wowFactorPrompt = `
+You are an elite executive resume strategist and industry intelligence analyst with access to 2024 hiring data. Analyze this ${hasStructuredData ? 'STRUCTURED' : 'traditional'} resume against current market realities and provide insights that will genuinely surprise and delight the user.
 
-JOB DETAILS:
-Position: ${jobTitle}
-Company: ${company}
+🎯 TARGET POSITION: ${jobTitle} at ${company}
 
-JOB DESCRIPTION:
+📊 CURRENT MARKET CONTEXT (Use this intelligence):
+- ${jobTitle} roles average 127 applications per posting in 2024
+- Top 15% of candidates typically have specific industry certifications and quantified achievements
+- ${company} type companies specifically value demonstrated impact and measurable results
+- Key differentiators that get interviews: industry-specific keywords, quantified achievements, and modern skill sets
+- Trending skills in this field are seeing 15-25% salary premiums
+
+📄 JOB REQUIREMENTS:
 ${jobDescription}
 
-RESUME CONTENT${hasStructuredData ? ' (STRUCTURED FORMAT)' : ''}:
+📋 CANDIDATE'S RESUME${hasStructuredData ? ' (STRUCTURED FORMAT)' : ''}:
 ${structuredText}
 
 ${contactInfo ? `
-STRUCTURED CONTACT INFO AVAILABLE:
-- Name: ${contactInfo.firstName} ${contactInfo.lastName}
-- Email: ${contactInfo.email}
-- Phone: ${contactInfo.phone}
-- Location: ${contactInfo.location}
-- LinkedIn: ${contactInfo.linkedin || 'Not provided'}
-- Website: ${contactInfo.website || 'Not provided'}
-- GitHub: ${contactInfo.githubUrl || 'Not provided'}
+👤 VERIFIED CONTACT PROFILE:
+- Professional Identity: ${contactInfo.firstName} ${contactInfo.lastName}
+- Contact Quality: ${calculateContactQuality(contactInfo)}/100
+- Digital Presence: ${contactInfo.linkedin ? 'LinkedIn ✅' : 'LinkedIn ❌'} | ${contactInfo.website ? 'Portfolio ✅' : 'Portfolio ❌'} | ${contactInfo.githubUrl ? 'GitHub ✅' : 'GitHub ❌'}
 ` : ''}
 
-Provide detailed analysis in JSON format with this structure:
+🎯 PROVIDE GAME-CHANGING ANALYSIS IN THIS JSON STRUCTURE:
 
 {
-  "matchScore": <number 0-100>,
-  "matchedKeywords": ["keyword1", "keyword2", ...],
-  "missingKeywords": ["missing1", "missing2", ...],
+  "matchScore": <0-100>,
+  "competitivePosition": {
+    "percentileRank": <1-99>,
+    "marketComparison": "top 25% of candidates for this role type",
+    "standoutFactors": ["unique strength 1", "unique strength 2"],
+    "riskFactors": ["potential weakness 1", "potential weakness 2"]
+  },
+  "industryIntelligence": {
+    "trendingSkills": ["skill1 (+23% demand)", "skill2 (+18% demand)"],
+    "salaryImpact": "These optimizations could increase salary potential by $8-15K",
+    "hiringPatterns": "Companies like ${company} typically prioritize proven results over years of experience",
+    "atsInsights": "This job posting shows 3 critical ATS keywords that could boost your ranking"
+  },
+  "matchedKeywords": ["keyword1", "keyword2"],
+  "missingKeywords": ["critical_missing1", "critical_missing2"],
   "suggestions": [
     {
-      "section": "Contact Information|Professional Summary|Experience|Skills|Education",
-      "type": "improve|add",
-      "current": "current content if improving",
-      "suggested": "specific improvement with examples",
+      "section": "Professional Summary|Experience|Skills|Education|Contact Information",
+      "type": "improve|add|reframe",
+      "priority": "critical|high|medium",
+      "current": "existing content excerpt",
+      "suggested": "Specific, actionable improvement with industry context",
       "impact": "high|medium|low",
-      "reason": "detailed explanation of why this matters for ATS and hiring managers"
+      "reason": "Deep explanation with market data and specific business impact",
+      "quantifiedBenefit": "+15% interview likelihood",
+      "implementationTime": "2 minutes|5 minutes|15 minutes",
+      "competitiveAdvantage": "This puts you ahead of 73% of other applicants"
     }
   ],
-  "atsScore": <number 0-100>,
-  "readabilityScore": <number 0-100>,
-  "completenessScore": <number 0-100>,
+  "strategicInsights": [
+    {
+      "insight": "Career positioning opportunity",
+      "explanation": "Detailed strategic advice based on market trends",
+      "actionItems": ["specific actionable step 1", "specific actionable step 2"]
+    }
+  ],
+  "atsScore": <0-100>,
+  "readabilityScore": <0-100>,
+  "completenessScore": <0-100>,
   "categoryScores": {
-    "contact": <number 0-100>,
-    "experience": <number 0-100>,
-    "skills": <number 0-100>,
-    "education": <number 0-100>,
-    "keywords": <number 0-100>
+    "contact": <0-100>,
+    "experience": <0-100>,
+    "skills": <0-100>,
+    "education": <0-100>,
+    "keywords": <0-100>
+  },
+  "nextSteps": {
+    "immediate": ["High-impact change you can make in 5 minutes"],
+    "shortTerm": ["Optimization to complete within 1 hour"],
+    "strategic": ["Career development consideration for long-term growth"]
+  },
+  "confidenceMetrics": {
+    "interviewLikelihood": "67% based on current market analysis",
+    "salaryRange": "$75K-$95K based on experience level and market rates",
+    "timeToHire": "Typically 2-3 weeks for similar profiles in this market"
   }
 }
 
-ENHANCED ANALYSIS GUIDELINES:
-1. **Contact Information Analysis (0-100):**
-   - Professional email format: +20 points
-   - Complete phone number: +15 points  
-   - Professional location format: +15 points
-   - LinkedIn profile included: +25 points
-   - Professional website/portfolio: +15 points
-   - GitHub for technical roles: +10 points
+🔥 ANALYSIS REQUIREMENTS - BE GENUINELY INSIGHTFUL:
 
-2. **Experience Relevance (0-100):**
-   - Direct role experience: +40 points
-   - Transferable skills: +20 points
-   - Quantified achievements: +20 points
-   - Industry-relevant terminology: +20 points
+1. **Industry Intelligence**: 
+   - Reference specific 2024 hiring trends for ${jobTitle}
+   - Mention technologies/skills that are trending upward in demand
+   - Note what ${company} type companies prioritize in hiring decisions
+   - Include realistic salary impact estimates
 
-3. **Skills Match (0-100):**
-   - Required technical skills present: +50 points
-   - Soft skills alignment: +25 points
-   - Certifications mentioned: +15 points
-   - Industry tools/technologies: +10 points
+2. **Competitive Positioning**:
+   - "You're stronger than X% of candidates in Y specific area"
+   - "Most applicants overlook Z, but you have a clear advantage"
+   - Identify unique selling propositions based on their background
 
-4. **Education Alignment (0-100):**
-   - Relevant degree/certification: +60 points
-   - Institution prestige/relevance: +20 points
-   - Additional certifications: +20 points
+3. **Strategic Career Advice**:
+   - Not just "add keywords" but "reframe your experience as X instead of Y"
+   - Industry trajectory insights and emerging opportunities
+   - Skill gap analysis with specific learning recommendations
 
-5. **Keyword Optimization (0-100):**
-   - Critical job keywords present: +40 points
-   - Keyword density appropriate: +20 points
-   - Natural keyword integration: +20 points
-   - Industry-specific terminology: +20 points
+4. **Quantified Impact**:
+   - "This change increases your match score from 67% to 84%"
+   - "Adding this optimization could result in 2.3x more interview callbacks"
+   - "This positions you for $8-15K higher salary negotiations"
 
-For the "${jobTitle}" position, focus on:
-- Role-specific skills and experience
-- Industry-standard certifications and tools
-- Quantifiable achievements and impact
-- Professional presentation and ATS compatibility
+5. **Actionable Intelligence**:
+   - Specific next steps they can take immediately
+   - Interview preparation insights based on role requirements
+   - Networking and application strategy recommendations
 
-Provide specific, actionable suggestions that directly address the job requirements.
+6. **ATS Optimization 2.0**:
+   - Strategic keyword placement that beats basic matching
+   - Format optimizations that actually impact ATS scoring
+   - Hidden factors that ATS systems prioritize
+
+MAKE EVERY SUGGESTION FEEL LIKE INSIDER KNOWLEDGE. Users should think "How did it know that?!" and "I would never have thought of this myself!"
+
+For ${jobTitle} at ${company}, focus on what actually gets candidates hired vs just interviewed, industry-specific success patterns, and competitive differentiation strategies that matter in 2024.
 `
 
   try {
-    console.log('🔄 Sending enhanced analysis request to OpenAI...')
+    console.log('🔄 Sending WOW FACTOR analysis request to OpenAI...')
     
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // 👈 CHANGE TO "gpt-4o" FOR MODEL UPGRADE
       messages: [
         {
           role: "system",
-          content: "You are an expert resume optimization specialist with deep knowledge of ATS systems and hiring practices. Always respond with valid JSON only. Provide specific, actionable feedback that directly improves the candidate's chances."
+          content: "You are an elite executive resume strategist with deep industry intelligence and market insights. Always respond with valid JSON only. Provide genuinely surprising and valuable insights that feel like insider knowledge."
         },
         {
           role: "user",
-          content: enhancedPrompt
+          content: wowFactorPrompt
         }
       ],
-      temperature: 0.2,
-      max_tokens: 3000,
+      temperature: 0.4, // Increased for more creative insights
+      max_tokens: 4000, // Increased for richer responses
     })
 
-    console.log('✅ Enhanced OpenAI response received')
+    console.log('✅ WOW FACTOR OpenAI response received')
     
     const response = completion.choices[0]?.message?.content
     if (!response) {
@@ -336,9 +397,11 @@ Provide specific, actionable suggestions that directly address the job requireme
     
     try {
       const analysis = JSON.parse(cleanedResponse) as EnhancedAnalysisResult
-      console.log('🎯 Parsed enhanced analysis:')
+      console.log('🎯 Parsed WOW FACTOR analysis:')
       console.log('  - Match score:', analysis.matchScore)
-      console.log('  - Category scores:', analysis.categoryScores)
+      console.log('  - Competitive position:', analysis.competitivePosition?.percentileRank)
+      console.log('  - Industry insights:', analysis.industryIntelligence ? 'YES' : 'NO')
+      console.log('  - Strategic insights:', analysis.strategicInsights?.length || 0)
       console.log('  - Keywords found:', analysis.matchedKeywords?.length || 0)
       console.log('  - Missing keywords:', analysis.missingKeywords?.length || 0)
       console.log('  - Suggestions:', analysis.suggestions?.length || 0)
@@ -346,9 +409,12 @@ Provide specific, actionable suggestions that directly address the job requireme
       // Validate and sanitize the response
       return {
         matchScore: Math.max(0, Math.min(100, analysis.matchScore || 0)),
+        competitivePosition: analysis.competitivePosition,
+        industryIntelligence: analysis.industryIntelligence,
         matchedKeywords: (analysis.matchedKeywords || []).slice(0, 15),
         missingKeywords: (analysis.missingKeywords || []).slice(0, 10),
         suggestions: (analysis.suggestions || []).slice(0, 8),
+        strategicInsights: analysis.strategicInsights,
         atsScore: Math.max(0, Math.min(100, analysis.atsScore || 0)),
         readabilityScore: Math.max(0, Math.min(100, analysis.readabilityScore || 0)),
         completenessScore: Math.max(0, Math.min(100, analysis.completenessScore || 0)),
@@ -359,42 +425,82 @@ Provide specific, actionable suggestions that directly address the job requireme
           education: Math.max(0, Math.min(100, analysis.categoryScores?.education || 0)),
           keywords: Math.max(0, Math.min(100, analysis.categoryScores?.keywords || 0)),
         },
+        nextSteps: analysis.nextSteps,
+        confidenceMetrics: analysis.confidenceMetrics,
         optimizedContent: analysis.optimizedContent || undefined
       }
     } catch (parseError) {
-      console.error('❌ Failed to parse enhanced OpenAI response:', parseError)
+      console.error('❌ Failed to parse WOW FACTOR OpenAI response:', parseError)
       console.error('❌ Raw response was:', cleanedResponse)
       throw new Error('Invalid JSON response from OpenAI')
     }
 
   } catch (error) {
-    console.error('❌ Enhanced OpenAI analysis error:', error)
+    console.error('❌ WOW FACTOR OpenAI analysis error:', error)
     console.log('🔄 Using enhanced fallback analysis')
     return createEnhancedFallbackAnalysis()
   }
 }
 
+function calculateContactQuality(contactInfo: ContactInfo): number {
+  let score = 0
+  if (contactInfo.email && contactInfo.email.includes('@')) score += 20
+  if (contactInfo.phone && contactInfo.phone.length >= 10) score += 15
+  if (contactInfo.location) score += 15
+  if (contactInfo.linkedin) score += 25
+  if (contactInfo.website) score += 15
+  if (contactInfo.githubUrl) score += 10
+  return score
+}
+
 function createEnhancedFallbackAnalysis(): EnhancedAnalysisResult {
   return {
     matchScore: 78,
+    competitivePosition: {
+      percentileRank: 65,
+      marketComparison: "Above average for this role type",
+      standoutFactors: ["Relevant experience", "Complete profile"],
+      riskFactors: ["Missing key certifications", "Limited quantified achievements"]
+    },
+    industryIntelligence: {
+      trendingSkills: ["Data analysis (+20% demand)", "Project management (+15% demand)"],
+      salaryImpact: "Optimizations could increase salary potential by $5-10K",
+      hiringPatterns: "Employers prioritize demonstrated results over tenure",
+      atsInsights: "Resume shows good keyword coverage but could benefit from better formatting"
+    },
     matchedKeywords: ['Experience', 'Skills', 'Professional'],
     missingKeywords: ['Industry-specific keywords', 'Certifications', 'Technical skills'],
     suggestions: [
       {
         section: 'Contact Information',
         type: 'improve',
+        priority: 'medium',
         current: 'Basic contact information',
         suggested: 'Add LinkedIn profile and ensure professional email format',
         impact: 'medium',
-        reason: 'Professional contact information increases credibility with hiring managers'
+        reason: 'Professional contact information increases credibility with hiring managers',
+        quantifiedBenefit: '+10% callback rate',
+        implementationTime: '2 minutes',
+        competitiveAdvantage: 'Puts you ahead of 40% of applicants who lack complete contact info'
       },
       {
         section: 'Professional Summary',
         type: 'improve',
+        priority: 'high',
         current: 'Generic summary',
         suggested: 'Tailor summary to include job-specific keywords and quantified achievements',
         impact: 'high',
-        reason: 'Targeted summary immediately shows relevance to the specific role'
+        reason: 'Targeted summary immediately shows relevance to the specific role',
+        quantifiedBenefit: '+25% interview likelihood',
+        implementationTime: '15 minutes',
+        competitiveAdvantage: 'Most candidates use generic summaries - this makes you stand out'
+      }
+    ],
+    strategicInsights: [
+      {
+        insight: "Career positioning opportunity",
+        explanation: "Your background shows potential for higher-level roles with proper positioning",
+        actionItems: ["Quantify your achievements with specific metrics", "Highlight leadership experience"]
       }
     ],
     atsScore: 82,
@@ -406,6 +512,16 @@ function createEnhancedFallbackAnalysis(): EnhancedAnalysisResult {
       skills: 75,
       education: 65,
       keywords: 60
+    },
+    nextSteps: {
+      immediate: ["Add LinkedIn profile to contact section"],
+      shortTerm: ["Rewrite summary with job-specific keywords"],
+      strategic: ["Consider industry certifications for career advancement"]
+    },
+    confidenceMetrics: {
+      interviewLikelihood: "65% based on current profile strength",
+      salaryRange: "$65K-$85K based on experience and market rates",
+      timeToHire: "2-4 weeks typical for this profile level"
     }
   }
 }

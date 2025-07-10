@@ -53,16 +53,34 @@ export default function DashboardPage() {
     setIsMounted(true)
   }, [])
 
-  // Mouse tracking for premium effects
-  useEffect(() => {
-    if (!isMounted) return
+// Mouse tracking for premium effects - FIXED VERSION
+useEffect(() => {
+  if (!isMounted) return
+  
+  let rafId: number
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    // Throttle updates using requestAnimationFrame
+    if (rafId) return
     
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX / window.innerWidth * 100, y: e.clientY / window.innerHeight * 100 })
+    rafId = requestAnimationFrame(() => {
+      setMousePosition({ 
+        x: e.clientX / window.innerWidth * 100, 
+        y: e.clientY / window.innerHeight * 100 
+      })
+      rafId = 0
+    })
+  }
+  
+  window.addEventListener('mousemove', handleMouseMove, { passive: true })
+  
+  return () => {
+    window.removeEventListener('mousemove', handleMouseMove)
+    if (rafId) {
+      cancelAnimationFrame(rafId)
     }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [isMounted])
+  }
+}, [isMounted]) // Only isMounted as dependency
 
   // Fetch user's resumes
   const fetchResumes = async () => {

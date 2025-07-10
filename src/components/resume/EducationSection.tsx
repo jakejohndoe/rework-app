@@ -187,6 +187,34 @@ export default function EducationSection({ education, onChange, className = "" }
     onChange(updatedData)
   }
 
+  // 🔧 NEW: Fixed function for multiple honors (single state update)
+  const addMultipleHonors = (eduId: string, honorsString: string) => {
+    const honors = honorsString
+      .split(',')
+      .map(honor => honor.trim())
+      .filter(honor => honor.length > 0)
+    
+    if (honors.length === 0) return
+    
+    const updatedData = formData.map(edu => {
+      if (edu.id === eduId) {
+        const existingHonors = edu.honors || []
+        const newHonors = honors.filter(honor => !existingHonors.includes(honor))
+        
+        if (newHonors.length > 0) {
+          return { 
+            ...edu, 
+            honors: [...existingHonors, ...newHonors] // 🔧 Single state update
+          }
+        }
+      }
+      return edu
+    })
+    
+    setFormData(updatedData)
+    onChange(updatedData)
+  }
+
   const removeHonor = (eduId: string, index: number) => {
     const updatedData = formData.map(edu => {
       if (edu.id === eduId) {
@@ -207,6 +235,34 @@ export default function EducationSection({ education, onChange, className = "" }
         const cleanCourse = course.trim()
         if (!edu.relevantCoursework?.includes(cleanCourse)) {
           return { ...edu, relevantCoursework: [...(edu.relevantCoursework || []), cleanCourse] }
+        }
+      }
+      return edu
+    })
+    
+    setFormData(updatedData)
+    onChange(updatedData)
+  }
+
+  // 🔧 NEW: Fixed function for multiple coursework (single state update)
+  const addMultipleCoursework = (eduId: string, courseworkString: string) => {
+    const courses = courseworkString
+      .split(',')
+      .map(course => course.trim())
+      .filter(course => course.length > 0)
+    
+    if (courses.length === 0) return
+    
+    const updatedData = formData.map(edu => {
+      if (edu.id === eduId) {
+        const existingCoursework = edu.relevantCoursework || []
+        const newCoursework = courses.filter(course => !existingCoursework.includes(course))
+        
+        if (newCoursework.length > 0) {
+          return { 
+            ...edu, 
+            relevantCoursework: [...existingCoursework, ...newCoursework] // 🔧 Single state update
+          }
         }
       }
       return edu
@@ -465,9 +521,9 @@ export default function EducationSection({ education, onChange, className = "" }
                       const input = e.target as HTMLInputElement
                       const value = input.value.trim()
                       if (value) {
+                        // 🔧 FIXED: Use single state update for multiple honors
                         if (value.includes(',')) {
-                          const honors = value.split(',').map(h => h.trim()).filter(h => h.length > 0)
-                          honors.forEach(honor => addHonor(edu.id, honor))
+                          addMultipleHonors(edu.id, value)
                         } else {
                           addHonor(edu.id, value)
                         }
@@ -481,9 +537,9 @@ export default function EducationSection({ education, onChange, className = "" }
                     const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement
                     const value = input?.value.trim()
                     if (value) {
+                      // 🔧 FIXED: Use single state update for multiple honors
                       if (value.includes(',')) {
-                        const honors = value.split(',').map(h => h.trim()).filter(h => h.length > 0)
-                        honors.forEach(honor => addHonor(edu.id, honor))
+                        addMultipleHonors(edu.id, value)
                       } else {
                         addHonor(edu.id, value)
                       }
@@ -539,9 +595,9 @@ export default function EducationSection({ education, onChange, className = "" }
                         const input = e.target as HTMLInputElement
                         const value = input.value.trim()
                         if (value) {
+                          // 🔧 FIXED: Use single state update for multiple courses
                           if (value.includes(',')) {
-                            const courses = value.split(',').map(c => c.trim()).filter(c => c.length > 0)
-                            courses.forEach(course => addCoursework(edu.id, course))
+                            addMultipleCoursework(edu.id, value)
                           } else {
                             addCoursework(edu.id, value)
                           }
@@ -555,9 +611,9 @@ export default function EducationSection({ education, onChange, className = "" }
                       const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement
                       const value = input?.value.trim()
                       if (value) {
+                        // 🔧 FIXED: Use single state update for multiple courses
                         if (value.includes(',')) {
-                          const courses = value.split(',').map(c => c.trim()).filter(c => c.length > 0)
-                          courses.forEach(course => addCoursework(edu.id, course))
+                          addMultipleCoursework(edu.id, value)
                         } else {
                           addCoursework(edu.id, value)
                         }

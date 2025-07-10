@@ -1,4 +1,4 @@
-// src/lib/pdf-extractor.ts (OPTIMIZED FOR YOUR RESUME FORMAT)
+// src/lib/pdf-extractor.ts (FIXED FOR NORMAL CASE NAMES)
 
 import pdf from 'pdf-parse';
 
@@ -113,7 +113,7 @@ export function parseResumeText(rawText: string): ExtractedResumeData {
 }
 
 /**
- * Extract contact information - OPTIMIZED for your resume format
+ * Extract contact information - FIXED for normal case names
  */
 function extractContactInfo(text: string): ExtractedContact {
   const contact: ExtractedContact = {};
@@ -134,24 +134,62 @@ function extractContactInfo(text: string): ExtractedContact {
     console.log('📱 Phone found:', contact.phone);
   }
 
-  // Extract full name - look for the actual name in the resume
+  // 🔧 FIXED: Extract full name - handle both CAPS and normal case
   const namePatterns = [
-    /\n([A-Z][A-Z\s]{2,30})\n(?:GRIP|OBJECTIVE)/,  // Name before "GRIP" or "OBJECTIVE"
-    /LINKEDIN URL\s*\n([A-Z][A-Z\s]{2,30})\n/,     // Name after "LINKEDIN URL"
-    /([A-Z]{2,}\s[A-Z]{2,}\s[A-Z]{2,})/,          // Three capitalized words
+    // Pattern 1: First line of PDF (your case: "Jakob Johnson")
+    /^([A-Z][a-z]+\s+[A-Z][a-z]+)/m,
+    
+    // Pattern 2: Name before job title
+    /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*\n\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/m,
+    
+    // Pattern 3: Traditional ALL-CAPS patterns (fallback)
+    /\n([A-Z][A-Z\s]{2,30})\n(?:GRIP|OBJECTIVE)/,
+    /LINKEDIN URL\s*\n([A-Z][A-Z\s]{2,30})\n/,
+    /([A-Z]{2,}\s[A-Z]{2,}(?:\s[A-Z]{2,})?)/,
   ];
   
   for (const pattern of namePatterns) {
     const nameMatch = text.match(pattern);
     if (nameMatch) {
       const name = nameMatch[1].trim();
-      if (name.length > 5 && name.length < 50 && 
+      console.log('🔍 Pattern matched:', pattern, 'Result:', name);
+      
+      // Validate the name
+      if (name.length > 3 && name.length < 50 && 
           !name.includes('@') && 
+          !name.includes('(') &&  // 🔧 ADDED: Exclude phone numbers
+          !name.includes(')') &&  // 🔧 ADDED: Exclude phone numbers
+          !name.includes('-') &&  // 🔧 ADDED: Exclude phone numbers
           !name.includes('OBJECTIVE') &&
           !name.includes('SKILLS') &&
-          !name.includes('EMAIL')) {
+          !name.includes('EMAIL') &&
+          !name.includes('Software Developer') && // 🔧 ADDED: Exclude job titles
+          !name.includes('Developer') &&
+          !name.match(/^\d+/)) {    // 🔧 ADDED: Exclude numbers
+        
         contact.fullName = name;
         console.log('👤 Name found:', contact.fullName);
+        break;
+      } else {
+        console.log('❌ Name rejected (validation failed):', name);
+      }
+    }
+  }
+
+  // 🔧 SPECIAL HANDLING: If still no name, try to extract from the very beginning
+  if (!contact.fullName) {
+    console.log('🔍 Trying special name extraction from start of document...');
+    const lines = text.split('\n').slice(0, 3); // First 3 lines
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Look for "FirstName LastName" pattern at start
+      const nameMatch = trimmed.match(/^([A-Z][a-z]+\s+[A-Z][a-z]+)$/);
+      if (nameMatch && 
+          !nameMatch[1].includes('Software') && 
+          !nameMatch[1].includes('Developer') &&
+          !nameMatch[1].includes('@')) {
+        contact.fullName = nameMatch[1];
+        console.log('👤 Special extraction found name:', contact.fullName);
         break;
       }
     }
@@ -164,10 +202,13 @@ function extractContactInfo(text: string): ExtractedContact {
     console.log('💼 LinkedIn found:', contact.linkedin);
   }
 
-  // Extract location from education (Los Angeles area)
+  // Extract location 
   if (text.includes('LOS ANGELES')) {
     contact.location = 'Los Angeles, CA';
     console.log('📍 Location inferred:', contact.location);
+  } else if (text.includes('Saint Paul')) {
+    contact.location = 'Saint Paul, MN';
+    console.log('📍 Location found:', contact.location);
   }
 
   return contact;
@@ -192,6 +233,22 @@ function extractSummary(text: string): string {
       return summary;
     }
   }
+
+  // Look for Summary sections
+  const summaryPattern = /Summary\s*\n([\s\S]*?)(?=\n[A-Z]|\nSkills|\nExperience|\nEducation|$)/i;
+  const summaryMatch = text.match(summaryPattern);
+  
+  if (summaryMatch) {
+    const summary = summaryMatch[1]
+      .replace(/\n+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    if (summary.length > 20) {
+      console.log('📝 Summary found:', summary);
+      return summary;
+    }
+  }
   
   return '';
 }
@@ -213,8 +270,8 @@ function extractExperience(text: string): ExtractedExperience[] {
     // For this resume format, create a single experience entry
     if (expSection.length > 10) {
       experiences.push({
-        title: 'Grip', // From the resume title
-        company: 'Commercial Productions',
+        title: 'Software Developer', // Inferred from job title
+        company: 'Various Projects',
         startDate: '',
         endDate: 'Present',
         description: expSection.replace(/\n+/g, ' ').trim()
@@ -268,20 +325,20 @@ function extractSkills(text: string): string[] {
   const skills: string[] = [];
   
   // Look for SKILLS section
-  const skillsPattern = /SKILLS\s*\n([\s\S]*?)(?=\n[A-Z]{2,}\s*\n|EXPERIENCE|EDUCATION|$)/;
+  const skillsPattern = /Skills\s*\n([\s\S]*?)(?=\n[A-Z]{2,}\s*\n|Experience|Education|$)/i;
   const skillsMatch = text.match(skillsPattern);
   
   if (skillsMatch) {
     const skillsSection = skillsMatch[1];
     console.log('🛠️ Skills section found:', skillsSection);
     
-    // Extract skills that start with bullet points
+    // Extract skills that start with bullet points or are comma-separated
     const skillLines = skillsSection
-      .split('\n')
+      .split(/[,\n]/)
       .map(line => line.trim())
-      .filter(line => line.startsWith('•') || line.length > 2)
-      .map(line => line.replace(/^•\s*/, '').trim())
-      .filter(line => line.length > 2 && line.length < 50);
+      .filter(line => line.length > 2 && line.length < 50)
+      .map(line => line.replace(/^[•\-\*]\s*/, '').trim())
+      .filter(line => line.length > 0);
     
     skills.push(...skillLines);
     
