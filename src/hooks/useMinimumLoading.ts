@@ -41,5 +41,5 @@ export function useJobDescriptionLoading() {
 }
 
 export function useFinalizeLoading() {
-  return useMinimumLoading(500); // 0.5 seconds - very quick transition
+  return useMinimumLoading(800); // 0.8 seconds - nice loading experience
 }

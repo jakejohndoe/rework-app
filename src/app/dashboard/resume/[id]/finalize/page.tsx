@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -86,8 +87,8 @@ export default function EnhancedFinalizePage() {
   console.log('🎯 FINALIZE DEBUG: Resume ID:', resumeId)
   console.log('🎯 FINALIZE DEBUG: Session status:', status)
   
-  // ✅ ADDED: Minimum loading hook for 800ms finalize loading
-  const { shouldHideContent, startLoading, finishLoading } = useFinalizeLoading()
+  // ✅ ADDED: Minimum loading hook for nice loading transition
+  const { shouldHideContent } = useFinalizeLoading()
 
   const [selectedTemplate, setSelectedTemplate] = useState('professional')
   // Dynamic default colors based on template instead of hardcoded blue
@@ -159,10 +160,8 @@ export default function EnhancedFinalizePage() {
     fetchResumeData()
   }, [session, status, resumeId])
 
-  // ✅ ADDED: Early return for loading state - let loading.tsx show
-  console.log('🎯 FINALIZE DEBUG: shouldHideContent:', shouldHideContent, 'status:', status)
+  // Show loading screen for session loading or minimum loading time
   if (status === "loading" || shouldHideContent) {
-    console.log('🎯 FINALIZE DEBUG: Showing loading screen')
     return <ResumeLoader title="Finalizing your resume" subtitle="Preparing download options..." />
   }
   
@@ -386,12 +385,12 @@ export default function EnhancedFinalizePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
-                <div className="flex items-center space-x-2 group">
+                <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                     <Brain className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
-                </div>
+                </Link>
 
                 <Button 
                   variant="ghost" 

@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -354,18 +355,38 @@ export default function RedesignedAnalysisPage() {
     }
   }
 
-  // Load analysis
+  // Load analysis - CHECK IF THERE'S EXISTING DATA FIRST
   useEffect(() => {
     const loadAnalysis = async () => {
       if (!resumeId || status !== "authenticated") return
       
       try {
+        // First try to load existing analysis
+        const response = await fetch(`/api/resumes/${resumeId}/analysis`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.analysis) {
+            // Add IDs to suggestions for tracking
+            const suggestionsWithIds = data.analysis.suggestions.map((suggestion: any, index: number) => ({
+              ...suggestion,
+              id: `${suggestion.section}-${index}`
+            }))
+            
+            setAnalysisResults({
+              ...data.analysis,
+              suggestions: suggestionsWithIds
+            })
+            setIsInitialLoading(false)
+            return
+          }
+        }
+        
+        // If no existing analysis, start new analysis
         await performAnalysis()
       } catch (error) {
         console.error('Failed to load analysis:', error)
         setError('Failed to start analysis')
-      } finally {
-        
+        setIsInitialLoading(false)
       }
     }
 
@@ -411,13 +432,15 @@ export default function RedesignedAnalysisPage() {
         suggestions: suggestionsWithIds
       })
       
+      console.log('✅ Analysis completed successfully!')
       
     } catch (error) {
-      console.error('Analysis error:', error)
+      console.error('❌ Analysis error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Analysis failed'
       setError(errorMessage)
     } finally {
       setIsAnalyzing(false)
+      setIsInitialLoading(false)
     }
   }
 
@@ -426,24 +449,13 @@ export default function RedesignedAnalysisPage() {
   
   const handleBack = () => router.push(`/dashboard/resume/${resumeId}/job-description`)
   const handleNext = () => {
-    if (isNavigating) {
-      console.log('🚀 ANALYSIS DEBUG: Already navigating, preventing duplicate call')
-      return
-    }
-    
     console.log('🚀 ANALYSIS DEBUG: Navigating to finalize page for resume:', resumeId)
-    setIsNavigating(true)
-    
-    // Try router first, then fallback to window.location
-    router.push(`/dashboard/resume/${resumeId}/finalize`)
-    
-    // Fallback navigation after 2 seconds if router gets stuck
-    setTimeout(() => {
-      if (window.location.pathname !== `/dashboard/resume/${resumeId}/finalize`) {
-        console.log('🚀 ANALYSIS DEBUG: Router seems stuck, forcing navigation')
-        window.location.href = `/dashboard/resume/${resumeId}/finalize`
-      }
-    }, 2000)
+    try {
+      router.push(`/dashboard/resume/${resumeId}/finalize`)
+    } catch (error) {
+      console.error('Router push failed, using window.location:', error)
+      window.location.href = `/dashboard/resume/${resumeId}/finalize`
+    }
   }
   const handleEditResume = () => router.push(`/dashboard/resume/${resumeId}`)
   const handleEditJob = () => router.push(`/dashboard/resume/${resumeId}/job-description`)
@@ -494,12 +506,12 @@ export default function RedesignedAnalysisPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 group">
+                <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                     <Brain className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-xl font-bold gradient-text">rework</span>
-                </div>
+                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
+                </Link>
 
                 <Button onClick={handleBack} variant="ghost" className="text-white hover:bg-white/10">
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -988,25 +1000,17 @@ export default function RedesignedAnalysisPage() {
                               Change Job
                             </Button>
                           </div>
-                          <button 
-                            onClick={() => {
-                              console.log('🚀 ANALYSIS DEBUG: Button clicked, navigating to finalize...')
-                              handleNext()
-                            }}
-                            disabled={isNavigating}
-                            className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          <Link 
+                            href={`/dashboard/resume/${resumeId}/finalize`}
+                            className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group block text-center"
                           >
                             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                             <div className="relative z-10 flex items-center justify-center gap-2">
-                              {isNavigating ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Award className="w-5 h-5" />
-                              )}
-                              {isNavigating ? 'loading...' : 'continue to finalize'}
-                              {!isNavigating && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />}
+                              <Award className="w-5 h-5" />
+                              continue to finalize
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                             </div>
-                          </button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>

@@ -850,12 +850,12 @@ export default function ResumeEditorPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
-                <div className="flex items-center space-x-2 group">
+                <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                     <Brain className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
-                </div>
+                </Link>
                 
                 <Link href="/dashboard">
                   <Button variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200">
