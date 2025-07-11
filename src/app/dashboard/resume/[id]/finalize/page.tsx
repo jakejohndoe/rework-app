@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 // ✅ ADDED: Import the minimum loading hook
 import { useFinalizeLoading } from '@/hooks/useMinimumLoading'
 import ResumeLoader from '@/components/resume-loader'
-import { ArrowLeft, CheckCircle, Download, Eye, EyeOff, Sparkles, ArrowRight, Brain, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Download, Sparkles, ArrowRight, Brain, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { SVGResumePreview } from '@/components/resume/SVGResumePreview'
 import confetti from 'canvas-confetti'
@@ -94,7 +94,6 @@ export default function EnhancedFinalizePage() {
   const [selectedColors, setSelectedColors] = useState(() => 
     templateColorMap['professional']
   )
-  const [showComparison, setShowComparison] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [resumeData, setResumeData] = useState<any>(null)
   const [showSuccessCard, setShowSuccessCard] = useState(false)
@@ -554,62 +553,23 @@ export default function EnhancedFinalizePage() {
                     <span className="gradient-text">preview your resume</span>
                   </h2>
                   <p className="text-slate-400">
-                    {showComparison ? 'see the improvements made with ai optimization' : `your ai-optimized resume with the ${templates.find(t => t.id === selectedTemplate)?.name} template`}
+                    {`your ai-optimized resume with the ${templates.find(t => t.id === selectedTemplate)?.name} template`}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowComparison(!showComparison)}
-                  className="border-white/20 text-white hover:bg-white/10 hover:scale-105 transition-all duration-300"
-                >
-                  {showComparison ? (
-                    <>
-                      <EyeOff className="w-4 h-4 mr-2" />
-                      hide comparison
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      show before/after
-                    </>
-                  )}
-                </Button>
               </div>
 
-              {showComparison ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <SVGResumePreview
-                    resumeId={resumeId}
-                    version="original"
-                    template={selectedTemplate}
-                    title="Original Resume"
-                    subtitle="Before AI optimization"
-                    colors={selectedColors}
-                  />
-                  
-                  <SVGResumePreview
-                    resumeId={resumeId}
-                    version="optimized"
-                    template={selectedTemplate}
-                    title="Optimized Resume"
-                    subtitle="Enhanced with AI suggestions"
-                    colors={selectedColors}
-                  />
-                </div>
-              ) : (
-                <div className="max-w-4xl mx-auto">
-                  <SVGResumePreview
-                    resumeId={resumeId}
-                    version="optimized"
-                    template={selectedTemplate}
-                    title="Your Optimized Resume"
-                    subtitle="Ready for download"
-                    showDownload={true}
-                    onDownload={() => handleDownload('optimized')}
-                    colors={selectedColors}
-                  />
-                </div>
-              )}
+              <div className="max-w-4xl mx-auto">
+                <SVGResumePreview
+                  resumeId={resumeId}
+                  version="optimized"
+                  template={selectedTemplate}
+                  title="Your Optimized Resume"
+                  subtitle="Ready for download"
+                  showDownload={true}
+                  onDownload={() => handleDownload('optimized')}
+                  colors={selectedColors}
+                />
+              </div>
             </div>
 
             {/* Enhanced Download Section */}

@@ -136,64 +136,89 @@ export function SVGResumePreview({
   };
 
   const extractResumeData = (data: any, version: string): ResumeData => {
-    console.log('🔍 Extracting resume data:', { version, hasContactInfo: !!data.contactInfo, hasSummary: !!data.professionalSummary, hasWorkExp: !!data.workExperience });
-    
-    const hasOptimizedData = data.contactInfo || data.professionalSummary || data.workExperience || data.education;
+    console.log('🔍 SVG Extracting resume data:', { version, hasContactInfo: !!data.contactInfo, hasSummary: !!data.professionalSummary, hasWorkExp: !!data.workExperience });
     
     let contactInfo: any = {};
     let professionalSummary = '';
     let workExperience: any[] = [];
     let education: any[] = [];
-    let skills: string[] = [];
+    let skills: any = {};
 
     try {
-      if (hasOptimizedData) {
-        console.log('📊 Using structured data from database');
-        
-        if (data.contactInfo) {
-          contactInfo = typeof data.contactInfo === 'string' ? JSON.parse(data.contactInfo) : data.contactInfo;
-          console.log('📧 Contact info parsed:', contactInfo);
+      // Parse contact info - FIXED: Handle both field names
+      if (data.contactInfo || data.contact) {
+        const contact = data.contactInfo || data.contact;
+        if (typeof contact === 'string') {
+          contactInfo = JSON.parse(contact);
+        } else {
+          contactInfo = contact;
         }
-        
-        if (data.professionalSummary) {
-          const parsed = typeof data.professionalSummary === 'string' ? JSON.parse(data.professionalSummary) : data.professionalSummary;
-          professionalSummary = parsed.optimized || parsed.summary || parsed.content || parsed || '';
-          console.log('📝 Professional summary length:', professionalSummary.length);
-        }
-        
-        if (data.workExperience) {
-          workExperience = typeof data.workExperience === 'string' ? JSON.parse(data.workExperience) : data.workExperience;
-          if (!Array.isArray(workExperience)) workExperience = [];
-          console.log('💼 Work experience entries:', workExperience.length);
-          console.log('💼 First work entry:', workExperience[0]);
-        }
-        
-        if (data.education) {
-          education = typeof data.education === 'string' ? JSON.parse(data.education) : data.education;
-          if (!Array.isArray(education)) education = [];
-          console.log('🎓 Education entries:', education.length);
-        }
-        
-        if (data.skills) {
-          let parsedSkills = typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills;
-          if (!Array.isArray(parsedSkills)) {
-            if (typeof parsedSkills === 'string') {
-              skills = parsedSkills.split(/[,•·|]/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-            } else {
-              skills = [];
-            }
-          } else {
-            skills = parsedSkills;
+      }
+
+      // FIXED: Parse professional summary - handle object structure correctly  
+      if (data.professionalSummary) {
+        if (typeof data.professionalSummary === 'string') {
+          try {
+            const parsed = JSON.parse(data.professionalSummary);
+            professionalSummary = parsed.summary || parsed.optimized || parsed;
+          } catch (e) {
+            professionalSummary = data.professionalSummary;
           }
-          console.log('🔧 Skills parsed:', skills.length, 'items:', skills.slice(0, 3));
+        } else {
+          // It's an object - extract the summary field
+          professionalSummary = data.professionalSummary.summary || 
+                               data.professionalSummary.optimized || 
+                               data.professionalSummary;
         }
-      } else {
-        console.log('📄 No structured data found, using fallback');
+      }
+
+      // FIXED: Parse work experience - handle the actual structure from apply-suggestions
+      if (data.workExperience) {
+        if (typeof data.workExperience === 'string') {
+          workExperience = JSON.parse(data.workExperience);
+        } else {
+          workExperience = data.workExperience;
+        }
+        if (!Array.isArray(workExperience)) {
+          workExperience = [];
+        }
+      }
+
+      // FIXED: Parse education - handle the actual structure
+      if (data.education) {
+        if (typeof data.education === 'string') {
+          education = JSON.parse(data.education);
+        } else {
+          education = data.education;
+        }
+        if (!Array.isArray(education)) {
+          education = [];
+        }
+      }
+
+      // FIXED: Parse skills - handle the structured object format from apply-suggestions
+      if (data.skills) {
+        if (typeof data.skills === 'string') {
+          try {
+            skills = JSON.parse(data.skills);
+          } catch (e) {
+            // If parsing fails, treat as comma-separated string
+            skills = { technical: data.skills.split(',').map((s: string) => s.trim()) };
+          }
+        } else {
+          skills = data.skills;
+        }
         
+        // Ensure it's an object, not an array
+        if (Array.isArray(skills)) {
+          skills = { technical: skills };
+        }
+      }
+
+      // Handle fallback case when no structured data exists
+      if (!contactInfo || Object.keys(contactInfo).length === 0) {
         if (data.originalContent || data.currentContent) {
           const content = data.originalContent || data.currentContent;
-          console.log('📋 Extracting from original content:', content.substring(0, 100) + '...');
-          
           contactInfo = {
             name: extractNameFromContent(content) || 'Jake Johnson',
             email: extractEmailFromContent(content) || 'hello@jakejohnson.com',
@@ -201,20 +226,24 @@ export function SVGResumePreview({
             location: 'Saint Paul, MN'
           };
           
-          professionalSummary = extractSummaryFromContent(content) || 'Professional Network Engineer with expertise in infrastructure design and implementation.';
+          if (!professionalSummary) {
+            professionalSummary = extractSummaryFromContent(content) || 'Professional Network Engineer with expertise in infrastructure design and implementation.';
+          }
         } else {
-          console.log('❌ No content available, using complete fallback');
           contactInfo = {
             name: 'Jake Johnson',
             email: 'hello@jakejohnson.com',
             phone: '(219) 925-7195',
             location: 'Saint Paul, MN'
           };
-          professionalSummary = 'Professional Network Engineer with expertise in infrastructure design and implementation.';
+          if (!professionalSummary) {
+            professionalSummary = 'Professional Network Engineer with expertise in infrastructure design and implementation.';
+          }
         }
       }
-    } catch (e) {
-      console.error('❌ Error parsing resume data:', e);
+
+    } catch (error) {
+      console.error('❌ Error parsing resume data:', error);
       contactInfo = {
         name: 'Jake Johnson',
         email: 'hello@jakejohnson.com',
@@ -224,26 +253,51 @@ export function SVGResumePreview({
       professionalSummary = 'Professional Network Engineer with expertise in infrastructure design and implementation.';
     }
 
+    // FIXED: Use resume title first, then contact info, then fallback - matching PDF logic
+    const fullName = contactInfo?.name || 
+                     contactInfo?.fullName || 
+                     ((contactInfo?.firstName && contactInfo?.lastName) ? 
+                       `${contactInfo.firstName} ${contactInfo.lastName}` : '') ||
+                     'Jake Johnson';
+
+    // Extract skills array from skills object - matching PDF logic
+    const extractSkillsArray = (skills: any): string[] => {
+      const skillsArray = [];
+      if (skills.technical && Array.isArray(skills.technical)) skillsArray.push(...skills.technical);
+      if (skills.frameworks && Array.isArray(skills.frameworks)) skillsArray.push(...skills.frameworks);
+      if (skills.tools && Array.isArray(skills.tools)) skillsArray.push(...skills.tools);
+      if (skills.cloud && Array.isArray(skills.cloud)) skillsArray.push(...skills.cloud);
+      if (skills.databases && Array.isArray(skills.databases)) skillsArray.push(...skills.databases);
+      if (skills.soft && Array.isArray(skills.soft)) skillsArray.push(...skills.soft);
+      
+      // Fallback to treating skills as simple array
+      if (skillsArray.length === 0 && Array.isArray(skills)) {
+        skillsArray.push(...skills);
+      }
+      
+      return skillsArray;
+    };
+
     const extractedData = {
-      fullName: contactInfo?.name || contactInfo?.fullName || 'Jake Johnson',
-      email: contactInfo?.email || 'hello@jakejohnson.com',
-      phone: contactInfo?.phone || '(219) 925-7195',
-      location: contactInfo?.location || 'Saint Paul, MN',
+      fullName: fullName.trim(),
+      email: contactInfo?.email || '',
+      phone: contactInfo?.phone || '',
+      location: contactInfo?.location || '',
       linkedin: contactInfo?.linkedin || '',
       professionalSummary: professionalSummary || 'Professional Network Engineer with expertise in infrastructure design and implementation.',
       workExperience: Array.isArray(workExperience) ? workExperience : [],
       education: Array.isArray(education) ? education : [],
-      skills: Array.isArray(skills) ? skills : []
+      skills: extractSkillsArray(skills)
     };
 
-    console.log('✅ Final extracted data:', {
+    console.log('✅ SVG Final extracted data:', {
       name: extractedData.fullName,
       email: extractedData.email,
       summaryLength: extractedData.professionalSummary.length,
       workExpCount: extractedData.workExperience.length,
       educationCount: extractedData.education.length,
       skillsCount: extractedData.skills.length,
-      firstWorkEntry: extractedData.workExperience[0]?.title || 'none',
+      firstWorkEntry: extractedData.workExperience[0]?.jobTitle || extractedData.workExperience[0]?.title || 'none',
       customColors: colors ? `${colors.primary} / ${colors.accent}` : 'default'
     });
 
@@ -311,7 +365,7 @@ export function SVGResumePreview({
           <rect x="40" y={310 + index * 100} width="4" height="85" fill={config.accentColor} rx="2"/>
           
           <text x="55" y={335 + index * 100} fontSize="13" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
-            {job.title || job.position || 'Network Engineer'}
+{job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           <text x="450" y={335 + index * 100} fontSize="10" fill="#6b7280" fontFamily="sans-serif">
@@ -328,7 +382,9 @@ export function SVGResumePreview({
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-              {(job.description || job.responsibilities || 'Led network infrastructure projects and implemented security protocols.').substring(0, 160)}...
+{(job.achievements && Array.isArray(job.achievements) 
+                ? job.achievements.join('. ') + '.'
+                : job.description || job.responsibilities || 'Led network infrastructure projects and implemented security protocols.').substring(0, 160)}...
             </div>
           </foreignObject>
         </g>
@@ -368,10 +424,10 @@ export function SVGResumePreview({
         {data.education.slice(0, 2).map((edu, index) => (
           <g key={index}>
             <text x="320" y={665 + index * 35} fontSize="11" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
-              {edu.degree || 'Bachelor of Science'}
+{edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
             </text>
             <text x="320" y={680 + index * 35} fontSize="10" fill="#6b7280">
-              {edu.institution || edu.school || 'University'} • {edu.year || edu.endDate || '2020'}
+{edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
             </text>
           </g>
         ))}
@@ -460,7 +516,7 @@ export function SVGResumePreview({
           <rect x="40" y={350 + index * 120} width="4" height="105" fill={config.accentColor} rx="2"/>
           
           <text x="60" y={375 + index * 120} fontSize="13" fontWeight="600" fill={config.primaryColor}>
-            {job.title || job.position || 'Network Engineer'}
+{job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           <text x="60" y={390 + index * 120} fontSize="11" fontWeight="500" fill={config.accentColor}>
@@ -477,7 +533,9 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-              {(job.description || 'Led network infrastructure projects and security implementations.').substring(0, 150)}...
+{(job.achievements && Array.isArray(job.achievements) 
+                ? job.achievements.join('. ') + '.'
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 150)}...
             </div>
           </foreignObject>
         </g>
@@ -560,7 +618,7 @@ export function SVGResumePreview({
           <line x1="50" y1={285 + index * 90} x2="550" y2={285 + index * 90} stroke="#f3f4f6" strokeWidth="1"/>
           
           <text x="50" y={305 + index * 90} fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor}>
-            {job.title || job.position || 'Network Engineer'}
+{job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           <text x="50" y={320 + index * 90} fontFamily="sans-serif" fontSize="11" fill="#6b7280">
@@ -573,7 +631,9 @@ export function SVGResumePreview({
 
           <foreignObject x="50" y={330 + index * 90} width="500" height="40">
             <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
-              {(job.description || 'Led network infrastructure projects and security implementations.').substring(0, 180)}...
+{(job.achievements && Array.isArray(job.achievements) 
+                ? job.achievements.join('. ') + '.'
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 180)}...
             </div>
           </foreignObject>
         </g>
@@ -610,10 +670,10 @@ export function SVGResumePreview({
         {data.education.slice(0, 2).map((edu, index) => (
           <g key={index}>
             <text x="320" y={595 + index * 35} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill={config.primaryColor}>
-              {edu.degree || 'Bachelor of Science'}
+{edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
             </text>
             <text x="320" y={610 + index * 35} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
-              {edu.institution || edu.school || 'University'} • {edu.year || edu.endDate || '2020'}
+{edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
             </text>
           </g>
         ))}
@@ -700,7 +760,7 @@ export function SVGResumePreview({
           
           {/* Job title */}
           <text x="95" y={380 + index * 130} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
-            {job.title || job.position || 'Network Engineer'}
+{job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           {/* Company */}
@@ -719,7 +779,9 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-              {(job.description || 'Led network infrastructure projects and security implementations.').substring(0, 140)}...
+{(job.achievements && Array.isArray(job.achievements) 
+                ? job.achievements.join('. ') + '.'
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 140)}...
             </div>
           </foreignObject>
         </g>
