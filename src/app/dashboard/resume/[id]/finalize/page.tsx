@@ -634,18 +634,7 @@ export default function EnhancedFinalizePage() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                  {/* Secondary button for original */}
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownload('original')}
-                    disabled={isDownloading}
-                    className="border-slate-500/30 text-slate-400 hover:bg-white/5 hover:scale-105 transition-all duration-300 px-6"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    download original
-                  </Button>
-                  
-                  {/* Primary button for optimized - VICTORIOUS VERSION */}
+                  {/* Primary download button */}
                   <Button
                     onClick={() => handleDownload('optimized')}
                     disabled={isDownloading}
@@ -674,7 +663,7 @@ export default function EnhancedFinalizePage() {
                       {isDownloading ? (
                         <>
                           <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>generating your victory...</span>
+                          <span>generating your resume...</span>
                         </>
                       ) : (
                         <>
@@ -684,8 +673,8 @@ export default function EnhancedFinalizePage() {
                             <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
                           </div>
                           <div className="flex flex-col items-center">
-                            <span className="text-xl font-bold">Download Your Victory</span>
-                            <span className="text-sm opacity-90">AI-Optimized Resume Ready!</span>
+                            <span className="text-xl font-bold">Download Resume</span>
+                            <span className="text-sm opacity-90">AI-Optimized & Ready!</span>
                           </div>
                         </>
                       )}
@@ -708,6 +697,48 @@ export default function EnhancedFinalizePage() {
 
           </div>
         </main>
+      </div>
+
+      {/* Floating Download Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => handleDownload('optimized')}
+          disabled={isDownloading}
+          className="btn-gradient hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/40 relative overflow-hidden group px-6 py-3 text-lg font-bold rounded-full shadow-lg"
+        >
+          {/* Shimmer effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
+          
+          {/* Floating sparkles */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full animate-pulse opacity-60"
+                style={{
+                  left: `${20 + i * 20}%`,
+                  top: `${20 + (i % 2) * 60}%`,
+                  animationDelay: `${i * 0.3}s`,
+                  animationDuration: `${1.5 + (i % 3) * 0.5}s`
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center gap-2">
+            {isDownloading ? (
+              <>
+                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                <span>Download</span>
+              </>
+            )}
+          </div>
+        </Button>
       </div>
 
       {/* Premium CSS Animations */}

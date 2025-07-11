@@ -50,8 +50,8 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
 
     // useEffect triggered for PDF rendering
     
-    const timer = setTimeout(async () => {
-      // Timer fired! Starting PDF rendering...
+    const renderPdf = async () => {
+      // Starting PDF rendering immediately...
       
       const canvas = canvasRef.current;
       if (!canvas) {
@@ -81,7 +81,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
         
         // Step 3: Get first page
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 0.5 });
+        const viewport = page.getViewport({ scale: 0.3 }); // Smaller scale for faster rendering
         // Got page and viewport
         
         // Step 4: Setup canvas
@@ -111,12 +111,9 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
         console.error('❌ PDF rendering failed:', err);
         setStatus('error');
       }
-    }, 100);
-
-    return () => {
-      // Cleaning up timer
-      clearTimeout(timer);
     };
+
+    renderPdf();
   }, [resumeId, pdfjsLib, pdfLibLoading]);
 
   // Rendering with status

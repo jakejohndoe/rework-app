@@ -387,7 +387,7 @@ export default function RedesignedAnalysisPage() {
       // Show gradual progress through all steps
       for (let i = 0; i < analysisSteps.length; i++) {
         setCurrentStep(i)
-        await new Promise(resolve => setTimeout(resolve, 800)) // Slower, more gradual
+        await new Promise(resolve => setTimeout(resolve, 1800)) // Much slower, more gradual
       }
       
       // Wait for API to complete
@@ -548,9 +548,26 @@ export default function RedesignedAnalysisPage() {
             
             {/* Loading Analysis State */}
             {isAnalyzing && (
-              <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="relative">
-                  {/* Resume Paper Animation */}
+              <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
+                {/* Background Effects */}
+                <div className="absolute inset-0 overflow-hidden">
+                  {[...Array(15)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 bg-cyan-400/10 rounded-full animate-pulse"
+                      style={{
+                        left: `${(i * 13 + 10) % 90 + 5}%`,
+                        top: `${(i * 17 + 15) % 80 + 10}%`,
+                        animationDelay: `${(i * 0.5) % 4}s`,
+                        animationDuration: `${4 + (i % 2)}s`
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Main Loading Animation */}
+                <div className="relative flex flex-col items-center">
+                  {/* Resume Paper Animation - Fixed position */}
                   <div className="relative w-64 h-80">
                     {/* Paper Background */}
                     <div 
@@ -564,52 +581,56 @@ export default function RedesignedAnalysisPage() {
                         {[...Array(8)].map((_, i) => (
                           <div
                             key={i}
-                            className="h-2 bg-white/20 rounded animate-pulse"
+                            className="h-2 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 rounded"
                             style={{
-                              width: `${85 - i * 5}%`,
-                              animationDelay: `${i * 0.1}s`
+                              animation: 'lineFill 2s ease-out forwards',
+                              animationDelay: `${i * 0.3}s`,
+                              width: '0%',
+                              opacity: 0
                             }}
                           />
                         ))}
                       </div>
                     </div>
 
-                    {/* AI Brain Animation */}
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-bounce">
+                    {/* Floating Elements */}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full animate-pulse flex items-center justify-center">
                       <Brain className="w-6 h-6 text-white" />
                     </div>
 
-                    {/* Progress Dots */}
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                      {[...Array(3)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"
-                          style={{
-                            animationDelay: `${i * 0.3}s`,
-                            animationDuration: '1.5s'
-                          }}
-                        />
-                      ))}
+                    {/* AI Sparkles */}
+                    <div className="absolute -bottom-4 -left-4">
+                      <svg 
+                        className="w-8 h-8 text-cyan-400" 
+                        fill="currentColor" 
+                        viewBox="0 0 24 24"
+                        style={{
+                          animation: 'spinSlow 4s linear infinite'
+                        }}
+                      >
+                        <path d="M12 2L13.09 8.26L19 7L15.45 11.82L21 16L14.82 15.45L16 22L11.18 17.45L7 21L8.27 14.73L2 16L6.18 10.45L2 7L8.26 8.09L7 2L11.82 6.55L16 2L14.73 8.27L21 7L16.82 12.55L21 16L14.73 14.73L16 21L11.82 16.82L7 21L8.27 14.91L2 16L6.55 11.18Z"/>
+                      </svg>
                     </div>
                   </div>
 
-                  {/* Loading Text */}
-                  <div className="text-center mt-12 space-y-3">
-                    <h2 className="text-2xl font-bold text-white">
+                  {/* Loading Text - Positioned below with fixed layout */}
+                  <div className="mt-8 text-center w-full">
+                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 animate-pulse">
                       AI Analysis In Progress
                     </h2>
-                    <p className="text-cyan-300 text-lg font-medium">
-                      {analysisSteps[currentStep]}
-                    </p>
-                    <div className="flex items-center justify-center gap-2 mt-4">
+                    <div className="h-12 flex items-center justify-center mt-2">
+                      <p className="text-slate-400 text-sm">
+                        {analysisSteps[currentStep]}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mt-2">
                       <div className="w-8 h-1 bg-cyan-400/30 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500"
                           style={{ width: `${((currentStep + 1) / analysisSteps.length) * 100}%` }}
                         />
                       </div>
-                      <span className="text-slate-400 text-sm">
+                      <span className="text-slate-400 text-xs">
                         {currentStep + 1} / {analysisSteps.length}
                       </span>
                     </div>
@@ -1022,8 +1043,19 @@ export default function RedesignedAnalysisPage() {
         }
         
         @keyframes paperFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          0%, 100% { transform: translateY(0px) rotate(-1deg); }
           50% { transform: translateY(-10px) rotate(1deg); }
+        }
+
+        @keyframes lineFill {
+          0% { width: 0%; opacity: 0; }
+          50% { opacity: 1; }
+          100% { width: 100%; opacity: 1; }
+        }
+
+        @keyframes spinSlow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
