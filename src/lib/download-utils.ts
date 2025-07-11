@@ -26,13 +26,11 @@ export async function downloadResumePDF({
   
   // ✅ ATOMIC: Check and set in one operation to prevent race conditions
   if (downloadInProgress.has(downloadKey)) {
-    console.log('🚫 Download already in progress for:', downloadKey, 'at', Date.now(), 'Current set:', Array.from(downloadInProgress));
     return;
   }
   
   // ✅ IMMEDIATELY mark as in progress before any async operations
   downloadInProgress.add(downloadKey);
-  console.log('🚀 Starting download for:', downloadKey, 'at', Date.now(), 'Current set:', Array.from(downloadInProgress));
   
   try {
     // ✅ NEW: Only show toast if no toast is already active for this download
@@ -40,9 +38,6 @@ export async function downloadResumePDF({
     if (!activeToasts.has(downloadKey)) {
       loadingToast = toast.loading('Generating PDF download...');
       activeToasts.set(downloadKey, String(loadingToast));
-      console.log('🍞 Toast created for:', downloadKey);
-    } else {
-      console.log('🚫 Toast already exists for:', downloadKey);
     }
 
     // Make request to download endpoint
@@ -81,11 +76,7 @@ export async function downloadResumePDF({
     // ✅ NEW: Dismiss loading toast, let browser handle download notification
     if (loadingToast) {
       toast.dismiss(loadingToast);
-      console.log('✅ Loading toast dismissed for:', downloadKey, '- Browser will show download notification');
-    } else {
-      console.log('🚫 No loading toast to dismiss for:', downloadKey);
     }
-    console.log('✅ Download completed for:', downloadKey);
 
   } catch (error) {
     console.error('❌ Download error for', downloadKey, ':', error);
@@ -101,7 +92,6 @@ export async function downloadResumePDF({
     setTimeout(() => {
       downloadInProgress.delete(downloadKey);
       activeToasts.delete(downloadKey);
-      console.log('🧹 Cleaned up download tracker for:', downloadKey, 'at', Date.now(), 'Remaining:', Array.from(downloadInProgress));
     }, 1000);
   }
 }
@@ -119,7 +109,6 @@ export async function previewResumePDF({
   
   // ✅ ATOMIC: Check and set in one operation
   if (downloadInProgress.has(previewKey)) {
-    console.log('🚫 Preview already in progress for:', previewKey);
     return;
   }
   
@@ -154,7 +143,6 @@ export async function previewResumePDF({
     
     if (loadingToast) {
       toast.dismiss(loadingToast);
-      console.log('✅ Preview opened successfully');
     }
 
   } catch (error) {
@@ -191,12 +179,10 @@ export function useResumeDownload(): UseDownloadResult {
     
     // ✅ NEW: Check global state first
     if (downloadInProgress.has(downloadKey)) {
-      console.log('🚫 useResumeDownload: Download already in progress globally for:', downloadKey);
       return;
     }
     
     if (isDownloading) {
-      console.log('🚫 useResumeDownload: Already downloading locally, ignoring request');
       return;
     }
     
@@ -218,12 +204,10 @@ export function useResumeDownload(): UseDownloadResult {
     
     // ✅ NEW: Check global state first
     if (downloadInProgress.has(previewKey)) {
-      console.log('🚫 useResumeDownload: Preview already in progress globally for:', previewKey);
       return;
     }
     
     if (isDownloading) {
-      console.log('🚫 useResumeDownload: Already processing locally, ignoring preview request');
       return;
     }
     

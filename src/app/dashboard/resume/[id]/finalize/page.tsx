@@ -79,13 +79,10 @@ const colorOptions = [
 ]
 
 export default function EnhancedFinalizePage() {
-  console.log('🎯 FINALIZE DEBUG: Component mounted')
   const params = useParams()
   const router = useRouter()
   const { data: session, status } = useSession()
   const resumeId = params.id as string
-  console.log('🎯 FINALIZE DEBUG: Resume ID:', resumeId)
-  console.log('🎯 FINALIZE DEBUG: Session status:', status)
   
   // ✅ ADDED: Minimum loading hook for nice loading transition
   const { shouldHideContent } = useFinalizeLoading()
@@ -128,35 +125,27 @@ export default function EnhancedFinalizePage() {
 
   // ✅ FIXED: Fetch resume data (simplified - no manual loading control needed)
   const fetchResumeData = async () => {
-    console.log('🎯 FINALIZE DEBUG: Starting data fetch...')
     try {
       const response = await fetch(`/api/resumes/${resumeId}`)
-      console.log('🎯 FINALIZE DEBUG: API response:', response.status)
       if (response.ok) {
         const data = await response.json()
-        console.log('🎯 FINALIZE DEBUG: Data received:', !!data)
         setResumeData(data)
       }
     } catch (error) {
-      console.error('🎯 FINALIZE DEBUG: Fetch error:', error)
       toast.error('Failed to load resume data')
     }
   }
 
   useEffect(() => {
-    console.log('🎯 FINALIZE DEBUG: useEffect triggered - status:', status, 'session:', !!session)
     if (status === 'loading') {
-      console.log('🎯 FINALIZE DEBUG: Status is loading, waiting...')
       return
     }
     
     if (!session) {
-      console.log('🎯 FINALIZE DEBUG: No session, redirecting to signin')
       router.push('/auth/signin')
       return
     }
 
-    console.log('🎯 FINALIZE DEBUG: Starting fetchResumeData')
     fetchResumeData()
   }, [session, status, resumeId])
 
@@ -170,8 +159,6 @@ export default function EnhancedFinalizePage() {
     router.push('/auth/signin')
     return null
   }
-  
-  console.log('🎯 FINALIZE DEBUG: Proceeding to render main content')
 
   const handleBackToDashboard = () => {
     router.push(`/dashboard`)
@@ -291,7 +278,6 @@ export default function EnhancedFinalizePage() {
       setTimeout(() => setShowSuccessCard(false), 10000)
       
     } catch (error) {
-      console.error('Download error:', error)
       toast.error(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { id: 'download' })
     } finally {
       setIsDownloading(false)

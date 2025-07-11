@@ -53,7 +53,6 @@ export default function AutoFillButton({
         duration: 0 // Don't auto-dismiss
       });
 
-      console.log('🚀 Starting auto-fill for resume:', resumeId);
 
       const response = await fetch(`/api/resumes/${resumeId}/autofill`, {
         method: 'POST',
@@ -72,7 +71,6 @@ export default function AutoFillButton({
         throw new Error(result.error || 'Auto-fill failed');
       }
 
-      console.log('✅ Auto-fill successful:', result.stats);
 
       // Create success message with stats
       const stats = result.stats;
@@ -116,7 +114,6 @@ export default function AutoFillButton({
       }
 
     } catch (error) {
-      console.error('❌ Auto-fill error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
