@@ -56,32 +56,20 @@ export default function DashboardPage() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isMounted, setIsMounted] = useState(false)
 
-  // ✅ WORKING: Keep all the debug logging that helped us diagnose
+  // ✅ WORKING: Keep the exact same coordinated loading logic
   useEffect(() => {
-    console.log('🎯 DASHBOARD DEBUG: Loading state changed')
-    console.log('  - isDataLoaded:', isDataLoaded)
-    console.log('  - isMinTimeElapsed:', isMinTimeElapsed)
-    console.log('  - shouldShowContent:', shouldShowContent)
-    console.log('  - Time elapsed:', Date.now() - loadingStartTime, 'ms')
+    // Removed debug logging for performance
   }, [isDataLoaded, isMinTimeElapsed, shouldShowContent, loadingStartTime])
 
   // ✅ WORKING: Keep the coordinated loading check
   useEffect(() => {
-    console.log('🔄 DASHBOARD DEBUG: Checking if ready to show content...')
     if (isDataLoaded && isMinTimeElapsed) {
-      console.log('✅ DASHBOARD DEBUG: Both conditions met! Showing content')
-      console.log('  - Total loading time:', Date.now() - loadingStartTime, 'ms')
       setShouldShowContent(true)
-    } else {
-      console.log('⏳ DASHBOARD DEBUG: Still waiting...')
-      console.log('  - Data loaded:', isDataLoaded)
-      console.log('  - Min time elapsed:', isMinTimeElapsed)
     }
   }, [isDataLoaded, isMinTimeElapsed, loadingStartTime])
 
   // Client-side mount check
   useEffect(() => {
-    console.log('🚀 DASHBOARD DEBUG: Component mounting')
     setIsMounted(true)
   }, [])
 
@@ -116,50 +104,44 @@ export default function DashboardPage() {
 
   // ✅ WORKING: Keep the exact same coordinated loading logic
   useEffect(() => {
-    console.log('🎬 DASHBOARD DEBUG: Main effect triggered')
-    console.log('  - Session status:', status)
-    console.log('  - Has session:', !!session)
+    // Main effect triggered
     
     if (status === 'loading') {
-      console.log('⏳ DASHBOARD DEBUG: Session still loading, waiting...')
+      // Session still loading, waiting...
       return
     }
     
     if (status !== 'authenticated') {
-      console.log('🔒 DASHBOARD DEBUG: Not authenticated, will redirect')
+      // Not authenticated, will redirect
       return
     }
 
-    console.log('🚀 DASHBOARD DEBUG: Starting coordinated loading...')
+    // Starting coordinated loading...
     
     // Start minimum time timer (2 seconds for faster response)
-    console.log('⏰ DASHBOARD DEBUG: Starting 2-second minimum timer')
+    // Starting 2-second minimum timer
     const minTimeTimer = setTimeout(() => {
-      console.log('✅ DASHBOARD DEBUG: Minimum time (2s) elapsed!')
+      // Minimum time (2s) elapsed!
       setIsMinTimeElapsed(true)
     }, 2000)
 
     // Start data fetching
-    console.log('📡 DASHBOARD DEBUG: Starting data fetch...')
+    // Starting data fetch...
     const fetchData = async () => {
       const fetchStartTime = Date.now()
-      console.log('📡 DASHBOARD DEBUG: Fetching resumes from API...')
+      // Fetching resumes from API...
       
       try {
         const response = await fetch('/api/resumes')
         const fetchTime = Date.now() - fetchStartTime
-        console.log(`📡 DASHBOARD DEBUG: API response received in ${fetchTime}ms`)
-        console.log('  - Response status:', response.status)
-        console.log('  - Response OK:', response.ok)
+        // API response received
         
         const data = await response.json()
-        console.log('📡 DASHBOARD DEBUG: JSON parsed')
-        console.log('  - Success:', data.success)
-        console.log('  - Resume count:', data.resumes?.length || 0)
+        // JSON parsed
         
         if (data.success) {
           setResumes(data.resumes)
-          console.log('✅ DASHBOARD DEBUG: Resumes set in state')
+          // Resumes set in state
         } else {
           console.error('❌ DASHBOARD DEBUG: API returned error:', data.error)
         }
@@ -167,7 +149,7 @@ export default function DashboardPage() {
         console.error('❌ DASHBOARD DEBUG: Fetch error:', error)
       } finally {
         const totalFetchTime = Date.now() - fetchStartTime
-        console.log(`✅ DASHBOARD DEBUG: Data fetch complete! Total time: ${totalFetchTime}ms`)
+        // Data fetch complete!
         setIsDataLoaded(true)
       }
     }
@@ -175,31 +157,29 @@ export default function DashboardPage() {
     fetchData()
 
     return () => {
-      console.log('🧹 DASHBOARD DEBUG: Cleaning up timers')
+      // Cleaning up timers
       clearTimeout(minTimeTimer)
     }
   }, [status, session])
 
   // ✅ WORKING: Keep the exact same early return logic that's working
-  console.log('🎭 DASHBOARD DEBUG: Render check')
-  console.log('  - shouldShowContent:', shouldShowContent)
-  console.log('  - status:', status)
+  // Render check
 
   if (!shouldShowContent) {
-    console.log('🎬 DASHBOARD DEBUG: Showing ResumeLoader')
+    // Showing ResumeLoader
     return <ResumeLoader />
   }
 
-  console.log('🎨 DASHBOARD DEBUG: Rendering full dashboard content')
+  // Rendering full dashboard content
 
   // Redirect if not authenticated
   if (status === "unauthenticated") {
-    console.log('🔒 DASHBOARD DEBUG: Redirecting to signin')
+    // Redirecting to signin
     redirect("/auth/signin")
   }
 
   const handleUploadComplete = (resumes: any[]) => {
-    console.log('📤 DASHBOARD DEBUG: Upload complete:', resumes)
+    // Upload complete
     setIsUploadOpen(false)
     // Refresh data after upload
     fetchResumes()
@@ -207,14 +187,14 @@ export default function DashboardPage() {
 
   // ✅ SIMPLIFIED: Basic fetch function for refreshes (no loading logic)
   const fetchResumes = async () => {
-    console.log('🔄 DASHBOARD DEBUG: Refreshing resumes...')
+    // Refreshing resumes...
     try {
       const response = await fetch('/api/resumes')
       const data = await response.json()
       
       if (data.success) {
         setResumes(data.resumes)
-        console.log('✅ DASHBOARD DEBUG: Resumes refreshed')
+        // Resumes refreshed
       } else {
         console.error('❌ DASHBOARD DEBUG: Refresh failed:', data.error)
       }
@@ -228,7 +208,7 @@ export default function DashboardPage() {
       return
     }
 
-    console.log('🗑️ DASHBOARD DEBUG: Deleting resume:', resumeId)
+    // Deleting resume
 
     try {
       setDeletingResumeId(resumeId)
@@ -241,7 +221,7 @@ export default function DashboardPage() {
       
       if (data.success) {
         setResumes(prev => prev.filter(resume => resume.id !== resumeId))
-        console.log('✅ DASHBOARD DEBUG: Resume deleted successfully')
+        // Resume deleted successfully
       } else {
         console.error('❌ DASHBOARD DEBUG: Delete failed:', data.error)
         alert('Failed to delete resume. Please try again.')
@@ -255,7 +235,7 @@ export default function DashboardPage() {
   }
 
   const handleAIBuilder = () => {
-    console.log('🤖 DASHBOARD DEBUG: AI Builder clicked (coming soon)')
+    // AI Builder clicked (coming soon)
     alert('🚀 AI Builder is coming soon! This feature will let you create a resume from scratch using AI.')
   }
 
@@ -281,10 +261,7 @@ export default function DashboardPage() {
   const optimizedCount = resumes.filter(r => r.lastOptimized).length
   const totalWords = resumes.reduce((total, resume) => total + (resume.wordCount || 0), 0)
 
-  console.log('📊 DASHBOARD DEBUG: Render stats')
-  console.log('  - Total resumes:', currentResumes)
-  console.log('  - Optimized count:', optimizedCount)
-  console.log('  - Is premium:', isPremium)
+  // Render stats
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">

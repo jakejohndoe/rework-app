@@ -166,6 +166,12 @@ export default function EnhancedFinalizePage() {
     return <ResumeLoader title="Finalizing your resume" subtitle="Preparing download options..." />
   }
   
+  // Don't wait for resume data - show the page and let components handle missing data
+  if (!session) {
+    router.push('/auth/signin')
+    return null
+  }
+  
   console.log('🎯 FINALIZE DEBUG: Proceeding to render main content')
 
   const handleBackToDashboard = () => {
@@ -173,8 +179,8 @@ export default function EnhancedFinalizePage() {
   }
 
   const triggerConfetti = () => {
-    // Fire confetti from multiple angles
-    const count = 200
+    // Enhanced VICTORIOUS confetti celebration!
+    const count = 300
     const defaults = {
       origin: { y: 0.7 }
     }
@@ -184,12 +190,13 @@ export default function EnhancedFinalizePage() {
         ...defaults,
         ...opts,
         particleCount: Math.floor(count * particleRatio),
-        scalar: 1.2,
-        shapes: ['star', 'circle'],
-        colors: ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+        scalar: 1.4,
+        shapes: ['star', 'circle', 'square'],
+        colors: ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ffd700', '#ff69b4']
       })
     }
 
+    // Initial burst
     fire(0.25, {
       spread: 26,
       startVelocity: 55,
@@ -212,6 +219,32 @@ export default function EnhancedFinalizePage() {
       spread: 120,
       startVelocity: 45,
     })
+
+    // Secondary celebration burst after delay
+    setTimeout(() => {
+      fire(0.3, {
+        spread: 80,
+        startVelocity: 60,
+        origin: { x: 0.2, y: 0.6 }
+      })
+      fire(0.3, {
+        spread: 80,
+        startVelocity: 60,
+        origin: { x: 0.8, y: 0.6 }
+      })
+    }, 300)
+
+    // Final victory burst
+    setTimeout(() => {
+      fire(0.4, {
+        spread: 150,
+        startVelocity: 70,
+        decay: 0.85,
+        scalar: 1.6,
+        shapes: ['star'],
+        colors: ['#ffd700', '#ffff00', '#ff4500']
+      })
+    }, 600)
   }
 
   const handleEditMore = () => {
@@ -419,7 +452,7 @@ export default function EnhancedFinalizePage() {
         </header>
 
         <main className="container mx-auto px-4 py-6">
-          <div className="max-w-7xl mx-auto space-y-8">
+          <div className="max-w-7xl mx-auto space-y-12">
             
             {/* Enhanced Page Header */}
             <div className={`text-center space-y-4 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -463,9 +496,13 @@ export default function EnhancedFinalizePage() {
                     } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                     style={{ transitionDelay: `${300 + index * 100}ms` }}
                   >
-                    {/* FIXED: Badge positioning - centered at top, no overlap */}
+                    {/* FIXED: Badge positioning - centered at top, no overlap, no blinking */}
                     {template.recommended && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-xs px-3 py-1 rounded-full font-bold animate-pulse z-10 shadow-lg">
+                      <div className={`absolute -top-2 left-1/2 transform -translate-x-1/2 text-xs px-3 py-1 rounded-full font-bold z-10 shadow-lg transition-all duration-300 ${
+                        selectedTemplate === template.id 
+                          ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-cyan-900' 
+                          : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900'
+                      }`}>
                         👑 recommended
                       </div>
                     )}
@@ -546,7 +583,7 @@ export default function EnhancedFinalizePage() {
             </div>
 
             {/* Enhanced Preview Section */}
-            <div className={`glass-card border-white/10 p-8 hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '500ms' }}>
+            <div className={`glass-card border-white/10 p-8 mt-8 hover:scale-[1.005] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '500ms' }}>
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">
@@ -608,20 +645,50 @@ export default function EnhancedFinalizePage() {
                     download original
                   </Button>
                   
-                  {/* Primary button for optimized */}
+                  {/* Primary button for optimized - VICTORIOUS VERSION */}
                   <Button
                     onClick={() => handleDownload('optimized')}
                     disabled={isDownloading}
-                    className="btn-gradient hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group px-8 py-3"
+                    className="btn-gradient hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/40 relative overflow-hidden group px-12 py-6 text-xl font-bold min-w-[320px] rounded-2xl"
                   >
-                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
-                    <div className="relative z-10 flex items-center gap-2">
+                    {/* Enhanced shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
+                    
+                    {/* Victory sparkles */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {[...Array(6)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-1 bg-white rounded-full animate-pulse opacity-60"
+                          style={{
+                            left: `${20 + i * 15}%`,
+                            top: `${20 + (i % 2) * 60}%`,
+                            animationDelay: `${i * 0.2}s`,
+                            animationDuration: `${1.5 + (i % 3) * 0.5}s`
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="relative z-10 flex items-center justify-center gap-3">
                       {isDownloading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <>
+                          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>generating your victory...</span>
+                        </>
                       ) : (
-                        <Download className="w-5 h-5" />
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-6 h-6 text-yellow-300 animate-bounce" />
+                            <Download className="w-6 h-6" />
+                            <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className="text-xl font-bold">Download Your Victory</span>
+                            <span className="text-sm opacity-90">AI-Optimized Resume Ready!</span>
+                          </div>
+                        </>
                       )}
-                      download optimized resume
                     </div>
                   </Button>
                 </div>

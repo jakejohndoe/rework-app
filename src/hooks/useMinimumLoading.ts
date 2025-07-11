@@ -33,7 +33,7 @@ export function useDashboardLoading() {
 }
 
 export function useResumeLoading() {
-  return useMinimumLoading(1200); // 1.2 seconds - fast response
+  return useMinimumLoading(600); // 0.6 seconds - very fast response
 }
 
 export function useJobDescriptionLoading() {
@@ -41,5 +41,5 @@ export function useJobDescriptionLoading() {
 }
 
 export function useFinalizeLoading() {
-  return useMinimumLoading(1200); // 1.2 seconds - quick transition
+  return useMinimumLoading(500); // 0.5 seconds - very quick transition
 }

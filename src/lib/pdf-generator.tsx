@@ -75,13 +75,13 @@ const getTemplateConfig = (template: string, customColors?: { primary: string; a
 // Professional Template Styles - Dynamic
 const createProfessionalStyles = (colors: any) => StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 30,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 30,
-    paddingBottom: 20,
+    marginBottom: 20,
+    paddingBottom: 15,
     borderBottomWidth: 3,
     borderBottomColor: colors.primary,
     textAlign: 'center',
@@ -109,21 +109,21 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     color: colors.secondary,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginTop: 25,
-    marginBottom: 12,
-    paddingBottom: 5,
+    marginTop: 18,
+    marginBottom: 8,
+    paddingBottom: 3,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
   },
   content: {
-    fontSize: 11,
-    lineHeight: 1.6,
+    fontSize: 10,
+    lineHeight: 1.5,
     color: colors.text,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -156,13 +156,13 @@ const createModernStyles = (colors: any) => StyleSheet.create({
   sidebar: {
     width: '35%',
     backgroundColor: colors.light,
-    padding: 25,
-    paddingTop: 40,
+    padding: 20,
+    paddingTop: 30,
   },
   mainContent: {
     width: '65%',
-    padding: 30,
-    paddingTop: 40,
+    padding: 25,
+    paddingTop: 30,
   },
   name: {
     fontSize: 24,
@@ -247,7 +247,7 @@ const createModernStyles = (colors: any) => StyleSheet.create({
 // Minimal Template Styles - Dynamic
 const createMinimalStyles = (colors: any) => StyleSheet.create({
   page: {
-    padding: 50,
+    padding: 35,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
   },
@@ -373,7 +373,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     color: '#ffffff',
   },
   bodySection: {
-    padding: 30,
+    padding: 25,
   },
   twoColumnRow: {
     flexDirection: 'row',
@@ -633,8 +633,8 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
       {data.workExperience.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Professional Experience</Text>
-          {data.workExperience.slice(0, 6).map((job: any, index: number) => (
-            <View key={index} style={{ marginBottom: 15 }}>
+          {data.workExperience.slice(0, 3).map((job: any, index: number) => (
+            <View key={index} style={{ marginBottom: 10 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
                   {job.jobTitle || job.title || job.position || 'Position'}
@@ -646,9 +646,9 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
               <Text style={styles.company}>{job.company || 'Company Name'}</Text>
               
               <Text style={styles.content}>
-                {job.achievements && Array.isArray(job.achievements) 
+                {((job.achievements && Array.isArray(job.achievements) 
                   ? job.achievements.join('. ') + '.'
-                  : job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
+                  : job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.').substring(0, 120) + '...')}
               </Text>
             </View>
           ))}
@@ -659,7 +659,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
       {data.education.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
-          {data.education.slice(0, 3).map((edu: any, index: number) => (
+          {data.education.slice(0, 2).map((edu: any, index: number) => (
             <View key={index} style={{ marginBottom: 10 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
@@ -682,7 +682,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <View>
           <Text style={styles.sectionTitle}>Core Skills</Text>
           <Text style={styles.content}>
-            {skillsArray.slice(0, 12).join(' • ')}
+{skillsArray.slice(0, 8).join(' • ')}
           </Text>
         </View>
       )}
@@ -774,7 +774,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
         {data.workExperience.length > 0 && (
           <View>
             <Text style={styles.mainSectionTitle}>Experience</Text>
-            {data.workExperience.slice(0, 5).map((job: any, index: number) => (
+            {data.workExperience.slice(0, 3).map((job: any, index: number) => (
               <View key={index} style={styles.experienceItem}>
                 <Text style={styles.jobTitleMain}>
                   {job.jobTitle || job.title || job.position || 'Position'}
@@ -840,7 +840,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
         <View>
           <Text style={styles.sectionTitle}>Experience</Text>
           <View style={styles.divider} />
-          {data.workExperience.slice(0, 5).map((job: any, index: number) => (
+          {data.workExperience.slice(0, 3).map((job: any, index: number) => (
             <View key={index} style={styles.experienceHeader}>
               <Text style={styles.jobTitleMinimal}>
                 {job.jobTitle || job.title || job.position || 'Position'}
@@ -866,7 +866,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
           <View style={styles.divider} />
-          {data.education.slice(0, 3).map((edu: any, index: number) => (
+          {data.education.slice(0, 2).map((edu: any, index: number) => (
             <View key={index} style={{ marginBottom: 15 }}>
               <Text style={styles.jobTitleMinimal}>
                 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
@@ -971,7 +971,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
             {data.workExperience.length > 0 && (
               <View>
                 <Text style={styles.creativeSectionTitle}>Experience</Text>
-                {data.workExperience.slice(0, 4).map((job: any, index: number) => (
+                {data.workExperience.slice(0, 3).map((job: any, index: number) => (
                   <View key={index} style={styles.experienceCard}>
                     <Text style={styles.jobTitleCreative}>
                       {job.jobTitle || job.title || job.position || 'Position'}

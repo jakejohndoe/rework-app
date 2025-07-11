@@ -40,7 +40,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const { pdfjsLib, isLoading: pdfLibLoading } = usePdfJs();
 
-  console.log('🏗️ PDFThumbnail component rendering for:', resumeId);
+  // PDFThumbnail component rendering
 
   useEffect(() => {
     // Don't start rendering until PDF.js is loaded
@@ -48,42 +48,41 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
       return;
     }
 
-    console.log('🔥 useEffect triggered for resumeId:', resumeId);
-    console.log('⏱️ Setting timer for PDF rendering...');
+    // useEffect triggered for PDF rendering
     
     const timer = setTimeout(async () => {
-      console.log('⏰ Timer fired! Starting PDF rendering...');
+      // Timer fired! Starting PDF rendering...
       
       const canvas = canvasRef.current;
       if (!canvas) {
-        console.log('❌ Canvas not found');
+        // Canvas not found
         setStatus('error');
         return;
       }
       
-      console.log('✅ Canvas found! Starting PDF generation...');
+      // Canvas found! Starting PDF generation...
       
       try {
         // Step 1: Get PDF URL
-        console.log('🔗 Fetching PDF URL...');
+        // Fetching PDF URL...
         const urlResponse = await fetch(`/api/resumes/${resumeId}/url`);
         if (!urlResponse.ok) {
           throw new Error(`Failed to get PDF URL: ${urlResponse.status}`);
         }
         
         const urlData = await urlResponse.json();
-        console.log('✅ PDF URL fetched successfully');
+        // PDF URL fetched successfully
         
         // Step 2: Load PDF
-        console.log('📄 Loading PDF with PDF.js...');
+        // Loading PDF with PDF.js...
         const loadingTask = pdfjsLib.getDocument(urlData.url);
         const pdf = await loadingTask.promise;
-        console.log('✅ PDF loaded successfully! Pages:', pdf.numPages);
+        // PDF loaded successfully!
         
         // Step 3: Get first page
         const page = await pdf.getPage(1);
         const viewport = page.getViewport({ scale: 0.5 });
-        console.log('✅ Got page and viewport:', viewport.width, 'x', viewport.height);
+        // Got page and viewport
         
         // Step 4: Setup canvas
         canvas.width = viewport.width;
@@ -94,7 +93,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
           throw new Error('Could not get canvas context');
         }
         
-        console.log('🎨 Starting PDF render to canvas...');
+        // Starting PDF render to canvas...
         
         // Step 5: Render PDF to canvas
         const renderContext = {
@@ -105,22 +104,22 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
         const renderTask = (page as any).render(renderContext);
         await renderTask.promise;
         
-        console.log('✅ PDF thumbnail rendered successfully!');
+        // PDF thumbnail rendered successfully!
         setStatus('success');
         
       } catch (err) {
         console.error('❌ PDF rendering failed:', err);
         setStatus('error');
       }
-    }, 500);
+    }, 100);
 
     return () => {
-      console.log('🧹 Cleaning up timer for:', resumeId);
+      // Cleaning up timer
       clearTimeout(timer);
     };
   }, [resumeId, pdfjsLib, pdfLibLoading]);
 
-  console.log('🎭 Rendering with status:', status, 'for resume:', resumeId);
+  // Rendering with status
 
   // Show loading state while PDF.js is loading
   if (pdfLibLoading) {

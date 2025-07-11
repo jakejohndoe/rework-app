@@ -129,13 +129,13 @@ export default function RedesignedAnalysisPage() {
   }, [isMounted])
 
   const analysisSteps = [
-    "Loading resume content...",
-    "Extracting structured data...",
-    "Analyzing job requirements...", 
-    "Performing category-specific analysis...",
-    "Generating optimization suggestions...",
-    "Calculating compatibility scores...",
-    "Finalizing enhanced analysis..."
+    "📄 Loading your resume content and job requirements...",
+    "🔍 Extracting structured data from your professional background...",
+    "💼 Analyzing job requirements and matching keywords...", 
+    "📊 Performing deep category-specific analysis (skills, experience, education)...",
+    "🤖 AI is generating personalized optimization suggestions...",
+    "🎯 Calculating ATS compatibility and match scores...",
+    "✨ Finalizing your enhanced analysis report..."
   ]
 
   // Memoized calculations for performance
@@ -201,7 +201,18 @@ export default function RedesignedAnalysisPage() {
     const suggestion = analysisResults.suggestions.find(s => s.id === suggestionId)
     if (!suggestion) return {}
     
-    const sectionKey = suggestion.section.toLowerCase()
+    // Map suggestion section to category ID (ensure consistency)
+    const sectionMap: { [key: string]: string } = {
+      'contact': 'contact',
+      'experience': 'experience', 
+      'work experience': 'experience',
+      'skills': 'skills',
+      'education': 'education',
+      'keywords': 'keywords',
+      'ats': 'keywords'
+    }
+    
+    const sectionKey = sectionMap[suggestion.section.toLowerCase()] || suggestion.section.toLowerCase()
     const baseScore = analysisResults.categoryScores[sectionKey as keyof typeof analysisResults.categoryScores] || 0
     
     // Impact-based improvements
@@ -367,18 +378,20 @@ export default function RedesignedAnalysisPage() {
     setCurrentStep(0)
     
     try {
-      // Show progress
-      for (let i = 0; i < analysisSteps.length - 1; i++) {
-        setCurrentStep(i)
-        await new Promise(resolve => setTimeout(resolve, 400)) // Faster for better UX
-      }
-      
-      setCurrentStep(analysisSteps.length - 1)
-      
-      const response = await fetch(`/api/resumes/${resumeId}/analyze`, {
+      // Start the API call immediately in parallel
+      const apiPromise = fetch(`/api/resumes/${resumeId}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
+      
+      // Show gradual progress through all steps
+      for (let i = 0; i < analysisSteps.length; i++) {
+        setCurrentStep(i)
+        await new Promise(resolve => setTimeout(resolve, 800)) // Slower, more gradual
+      }
+      
+      // Wait for API to complete
+      const response = await apiPromise
       
       if (!response.ok) {
         const error = await response.json()
@@ -535,11 +548,74 @@ export default function RedesignedAnalysisPage() {
             
             {/* Loading Analysis State */}
             {isAnalyzing && (
-              <ResumeLoader 
-                title="AI analysis in progress" 
-                subtitle={analysisSteps[currentStep]}
-                fullScreen={false}
-              />
+              <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="relative">
+                  {/* Resume Paper Animation */}
+                  <div className="relative w-64 h-80">
+                    {/* Paper Background */}
+                    <div 
+                      className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl"
+                      style={{
+                        animation: 'paperFloat 3s ease-in-out infinite'
+                      }}
+                    >
+                      {/* Paper Lines */}
+                      <div className="p-8 space-y-4">
+                        {[...Array(8)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-2 bg-white/20 rounded animate-pulse"
+                            style={{
+                              width: `${85 - i * 5}%`,
+                              animationDelay: `${i * 0.1}s`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* AI Brain Animation */}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-bounce">
+                      <Brain className="w-6 h-6 text-white" />
+                    </div>
+
+                    {/* Progress Dots */}
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"
+                          style={{
+                            animationDelay: `${i * 0.3}s`,
+                            animationDuration: '1.5s'
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Loading Text */}
+                  <div className="text-center mt-12 space-y-3">
+                    <h2 className="text-2xl font-bold text-white">
+                      AI Analysis In Progress
+                    </h2>
+                    <p className="text-cyan-300 text-lg font-medium">
+                      {analysisSteps[currentStep]}
+                    </p>
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                      <div className="w-8 h-1 bg-cyan-400/30 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500"
+                          style={{ width: `${((currentStep + 1) / analysisSteps.length) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-slate-400 text-sm">
+                        {currentStep + 1} / {analysisSteps.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Error State */}
@@ -749,23 +825,37 @@ export default function RedesignedAnalysisPage() {
                             const currentScore = getCurrentScore(category.id)
                             const baseScore = category.score
                             const isAnimating = animatingCategories.has(category.id)
-                            const hasImprovement = currentScore > baseScore
+                            
+                            // Calculate applied improvements for this category
+                            const appliedImprovements = Array.from(appliedSuggestions).reduce((total, suggestionId) => {
+                              const improvement = calculateImprovement(suggestionId)
+                              return improvement.category === category.id ? total + (improvement.improvement || 0) : total
+                            }, 0)
+                            
+                            // Check if this category has applied improvements (persistent highlight)
+                            const hasAppliedImprovement = appliedImprovements > 0
+                            // Check if there's any improvement (including preview)
+                            const hasAnyImprovement = currentScore > baseScore
                             
                             return (
                               <div 
                                 key={category.id}
                                 className={`p-4 rounded-xl border-2 transition-all duration-700 ${
-                                  hasImprovement 
-                                    ? 'border-green-400/50 bg-green-500/10 shadow-lg shadow-green-500/20' 
-                                    : 'border-white/10 glass'
+                                  hasAppliedImprovement 
+                                    ? 'border-green-400/60 bg-green-500/15 shadow-lg shadow-green-500/25' 
+                                    : hasAnyImprovement
+                                      ? 'border-yellow-400/50 bg-yellow-500/10 shadow-lg shadow-yellow-500/20'
+                                      : 'border-white/10 glass'
                                 } ${isAnimating ? 'animate-pulse' : ''}`}
                               >
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-700 ${
-                                      hasImprovement 
+                                      hasAppliedImprovement 
                                         ? 'bg-gradient-to-br from-green-400 to-emerald-500' 
-                                        : 'bg-gradient-to-br from-cyan-400 to-purple-500'
+                                        : hasAnyImprovement
+                                          ? 'bg-gradient-to-br from-yellow-400 to-orange-500'
+                                          : 'bg-gradient-to-br from-cyan-400 to-purple-500'
                                     }`}>
                                       <IconComponent className="w-5 h-5 text-white" />
                                     </div>
@@ -776,18 +866,37 @@ export default function RedesignedAnalysisPage() {
                                   </div>
                                   <div className="text-right">
                                     <div className={`text-2xl font-bold transition-all duration-700 ${
-                                      hasImprovement ? 'text-green-400' : category.color
+                                      hasAppliedImprovement 
+                                        ? 'text-green-400' 
+                                        : hasAnyImprovement 
+                                          ? 'text-yellow-400' 
+                                          : category.color
                                     }`}>
                                       {currentScore}%
                                     </div>
-                                    {hasImprovement && (
-                                      <div className="text-green-400 text-sm font-medium flex items-center gap-1 justify-end">
+                                    {hasAnyImprovement && (
+                                      <div className={`text-sm font-medium flex items-center gap-1 justify-end transition-all duration-700 ${
+                                        hasAppliedImprovement ? 'text-green-400' : 'text-yellow-400'
+                                      }`}>
                                         <ArrowUp className="w-3 h-3" />
                                         +{currentScore - baseScore}
+                                        {hasAppliedImprovement && (
+                                          <span className="text-xs bg-green-500/20 px-1 rounded">APPLIED</span>
+                                        )}
                                       </div>
                                     )}
-                                    <Badge className={`${hasImprovement ? 'text-green-400 border-green-400/30' : category.color} bg-transparent border text-xs transition-all duration-700`}>
-                                      {hasImprovement ? `Boosted ${category.level}` : category.level}
+                                    <Badge className={`${
+                                      hasAppliedImprovement 
+                                        ? 'text-green-400 border-green-400/30' 
+                                        : hasAnyImprovement 
+                                          ? 'text-yellow-400 border-yellow-400/30'
+                                          : category.color
+                                    } bg-transparent border text-xs transition-all duration-700`}>
+                                      {hasAppliedImprovement 
+                                        ? `Applied ${category.level}` 
+                                        : hasAnyImprovement 
+                                          ? `Preview ${category.level}` 
+                                          : category.level}
                                     </Badge>
                                   </div>
                                 </div>
@@ -800,23 +909,23 @@ export default function RedesignedAnalysisPage() {
                                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-slate-500 to-slate-400 transition-all duration-700 rounded-full"
                                       style={{ width: `${baseScore}%` }}
                                     />
-                                    {/* Improvement Layer (stacked on top) */}
-                                    {hasImprovement && (
+                                    {/* Applied Improvements Layer (persistent green) */}
+                                    {appliedImprovements > 0 && (
                                       <div 
                                         className="absolute top-0 h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-1000 rounded-full"
                                         style={{ 
                                           left: `${baseScore}%`,
-                                          width: `${currentScore - baseScore}%`
+                                          width: `${appliedImprovements}%`
                                         }}
                                       />
                                     )}
-                                    {/* Preview Effect */}
-                                    {previewSuggestion && !hasImprovement && (
+                                    {/* Preview Layer (temporary yellow) */}
+                                    {previewSuggestion && !appliedSuggestions.has(previewSuggestion) && (
                                       <div 
-                                        className="absolute top-0 h-full bg-gradient-to-r from-yellow-400/50 to-orange-500/50 transition-all duration-300 rounded-full"
+                                        className="absolute top-0 h-full bg-gradient-to-r from-yellow-400/70 to-orange-500/70 transition-all duration-300 rounded-full"
                                         style={{ 
-                                          left: `${baseScore}%`,
-                                          width: `${Math.min(100 - baseScore, 15)}%`
+                                          left: `${baseScore + appliedImprovements}%`,
+                                          width: `${Math.min(100 - baseScore - appliedImprovements, calculateImprovement(previewSuggestion)?.improvement || 0)}%`
                                         }}
                                       />
                                     )}
@@ -824,10 +933,20 @@ export default function RedesignedAnalysisPage() {
                                   
                                   <div className="flex justify-between text-xs">
                                     <span className="text-slate-500">
-                                      {hasImprovement ? `Base: ${baseScore}%` : category.levelDescription}
+                                      {hasAnyImprovement ? `Base: ${baseScore}%` : category.levelDescription}
                                     </span>
-                                    <span className={hasImprovement ? 'text-green-400' : category.color}>
-                                      {hasImprovement ? `Boosted: ${currentScore}%` : `Current: ${currentScore}%`}
+                                    <span className={`transition-all duration-700 ${
+                                      hasAppliedImprovement 
+                                        ? 'text-green-400' 
+                                        : hasAnyImprovement 
+                                          ? 'text-yellow-400' 
+                                          : category.color
+                                    }`}>
+                                      {hasAppliedImprovement 
+                                        ? `Applied: ${currentScore}%` 
+                                        : hasAnyImprovement 
+                                          ? `Preview: ${currentScore}%` 
+                                          : `Current: ${currentScore}%`}
                                     </span>
                                   </div>
                                 </div>
@@ -900,6 +1019,11 @@ export default function RedesignedAnalysisPage() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+        
+        @keyframes paperFloat {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(1deg); }
         }
       `}</style>
     </div>
