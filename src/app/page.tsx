@@ -134,7 +134,7 @@ export default function HomePage() {
                         {session.user?.plan === 'PREMIUM' ? 'Premium' : 'Free'} Plan
                       </div>
                     </div>
-                    <Link href="/loading/dashboard">
+                    <Link href="/dashboard">
                       <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white border-0 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300">dashboard</Button>
                     </Link>
                     <Button 
@@ -246,7 +246,7 @@ export default function HomePage() {
             {/* Magnetic CTA Button */}
             <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '800ms' }}>
               {session ? (
-                <Link href="/loading/dashboard">
+                <Link href="/dashboard">
                   <button
                     ref={ctaRef}
                     onMouseMove={handleCtaMouseMove}

@@ -57,7 +57,7 @@ export default function TemplatesPage() {
                 <span>Back to Home</span>
               </Link>
               {session && (
-                <Link href="/loading/dashboard">
+                <Link href="/dashboard">
                   <Button className="btn-gradient">Dashboard</Button>
                 </Link>
               )}
@@ -133,7 +133,7 @@ export default function TemplatesPage() {
                       Preview
                     </Button>
                     {session ? (
-                      <Link href="/loading/dashboard" className="flex-1">
+                      <Link href="/dashboard" className="flex-1">
                         <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10" size="sm">
                           Use Template
                         </Button>
@@ -163,7 +163,7 @@ export default function TemplatesPage() {
                   Choose any template and customize it with our AI-powered optimization.
                 </p>
                 {session ? (
-                  <Link href="/loading/dashboard">
+                  <Link href="/dashboard">
                     <Button className="btn-gradient">
                       Create Your Resume
                     </Button>

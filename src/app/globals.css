@@ -251,3 +251,29 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
+
+/* Ensure consistent background during all route transitions */
+html {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  min-height: 100vh;
+}
+
+/* Prevent any white/blue flashing during route changes */
+#__next {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  min-height: 100vh;
+}
+
+/* Ensure loading screens have proper background */
+.loading-screen {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+}
+
+/* Smooth transitions between loading and content */
+.page-transition {
+  transition: opacity 0.3s ease-in-out;
+}

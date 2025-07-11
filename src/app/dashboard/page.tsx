@@ -14,6 +14,8 @@ import ResumeUploader from "@/components/resume-uploader"
 import { PDFThumbnail } from "@/components/pdf-thumbnail"
 import { QuickDownloadButton, DownloadButton } from "@/components/download-button"
 import { SettingsModal } from "@/components/settings-modal"
+import ResumeLoader from "@/components/resume-loader"
+// ✅ WORKING: Keep the coordinated loading approach that's working
 import { 
   FileText, 
   Plus, 
@@ -39,94 +41,194 @@ import {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
+  
+  // ✅ WORKING: Keep the exact same coordinated loading logic
+  const [shouldShowContent, setShouldShowContent] = useState(false)
+  const [loadingStartTime] = useState(() => Date.now())
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false)
+  
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [resumes, setResumes] = useState<any[]>([])
-  const [isLoadingResumes, setIsLoadingResumes] = useState(true)
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isMounted, setIsMounted] = useState(false)
 
+  // ✅ WORKING: Keep all the debug logging that helped us diagnose
+  useEffect(() => {
+    console.log('🎯 DASHBOARD DEBUG: Loading state changed')
+    console.log('  - isDataLoaded:', isDataLoaded)
+    console.log('  - isMinTimeElapsed:', isMinTimeElapsed)
+    console.log('  - shouldShowContent:', shouldShowContent)
+    console.log('  - Time elapsed:', Date.now() - loadingStartTime, 'ms')
+  }, [isDataLoaded, isMinTimeElapsed, shouldShowContent, loadingStartTime])
+
+  // ✅ WORKING: Keep the coordinated loading check
+  useEffect(() => {
+    console.log('🔄 DASHBOARD DEBUG: Checking if ready to show content...')
+    if (isDataLoaded && isMinTimeElapsed) {
+      console.log('✅ DASHBOARD DEBUG: Both conditions met! Showing content')
+      console.log('  - Total loading time:', Date.now() - loadingStartTime, 'ms')
+      setShouldShowContent(true)
+    } else {
+      console.log('⏳ DASHBOARD DEBUG: Still waiting...')
+      console.log('  - Data loaded:', isDataLoaded)
+      console.log('  - Min time elapsed:', isMinTimeElapsed)
+    }
+  }, [isDataLoaded, isMinTimeElapsed, loadingStartTime])
+
   // Client-side mount check
   useEffect(() => {
+    console.log('🚀 DASHBOARD DEBUG: Component mounting')
     setIsMounted(true)
   }, [])
 
-// Mouse tracking for premium effects - FIXED VERSION
-useEffect(() => {
-  if (!isMounted) return
-  
-  let rafId: number
-  
-  const handleMouseMove = (e: MouseEvent) => {
-    // Throttle updates using requestAnimationFrame
-    if (rafId) return
+  // Mouse tracking for premium effects - FIXED VERSION
+  useEffect(() => {
+    if (!isMounted) return
     
-    rafId = requestAnimationFrame(() => {
-      setMousePosition({ 
-        x: e.clientX / window.innerWidth * 100, 
-        y: e.clientY / window.innerHeight * 100 
+    let rafId: number
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      // Throttle updates using requestAnimationFrame
+      if (rafId) return
+      
+      rafId = requestAnimationFrame(() => {
+        setMousePosition({ 
+          x: e.clientX / window.innerWidth * 100, 
+          y: e.clientY / window.innerHeight * 100 
+        })
+        rafId = 0
       })
-      rafId = 0
-    })
-  }
-  
-  window.addEventListener('mousemove', handleMouseMove, { passive: true })
-  
-  return () => {
-    window.removeEventListener('mousemove', handleMouseMove)
-    if (rafId) {
-      cancelAnimationFrame(rafId)
     }
-  }
-}, [isMounted]) // Only isMounted as dependency
+    
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+      }
+    }
+  }, [isMounted])
 
-  // Fetch user's resumes
+  // ✅ WORKING: Keep the exact same coordinated loading logic
+  useEffect(() => {
+    console.log('🎬 DASHBOARD DEBUG: Main effect triggered')
+    console.log('  - Session status:', status)
+    console.log('  - Has session:', !!session)
+    
+    if (status === 'loading') {
+      console.log('⏳ DASHBOARD DEBUG: Session still loading, waiting...')
+      return
+    }
+    
+    if (status !== 'authenticated') {
+      console.log('🔒 DASHBOARD DEBUG: Not authenticated, will redirect')
+      return
+    }
+
+    console.log('🚀 DASHBOARD DEBUG: Starting coordinated loading...')
+    
+    // Start minimum time timer (2 seconds for faster response)
+    console.log('⏰ DASHBOARD DEBUG: Starting 2-second minimum timer')
+    const minTimeTimer = setTimeout(() => {
+      console.log('✅ DASHBOARD DEBUG: Minimum time (2s) elapsed!')
+      setIsMinTimeElapsed(true)
+    }, 2000)
+
+    // Start data fetching
+    console.log('📡 DASHBOARD DEBUG: Starting data fetch...')
+    const fetchData = async () => {
+      const fetchStartTime = Date.now()
+      console.log('📡 DASHBOARD DEBUG: Fetching resumes from API...')
+      
+      try {
+        const response = await fetch('/api/resumes')
+        const fetchTime = Date.now() - fetchStartTime
+        console.log(`📡 DASHBOARD DEBUG: API response received in ${fetchTime}ms`)
+        console.log('  - Response status:', response.status)
+        console.log('  - Response OK:', response.ok)
+        
+        const data = await response.json()
+        console.log('📡 DASHBOARD DEBUG: JSON parsed')
+        console.log('  - Success:', data.success)
+        console.log('  - Resume count:', data.resumes?.length || 0)
+        
+        if (data.success) {
+          setResumes(data.resumes)
+          console.log('✅ DASHBOARD DEBUG: Resumes set in state')
+        } else {
+          console.error('❌ DASHBOARD DEBUG: API returned error:', data.error)
+        }
+      } catch (error) {
+        console.error('❌ DASHBOARD DEBUG: Fetch error:', error)
+      } finally {
+        const totalFetchTime = Date.now() - fetchStartTime
+        console.log(`✅ DASHBOARD DEBUG: Data fetch complete! Total time: ${totalFetchTime}ms`)
+        setIsDataLoaded(true)
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      console.log('🧹 DASHBOARD DEBUG: Cleaning up timers')
+      clearTimeout(minTimeTimer)
+    }
+  }, [status, session])
+
+  // ✅ WORKING: Keep the exact same early return logic that's working
+  console.log('🎭 DASHBOARD DEBUG: Render check')
+  console.log('  - shouldShowContent:', shouldShowContent)
+  console.log('  - status:', status)
+
+  if (!shouldShowContent) {
+    console.log('🎬 DASHBOARD DEBUG: Showing ResumeLoader')
+    return <ResumeLoader />
+  }
+
+  console.log('🎨 DASHBOARD DEBUG: Rendering full dashboard content')
+
+  // Redirect if not authenticated
+  if (status === "unauthenticated") {
+    console.log('🔒 DASHBOARD DEBUG: Redirecting to signin')
+    redirect("/auth/signin")
+  }
+
+  const handleUploadComplete = (resumes: any[]) => {
+    console.log('📤 DASHBOARD DEBUG: Upload complete:', resumes)
+    setIsUploadOpen(false)
+    // Refresh data after upload
+    fetchResumes()
+  }
+
+  // ✅ SIMPLIFIED: Basic fetch function for refreshes (no loading logic)
   const fetchResumes = async () => {
+    console.log('🔄 DASHBOARD DEBUG: Refreshing resumes...')
     try {
-      setIsLoadingResumes(true)
       const response = await fetch('/api/resumes')
       const data = await response.json()
       
       if (data.success) {
         setResumes(data.resumes)
+        console.log('✅ DASHBOARD DEBUG: Resumes refreshed')
       } else {
-        console.error('Failed to fetch resumes:', data.error)
+        console.error('❌ DASHBOARD DEBUG: Refresh failed:', data.error)
       }
     } catch (error) {
-      console.error('Error fetching resumes:', error)
-    } finally {
-      setIsLoadingResumes(false)
+      console.error('❌ DASHBOARD DEBUG: Refresh error:', error)
     }
-  }
-
-  // Load resumes when user is authenticated
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchResumes()
-    }
-  }, [status])
-
-  // Redirect if not authenticated
-  if (status === "loading") {
-    return <DashboardLoading />
-  }
-
-  if (status === "unauthenticated") {
-    redirect("/auth/signin")
-  }
-
-  const handleUploadComplete = (resumes: any[]) => {
-    console.log('Upload complete:', resumes)
-    setIsUploadOpen(false)
-    fetchResumes()
   }
 
   const handleDeleteResume = async (resumeId: string, resumeTitle: string) => {
     if (!window.confirm(`Are you sure you want to delete "${resumeTitle}"? This action cannot be undone.`)) {
       return
     }
+
+    console.log('🗑️ DASHBOARD DEBUG: Deleting resume:', resumeId)
 
     try {
       setDeletingResumeId(resumeId)
@@ -139,13 +241,13 @@ useEffect(() => {
       
       if (data.success) {
         setResumes(prev => prev.filter(resume => resume.id !== resumeId))
-        console.log('✅ Resume deleted successfully')
+        console.log('✅ DASHBOARD DEBUG: Resume deleted successfully')
       } else {
-        console.error('Failed to delete resume:', data.error)
+        console.error('❌ DASHBOARD DEBUG: Delete failed:', data.error)
         alert('Failed to delete resume. Please try again.')
       }
     } catch (error) {
-      console.error('Error deleting resume:', error)
+      console.error('❌ DASHBOARD DEBUG: Delete error:', error)
       alert('Failed to delete resume. Please try again.')
     } finally {
       setDeletingResumeId(null)
@@ -153,6 +255,7 @@ useEffect(() => {
   }
 
   const handleAIBuilder = () => {
+    console.log('🤖 DASHBOARD DEBUG: AI Builder clicked (coming soon)')
     alert('🚀 AI Builder is coming soon! This feature will let you create a resume from scratch using AI.')
   }
 
@@ -177,6 +280,11 @@ useEffect(() => {
 
   const optimizedCount = resumes.filter(r => r.lastOptimized).length
   const totalWords = resumes.reduce((total, resume) => total + (resume.wordCount || 0), 0)
+
+  console.log('📊 DASHBOARD DEBUG: Render stats')
+  console.log('  - Total resumes:', currentResumes)
+  console.log('  - Optimized count:', optimizedCount)
+  console.log('  - Is premium:', isPremium)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -317,7 +425,7 @@ useEffect(() => {
                     </div>
                     <div>
                       <p className="text-xs text-slate-400">{stat.label}</p>
-                      <p className="text-xl font-bold text-white group-hover:scale-110 transition-transform duration-300">{isLoadingResumes ? '-' : stat.value}</p>
+                      <p className="text-xl font-bold text-white group-hover:scale-110 transition-transform duration-300">{false ? '-' : stat.value}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -402,12 +510,7 @@ useEffect(() => {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  {isLoadingResumes ? (
-                    <div className="text-center py-8">
-                      <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                      <p className="text-slate-400">loading your resumes...</p>
-                    </div>
-                  ) : mockResumes.length === 0 ? (
+                  {mockResumes.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
                         <FileText className="w-8 h-8 text-white" />
@@ -816,19 +919,6 @@ useEffect(() => {
           animation: float 6s ease-in-out infinite;
         }
       `}</style>
-    </div>
-  )
-}
-
-function DashboardLoading() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="circuit-bg min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">loading your dashboard...</p>
-        </div>
-      </div>
     </div>
   )
 }

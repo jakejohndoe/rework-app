@@ -11,7 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import { toast } from "sonner"
+// ✅ ADDED: Import the minimum loading hook
+import { useJobDescriptionLoading } from "@/hooks/useMinimumLoading"
+import ResumeLoader from '@/components/resume-loader'
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -32,6 +34,9 @@ export default function JobDescriptionPage() {
   const params = useParams()
   const router = useRouter()
   const resumeId = params.id as string
+  
+  // ✅ ADDED: Minimum loading hook for 800ms job description loading
+  const { shouldHideContent, startLoading, finishLoading } = useJobDescriptionLoading()
 
   const [jobTitle, setJobTitle] = useState("")
   const [companyName, setCompanyName] = useState("")
@@ -40,7 +45,6 @@ export default function JobDescriptionPage() {
   const [jobRequirements, setJobRequirements] = useState("")
   const [jobBenefits, setJobBenefits] = useState("")
   const [hasJobDescription, setHasJobDescription] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [existingJobId, setExistingJobId] = useState<string | null>(null)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
@@ -78,50 +82,56 @@ export default function JobDescriptionPage() {
     return { color: 'text-cyan-400', message: 'Excellent! Very detailed job description', icon: '🎯' };
   };
 
-  useEffect(() => {
-    const loadExistingJobDescription = async () => {
-      if (!resumeId) return
+  // ✅ FIXED: Load existing job description with minimum loading time
+  const loadExistingJobDescription = async () => {
+    if (!resumeId) return
+    
+    startLoading() // Start minimum loading timer
+    
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}/job-description`)
       
-      try {
-        const response = await fetch(`/api/resumes/${resumeId}/job-description`)
+      if (response.ok) {
+        const data = await response.json()
         
-        if (response.ok) {
-          const data = await response.json()
+        if (data.jobApplication) {
+          const job = data.jobApplication
+          setJobTitle(job.jobTitle || '')
+          setCompanyName(job.company || '')
+          setJobDescription(job.jobDescription || '')
+          setJobLocation('')
+          setJobRequirements('')
+          setJobBenefits('')
+          setExistingJobId(job.id)
+          setHasJobDescription(job.jobDescription?.length > 100)
           
-          if (data.jobApplication) {
-            const job = data.jobApplication
-            setJobTitle(job.jobTitle || '')
-            setCompanyName(job.company || '')
-            setJobDescription(job.jobDescription || '')
-            setJobLocation('')
-            setJobRequirements('')
-            setJobBenefits('')
-            setExistingJobId(job.id)
-            setHasJobDescription(job.jobDescription?.length > 100)
-            
-            console.log('✅ Loaded existing job description')
-          }
+          console.log('✅ Loaded existing job description')
         }
-      } catch (error) {
-        console.error('Error loading job description:', error)
-      } finally {
-        setIsLoading(false)
       }
+    } catch (error) {
+      console.error('Error loading job description:', error)
+    } finally {
+      await finishLoading() // Respects minimum duration (800ms)
     }
+  }
 
+  useEffect(() => {
     if (status === "authenticated") {
       loadExistingJobDescription()
     }
-  }, [resumeId, status])
+  }, [status])
+
+  // ✅ ADDED: Early return for loading state - let loading.tsx show
+  if (shouldHideContent) {
+    return <ResumeLoader title="Loading job description" subtitle="Preparing AI optimization..." />
+  }
 
   const handleSaveJobDescription = async () => {
     if (!isJobComplete()) {
-      toast.error('Please fill in all required fields (Job Title, Company, and Job Description)')
       return
     }
 
     setIsSaving(true)
-    toast.loading('Saving job description...', { id: 'save-job' })
 
     try {
       const response = await fetch(`/api/resumes/${resumeId}/job-description`, {
@@ -147,13 +157,11 @@ export default function JobDescriptionPage() {
       const data = await response.json()
       setExistingJobId(data.jobApplication.id)
       
-      toast.success('Job description saved successfully!', { id: 'save-job' })
       console.log('✅ Job description saved:', data)
       
       return true
     } catch (error) {
       console.error('❌ Failed to save job description:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to save job description', { id: 'save-job' })
       return false
     } finally {
       setIsSaving(false)
@@ -170,47 +178,6 @@ export default function JobDescriptionPage() {
 
   const handleBack = () => {
     router.push(`/dashboard/resume/${resumeId}`)
-  }
-
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        {/* Premium Loading Background */}
-        {isMounted && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
-                style={{
-                  left: `${(i * 13 + 10) % 90 + 5}%`,
-                  top: `${(i * 17 + 15) % 80 + 10}%`,
-                  animationDelay: `${(i * 0.3) % 3}s`,
-                  animationDuration: `${3 + (i % 3)}s`
-                }}
-              />
-            ))}
-          </div>
-        )}
-        
-        <div className="circuit-bg min-h-screen flex items-center justify-center relative z-10">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
-              <Target className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4">
-              <span className="gradient-text">loading job description</span>
-            </h1>
-            <div className="flex justify-center space-x-1 mb-4">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <p className="text-slate-400">preparing job analysis tools...</p>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   if (status === "unauthenticated") {

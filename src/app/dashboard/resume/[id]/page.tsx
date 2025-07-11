@@ -20,6 +20,9 @@ import EducationSection from '@/components/resume/EducationSection'
 import ProfessionalSummarySection from '@/components/resume/ProfessionalSummarySection'
 import { CollapsibleSectionWrapper } from '@/components/resume/CollapsibleSectionWrapper'
 import { ContactInfo, StructuredResumeData, WorkExperience, SkillsStructure, Education, ProfessionalSummary } from '@/types/resume'
+// ✅ ADDED: Import the minimum loading hook
+import { useResumeLoading } from '@/hooks/useMinimumLoading'
+import ResumeLoader from '@/components/resume-loader'
 import { 
   ArrowLeft, 
   Save, 
@@ -181,8 +184,11 @@ export default function ResumeEditorPage() {
   const router = useRouter()
   const resumeId = params.id as string
 
+  // ✅ ADDED: Minimum loading hook for 3.5 seconds
+  const { shouldShowContent } = useResumeLoading()
+
   const [resume, setResume] = useState<ResumeData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // ✅ REMOVED: All competing loading state logic
   const [isSaving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("edit")
   const [hasChanges, setHasChanges] = useState(false)
@@ -533,12 +539,15 @@ export default function ResumeEditorPage() {
     setActiveTab('edit')
   }
 
-  // Fetch resume data
+  // ✅ FIXED: Simple fetch without competing loading logic
   const fetchResume = async () => {
     try {
-      setIsLoading(true)
       const response = await fetch(`/api/resumes/${resumeId}`)
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error('Resume not found')
+      }
       
       if (data.success) {
         setResume(data.resume)
@@ -640,8 +649,6 @@ export default function ResumeEditorPage() {
     } catch (error) {
       console.error('Error fetching resume:', error)
       router.push('/dashboard')
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -758,55 +765,18 @@ export default function ResumeEditorPage() {
     }
   }, [status, resumeId])
 
-  // Loading state with premium design
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        {/* Premium Loading Background */}
-        {isMounted && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
-                style={{
-                  left: `${(i * 13 + 10) % 90 + 5}%`,
-                  top: `${(i * 17 + 15) % 80 + 10}%`,
-                  animationDelay: `${(i * 0.3) % 3}s`,
-                  animationDuration: `${3 + (i % 3)}s`
-                }}
-              />
-            ))}
-          </div>
-        )}
-        
-        <div className="circuit-bg min-h-screen flex items-center justify-center relative z-10">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4">
-              <span className="gradient-text">loading your resume</span>
-            </h1>
-            <div className="flex justify-center space-x-1 mb-4">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <p className="text-slate-400">preparing your resume editor...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Not authenticated
   if (status === "unauthenticated") {
     router.push("/auth/signin")
     return null
   }
 
-  // Resume not found
+  // ✅ ADDED: Early return for loading state - let loading.tsx show the beautiful animation
+  if (!shouldShowContent) {
+    return <ResumeLoader title="Loading your resume" subtitle="Preparing the editor..." />
+  }
+
+  // ✅ FIXED: Only show error after loading screen is done
   if (!resume) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -1319,7 +1289,7 @@ export default function ResumeEditorPage() {
                           <span className="gradient-text">original extracted text</span>
                         </h3>
                         <div className="text-slate-300 text-sm whitespace-pre-wrap font-mono bg-black/20 p-4 rounded-lg border border-white/10 max-h-96 overflow-y-auto">
-                          {resume.originalContent.rawText}
+                          {resume?.originalContent?.rawText || 'No raw text available'}
                         </div>
                       </div>
                     </TabsContent>
@@ -1439,10 +1409,10 @@ export default function ResumeEditorPage() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {[
-                    { label: 'original file', value: resume.originalContent.metadata.originalFileName },
-                    { label: 'file size', value: `${(resume.originalContent.metadata.fileSize / 1024).toFixed(1)} KB` },
-                    { label: 'type', value: resume.originalContent.metadata.fileType.split('/')[1].toUpperCase() },
-                    { label: 'last modified', value: new Date(resume.updatedAt).toLocaleDateString() }
+                    { label: 'original file', value: resume?.originalContent?.metadata?.originalFileName || 'Unknown' },
+                    { label: 'file size', value: resume?.originalContent?.metadata?.fileSize ? `${(resume.originalContent.metadata.fileSize / 1024).toFixed(1)} KB` : 'Unknown' },
+                    { label: 'type', value: resume?.originalContent?.metadata?.fileType?.split('/')[1]?.toUpperCase() || 'Unknown' },
+                    { label: 'last modified', value: resume?.updatedAt ? new Date(resume.updatedAt).toLocaleDateString() : 'Unknown' }
                   ].map((item, index) => (
                     <div key={item.label} className="flex justify-between hover:bg-white/5 p-2 rounded-lg transition-all duration-300 group">
                       <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{item.label}:</span>

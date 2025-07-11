@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
-import { smartToast } from "@/lib/smart-toast"
+import ResumeLoader from '@/components/resume-loader'
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -81,8 +81,10 @@ export default function RedesignedAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResults, setAnalysisResults] = useState<EnhancedAnalysisResult | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Loading state
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   
   // Level-Up System State
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set())
@@ -96,6 +98,11 @@ export default function RedesignedAnalysisPage() {
   // Mount check for performance
   useEffect(() => {
     setIsMounted(true)
+    // Faster loading for better UX
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
   }, [])
 
   // Optimized mouse tracking
@@ -252,7 +259,6 @@ export default function RedesignedAnalysisPage() {
         newSet.delete(suggestionId)
         return newSet
       })
-      smartToast.success(`↩️ ${suggestion?.section || 'Change'} reverted`)
     } else {
       // Apply suggestion
       setAppliedSuggestions(prev => new Set([...prev, suggestionId]))
@@ -271,7 +277,6 @@ export default function RedesignedAnalysisPage() {
         }, 800)
       }
       
-      smartToast.success(`✨ ${suggestion?.section || 'Section'} optimized! +${improvement.improvement || 0} points`)
     }
   }, [analysisResults, appliedSuggestions, calculateImprovement])
 
@@ -292,22 +297,20 @@ export default function RedesignedAnalysisPage() {
       setAnimatingCategories(new Set())
     }, 1000)
     
-    smartToast.success(`🚀 Applied all ${analysisResults.suggestions.length} optimizations!`)
   }, [analysisResults])
 
   // Reset all suggestions  
   const resetAllSuggestions = useCallback(() => {
     setAppliedSuggestions(new Set())
     setAnimatingCategories(new Set())
-    smartToast.success('🔄 All changes reset')
   }, [])
 
-  // Enhanced suggestion styling
+  // Enhanced suggestion styling - FIXED: All buttons now use consistent bluish gradient
   const getSuggestionStyle = (impact: string) => {
     switch (impact) {
       case 'high': return { 
         priority: 'High Priority', 
-        color: 'from-pink-500 to-red-500',
+        color: 'from-cyan-400 to-purple-500', // CHANGED: Now uses consistent gradient
         textColor: 'text-pink-400', 
         bgColor: 'bg-pink-500/10',
         borderColor: 'border-pink-500/30',
@@ -315,7 +318,7 @@ export default function RedesignedAnalysisPage() {
       }
       case 'medium': return { 
         priority: 'Medium Priority', 
-        color: 'from-blue-500 to-cyan-500',
+        color: 'from-cyan-400 to-purple-500', // CHANGED: Now uses consistent gradient
         textColor: 'text-blue-400',
         bgColor: 'bg-blue-500/10',
         borderColor: 'border-blue-500/30',
@@ -323,7 +326,7 @@ export default function RedesignedAnalysisPage() {
       }
       case 'low': return { 
         priority: 'Low Priority', 
-        color: 'from-emerald-500 to-green-500',
+        color: 'from-cyan-400 to-purple-500', // CHANGED: Now uses consistent gradient
         textColor: 'text-emerald-400',
         bgColor: 'bg-emerald-500/10',
         borderColor: 'border-emerald-500/30',
@@ -331,7 +334,7 @@ export default function RedesignedAnalysisPage() {
       }
       default: return { 
         priority: 'Standard', 
-        color: 'from-slate-400 to-slate-500', 
+        color: 'from-cyan-400 to-purple-500', // CHANGED: Now uses consistent gradient
         textColor: 'text-slate-400',
         bgColor: 'bg-slate-500/10',
         borderColor: 'border-slate-500/30',
@@ -346,13 +349,12 @@ export default function RedesignedAnalysisPage() {
       if (!resumeId || status !== "authenticated") return
       
       try {
-        setIsLoading(true)
         await performAnalysis()
       } catch (error) {
         console.error('Failed to load analysis:', error)
         setError('Failed to start analysis')
       } finally {
-        setIsLoading(false)
+        
       }
     }
 
@@ -396,49 +398,46 @@ export default function RedesignedAnalysisPage() {
         suggestions: suggestionsWithIds
       })
       
-      smartToast.success('🎯 Analysis complete!')
       
     } catch (error) {
       console.error('Analysis error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Analysis failed'
       setError(errorMessage)
-      smartToast.error(`Analysis failed: ${errorMessage}`)
     } finally {
       setIsAnalyzing(false)
     }
   }
 
   // Navigation handlers
+  const [isNavigating, setIsNavigating] = useState(false)
+  
   const handleBack = () => router.push(`/dashboard/resume/${resumeId}/job-description`)
-  const handleNext = () => router.push(`/dashboard/resume/${resumeId}/finalize`)
+  const handleNext = () => {
+    if (isNavigating) {
+      console.log('🚀 ANALYSIS DEBUG: Already navigating, preventing duplicate call')
+      return
+    }
+    
+    console.log('🚀 ANALYSIS DEBUG: Navigating to finalize page for resume:', resumeId)
+    setIsNavigating(true)
+    
+    // Try router first, then fallback to window.location
+    router.push(`/dashboard/resume/${resumeId}/finalize`)
+    
+    // Fallback navigation after 2 seconds if router gets stuck
+    setTimeout(() => {
+      if (window.location.pathname !== `/dashboard/resume/${resumeId}/finalize`) {
+        console.log('🚀 ANALYSIS DEBUG: Router seems stuck, forcing navigation')
+        window.location.href = `/dashboard/resume/${resumeId}/finalize`
+      }
+    }, 2000)
+  }
   const handleEditResume = () => router.push(`/dashboard/resume/${resumeId}`)
   const handleEditJob = () => router.push(`/dashboard/resume/${resumeId}/job-description`)
 
   // Loading state
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        <div className="circuit-bg absolute inset-0"></div>
-        <div className="min-h-screen flex items-center justify-center relative z-10">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-pulse">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4 gradient-text">analyzing your resume</h1>
-            <div className="flex justify-center space-x-1 mb-4">
-              {[0, 1, 2].map(i => (
-                <div 
-                  key={i}
-                  className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" 
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                />
-              ))}
-            </div>
-            <p className="text-slate-400">preparing comprehensive analysis...</p>
-          </div>
-        </div>
-      </div>
-    )
+  if (isInitialLoading || status === "loading") {
+    return <ResumeLoader title="Preparing AI analysis" subtitle="Loading optimization engine..." fullScreen={true} />
   }
 
   if (status === "unauthenticated") {
@@ -536,23 +535,11 @@ export default function RedesignedAnalysisPage() {
             
             {/* Loading Analysis State */}
             {isAnalyzing && (
-              <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
-                <div className="relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Activity className="w-10 h-10 text-white" />
-                  </div>
-                </div>
-                <div className="text-center space-y-2">
-                  <h3 className="text-3xl font-bold gradient-text">🧠 ai analysis in progress</h3>
-                  <p className="text-slate-300 text-lg">{analysisSteps[currentStep]}</p>
-                  <div className="w-80 bg-slate-700/50 rounded-full h-3 mt-6 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-cyan-400 to-purple-500 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${((currentStep + 1) / analysisSteps.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <ResumeLoader 
+                title="AI analysis in progress" 
+                subtitle={analysisSteps[currentStep]}
+                fullScreen={false}
+              />
             )}
 
             {/* Error State */}
@@ -861,14 +848,25 @@ export default function RedesignedAnalysisPage() {
                               Change Job
                             </Button>
                           </div>
-                          <Button 
-                            onClick={handleNext}
-                            className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold py-3"
+                          <button 
+                            onClick={() => {
+                              console.log('🚀 ANALYSIS DEBUG: Button clicked, navigating to finalize...')
+                              handleNext()
+                            }}
+                            disabled={isNavigating}
+                            className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                           >
-                            <Award className="w-5 h-5 mr-2" />
-                            Continue to Finalize
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
+                            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+                            <div className="relative z-10 flex items-center justify-center gap-2">
+                              {isNavigating ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Award className="w-5 h-5" />
+                              )}
+                              {isNavigating ? 'loading...' : 'continue to finalize'}
+                              {!isNavigating && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />}
+                            </div>
+                          </button>
                         </div>
                       </CardContent>
                     </Card>
