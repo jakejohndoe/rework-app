@@ -55,7 +55,7 @@ export default function HomePage() {
 
   // Sign-in celebration effect
   useEffect(() => {
-    if (!session || status === "loading" || !isMounted) return
+    if (!session || status !== "authenticated" || !isMounted) return
 
     // Check if this is a fresh sign-in
     const hasShownCelebration = localStorage.getItem('sign-in-celebrated')
