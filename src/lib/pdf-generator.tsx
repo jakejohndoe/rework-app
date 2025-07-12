@@ -229,16 +229,35 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // More generous length for smaller fonts - complete sentences only
-  const maxLength = 250;
+  // Concise descriptions for one-page format - much shorter and focused
+  const maxLength = 120; // Significantly reduced for tighter formatting
   
   if (content.length <= maxLength) return content;
   
-  // Smart truncation preserving complete sentences - NO ELLIPSES
-  const sentences = content.split('. ');
-  let optimized = '';
+  // Extract key action words and achievements only
+  const keyTerms = [
+    // Action verbs (keep these)
+    'developed', 'created', 'built', 'designed', 'implemented', 'managed', 'led', 'improved', 
+    'optimized', 'increased', 'reduced', 'achieved', 'delivered', 'launched', 'maintained',
+    'collaborated', 'coordinated', 'analyzed', 'streamlined', 'automated',
+    // Technologies and metrics (prioritize these)
+    'react', 'node', 'javascript', 'python', 'sql', 'aws', 'api', 'database', 'frontend', 
+    'backend', 'full-stack', '%', '$', 'million', 'thousand', 'users', 'customers'
+  ];
   
-  for (const sentence of sentences) {
+  // Split into sentences and prioritize those with key terms
+  const sentences = content.split('. ');
+  const prioritizedSentences = sentences.sort((a, b) => {
+    const scoreA = keyTerms.reduce((score, term) => 
+      score + (a.toLowerCase().includes(term.toLowerCase()) ? 1 : 0), 0);
+    const scoreB = keyTerms.reduce((score, term) => 
+      score + (b.toLowerCase().includes(term.toLowerCase()) ? 1 : 0), 0);
+    return scoreB - scoreA; // Higher score first
+  });
+  
+  // Build result with highest-impact sentences
+  let optimized = '';
+  for (const sentence of prioritizedSentences) {
     const sentenceWithPeriod = sentence.trim() + (sentence.endsWith('.') ? '' : '.');
     const testContent = optimized + (optimized ? ' ' : '') + sentenceWithPeriod;
     
@@ -249,13 +268,19 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     }
   }
   
-  // If we got at least one complete sentence, use it
+  // If we got content, return it
   if (optimized.trim().length > 0) {
     return optimized.trim();
   }
   
-  // If no complete sentence fits, fit as many complete words as possible
-  const words = content.split(' ');
+  // Fallback: take first sentence and trim if needed
+  const firstSentence = sentences[0]?.trim() || '';
+  if (firstSentence.length <= maxLength) {
+    return firstSentence + (firstSentence.endsWith('.') ? '' : '.');
+  }
+  
+  // Last resort: fit key words only
+  const words = firstSentence.split(' ');
   let result = '';
   for (const word of words) {
     const testResult = result + (result ? ' ' : '') + word;
@@ -263,12 +288,7 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     result = testResult;
   }
   
-  // Ensure proper ending
-  if (result && !result.endsWith('.')) {
-    result = result.replace(/[,;:]$/, '') + '.';
-  }
-  
-  return result || content.substring(0, maxLength).trim();
+  return result + '.' || content.substring(0, maxLength - 1).trim() + '.';
 };
 
 // Helper function to get template configuration with custom colors
@@ -343,8 +363,8 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 15,
-    paddingBottom: 15,
+    marginBottom: 8,
+    paddingBottom: 8,
     borderBottomWidth: 3,
     borderBottomColor: colors.primary,
     textAlign: 'center',
@@ -359,7 +379,7 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
   title: {
     fontSize: 10,
     color: colors.secondary,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   contactRow: {
     flexDirection: 'row',
@@ -376,9 +396,9 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginTop: 15,
-    marginBottom: 6,
-    paddingBottom: 2,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingBottom: 1,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
   },
@@ -386,7 +406,7 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     fontSize: 9,
     lineHeight: 1.4,
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: 3,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -439,7 +459,7 @@ const createModernStyles = (colors: any) => StyleSheet.create({
     marginBottom: 16,
   },
   sidebarSection: {
-    marginBottom: 18,
+    marginBottom: 12,
   },
   sidebarTitle: {
     fontSize: 9,
@@ -476,11 +496,11 @@ const createModernStyles = (colors: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 12,
-    marginTop: 16,
+    marginTop: 10,
   },
   experienceItem: {
-    marginBottom: 15,
-    paddingBottom: 15,
+    marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
@@ -515,7 +535,7 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 40,
+    marginBottom: 20,
     textAlign: 'center',
   },
   name: {
@@ -526,7 +546,7 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
   title: {
     fontSize: 13,
     color: colors.secondary,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   contactRow: {
     flexDirection: 'row',
@@ -542,24 +562,24 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: colors.primary,
-    marginTop: 30,
-    marginBottom: 15,
+    marginTop: 15,
+    marginBottom: 10,
     textTransform: 'uppercase',
   },
   divider: {
     height: 1,
     backgroundColor: colors.accent,
-    marginBottom: 15,
+    marginBottom: 10,
     width: 50,
   },
   content: {
     fontSize: 9,
     lineHeight: 1.7,
     color: colors.text,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   experienceHeader: {
-    marginBottom: 15,
+    marginBottom: 10,
   },
   jobTitleMinimal: {
     fontSize: 10,
@@ -592,12 +612,12 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
   headerSection: {
     backgroundColor: colors.primary,
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   avatar: {
     width: 60,
@@ -618,7 +638,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
   titleCreative: {
     fontSize: 10,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   contactGrid: {
     flexDirection: 'row',
@@ -652,14 +672,14 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 15,
-    marginTop: 20,
+    marginBottom: 10,
+    marginTop: 10,
   },
   experienceCard: {
     backgroundColor: colors.light,
     padding: 15,
     borderRadius: 8,
-    marginBottom: 15,
+    marginBottom: 10,
     borderLeftWidth: 4,
     borderLeftColor: colors.accent,
   },
@@ -705,7 +725,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     color: colors.primary,
   },
   progressSection: {
-    marginBottom: 15,
+    marginBottom: 10,
   },
   progressItem: {
     marginBottom: 10,
@@ -914,7 +934,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <View>
           <Text style={styles.sectionTitle}>Professional Experience</Text>
           {data.workExperience.map((job: any, index: number) => (
-            <View key={index} style={{ marginBottom: 10 }}>
+            <View key={index} style={{ marginBottom: 6 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
                   {job.jobTitle || job.title || job.position || 'Position'}
@@ -940,7 +960,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
           {data.education.map((edu: any, index: number) => (
-            <View key={index} style={{ marginBottom: 10 }}>
+            <View key={index} style={{ marginBottom: 6 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
                   {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
@@ -1026,7 +1046,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
           <View style={styles.sidebarSection}>
             <Text style={styles.sidebarTitle}>Education</Text>
             {data.education.map((edu: any, index: number) => (
-              <View key={index} style={{ marginBottom: 12 }}>
+              <View key={index} style={{ marginBottom: 8 }}>
                 <Text style={[styles.skillName, { fontWeight: 'bold' }]}>
                   {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
                 </Text>
