@@ -535,10 +535,10 @@ export default function DashboardPage() {
                                     ✨ optimized
                                   </Badge>
                                 )}
-                                {resume.lastOptimized && (
+                                {resume.analysisScore && (
                                   <Badge variant="secondary" className="bg-blue-400/20 text-blue-300 text-xs">
                                     <Star className="w-3 h-3 mr-1" />
-                                    {Math.floor(Math.random() * 20) + 80}%
+                                    {Math.round(resume.analysisScore)}%
                                   </Badge>
                                 )}
                               </div>
