@@ -52,6 +52,8 @@ export default function DashboardPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [resumes, setResumes] = useState<any[]>([])
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [resumeToDelete, setResumeToDelete] = useState<{id: string, title: string} | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isMounted, setIsMounted] = useState(false)
@@ -203,24 +205,27 @@ export default function DashboardPage() {
     }
   }
 
-  const handleDeleteResume = async (resumeId: string, resumeTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${resumeTitle}"? This action cannot be undone.`)) {
-      return
-    }
+  const openDeleteModal = (resumeId: string, resumeTitle: string) => {
+    setResumeToDelete({id: resumeId, title: resumeTitle})
+    setDeleteModalOpen(true)
+  }
 
-    // Deleting resume
+  const handleDeleteResume = async () => {
+    if (!resumeToDelete) return
 
     try {
-      setDeletingResumeId(resumeId)
+      setDeletingResumeId(resumeToDelete.id)
       
-      const response = await fetch(`/api/resumes/${resumeId}`, {
+      const response = await fetch(`/api/resumes/${resumeToDelete.id}`, {
         method: 'DELETE'
       })
 
       const data = await response.json()
       
       if (data.success) {
-        setResumes(prev => prev.filter(resume => resume.id !== resumeId))
+        setResumes(prev => prev.filter(resume => resume.id !== resumeToDelete.id))
+        setDeleteModalOpen(false)
+        setResumeToDelete(null)
         // Resume deleted successfully
       } else {
         console.error('❌ DASHBOARD DEBUG: Delete failed:', data.error)
@@ -232,6 +237,11 @@ export default function DashboardPage() {
     } finally {
       setDeletingResumeId(null)
     }
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false)
+    setResumeToDelete(null)
   }
 
   const handleAIBuilder = () => {
@@ -564,7 +574,7 @@ export default function DashboardPage() {
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
-                                onClick={() => handleDeleteResume(resume.id, resume.title)}
+                                onClick={() => openDeleteModal(resume.id, resume.title)}
                                 disabled={deletingResumeId === resume.id}
                                 className="text-red-400 hover:text-red-300 hover:bg-red-400/10 hover:scale-105 transition-all duration-300"
                               >
@@ -881,6 +891,56 @@ export default function DashboardPage() {
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
           />
+
+          {/* Custom Delete Confirmation Modal */}
+          <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+            <DialogContent className="bg-slate-900/95 backdrop-blur-xl border border-red-500/30 max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-white text-xl font-semibold flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-red-400" />
+                  </div>
+                  Delete Resume
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="py-6">
+                <p className="text-slate-300 text-base leading-relaxed mb-4">
+                  Are you sure you want to delete <span className="text-white font-semibold">"{resumeToDelete?.title}"</span>?
+                </p>
+                <p className="text-red-400 text-sm">
+                  ⚠️ This action cannot be undone. All resume data will be permanently deleted.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="ghost"
+                  onClick={closeDeleteModal}
+                  className="text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteResume}
+                  disabled={deletingResumeId === resumeToDelete?.id}
+                  className="bg-red-500 hover:bg-red-600 text-white border-0 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/25"
+                >
+                  {deletingResumeId === resumeToDelete?.id ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </div>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Forever
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
 
