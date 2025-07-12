@@ -1,7 +1,7 @@
 // FIXED: src/app/api/resumes/[id]/autofill/route.ts - Proper firstName/lastName handling
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { extractAndParseResume } from '@/lib/pdf-extractor';
 import { getSignedDownloadUrl } from '@/lib/s3';
@@ -195,11 +195,11 @@ export async function POST(
     console.log('💾 Updating resume in database...');
 
     // Update resume with auto-filled data
-    const updatedResume = await prisma.resume.update({
+    await prisma.resume.update({
       where: { id: resumeId },
       data: {
-        currentContent: structuredContent as any,
-        originalContent: originalContentData as any,
+        currentContent: structuredContent,
+        originalContent: originalContentData,
         wordCount: wordCount,
         lastOptimized: null,
       },

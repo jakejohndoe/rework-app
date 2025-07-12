@@ -203,5 +203,5 @@ export interface DataMigrationResult {
   success: boolean
   structuredData: StructuredResumeData
   migrationWarnings: string[]
-  unmappedData: any // Data that couldn't be automatically migrated
+  unmappedData: Record<string, unknown> // Data that couldn't be automatically migrated
 }

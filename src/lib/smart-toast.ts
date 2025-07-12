@@ -1,11 +1,12 @@
 // src/lib/smart-toast.ts - Fixed TypeScript errors
+import React from 'react';
 import { toast } from 'sonner';
 
 interface ToastOptions {
   id?: string;
   duration?: number;
   description?: string;
-  action?: any;
+  action?: { label: string; onClick: () => void } | React.ReactElement;
   dismissible?: boolean;
 }
 

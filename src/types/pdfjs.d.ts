@@ -7,7 +7,7 @@ declare module 'pdfjs-dist' {
   }
 
   export interface PDFPageProxy {
-    getTextContent(params?: any): Promise<TextContent>;
+    getTextContent(params?: { normalizeWhitespace?: boolean; disableCombineTextItems?: boolean }): Promise<TextContent>;
     getViewport(params: { scale: number }): PageViewport;
   }
 
@@ -60,7 +60,15 @@ declare module 'pdfjs-dist/build/pdf.js' {
 
 // Global declarations for Node.js environment
 declare global {
-  var window: any;
-  var document: any;
-  var navigator: any;
+  var window: {
+    navigator?: unknown;
+    document?: unknown;
+  } | undefined;
+  var document: {
+    createElement?: (tagName: string) => unknown;
+    createElementNS?: (namespace: string, tagName: string) => unknown;
+  } | undefined;
+  var navigator: {
+    userAgent?: string;
+  } | undefined;
 }

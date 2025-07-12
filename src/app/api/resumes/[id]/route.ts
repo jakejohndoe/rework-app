@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -88,7 +88,22 @@ export async function PATCH(
     }
 
     // Build the update data object
-    const updateData: any = {
+    interface UpdateData {
+      updatedAt: Date;
+      title?: string;
+      currentContent?: unknown;
+      contactInfo?: unknown;
+      professionalSummary?: unknown;
+      workExperience?: unknown;
+      education?: unknown;
+      skills?: unknown;
+      projects?: unknown;
+      additionalSections?: unknown;
+      dataCompletionScore?: number;
+      lastStructuredUpdate?: Date;
+    }
+    
+    const updateData: UpdateData = {
       updatedAt: new Date()
     }
 
@@ -137,7 +152,6 @@ export async function PATCH(
     if (contactInfo || workExperience || skills || education) {
       // Calculate completion score based on structured data
       let completionScore = 0
-      const maxScore = 100
       
       if (contactInfo?.firstName && contactInfo?.email) completionScore += 25
       if (workExperience && Array.isArray(workExperience) && workExperience.length > 0) completionScore += 25
@@ -156,7 +170,7 @@ export async function PATCH(
         id: resumeId,
         userId: user.id
       },
-      data: updateData
+      data: updateData as any
     })
 
     console.log('✅ Resume updated successfully')
@@ -197,7 +211,7 @@ export async function DELETE(
     }
 
     // Soft delete - mark as inactive instead of hard delete
-    const deletedResume = await prisma.resume.update({
+    await prisma.resume.update({
       where: {
         id: resumeId,
         userId: user.id

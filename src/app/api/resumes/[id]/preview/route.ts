@@ -9,10 +9,10 @@ import PDFResumeDocument from '@/lib/pdf-generator';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const { id } = resolvedParams;
     const { searchParams } = new URL(request.url);
     const version = searchParams.get('version') as 'original' | 'optimized' || 'optimized';
@@ -39,7 +39,21 @@ export async function GET(
     }
 
     // Determine which data to use and extract real content
-    let resumeData: any = {};
+    interface PreviewResumeData {
+      contact?: Record<string, unknown>;
+      contactInfo?: Record<string, unknown>;
+      professionalSummary?: Record<string, unknown>;
+      workExperience?: unknown[];
+      education?: unknown[];
+      skills?: unknown[];
+      projects?: unknown[];
+      isOptimized?: boolean;
+      template?: string;
+      summary?: string;
+      experience?: unknown[];
+    }
+    
+    let resumeData: PreviewResumeData = {};
     const isOptimized = version === 'optimized';
 
     if (isOptimized && (resume.contactInfo || resume.professionalSummary || resume.workExperience)) {
@@ -83,10 +97,10 @@ export async function GET(
           dataKeys: Object.keys(resumeData)
         });
         
-      } catch (e) {
+      } catch {
         console.log('⚠️ JSON parse failed, using raw content');
         if (typeof content === 'object') {
-          resumeData = content as any;
+          resumeData = content as PreviewResumeData;
         } else {
           // If it's just text, create basic structure
           resumeData = { 
@@ -126,13 +140,24 @@ export async function GET(
       return generateDataBasedSVG(resumeData, version, template);
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Preview generation failed:', error);
     return generateDataBasedSVG({}, 'optimized', 'professional', 'Error loading data');
   }
 }
 
-function generateDataBasedSVG(resumeData: any, version: string, template: string, errorMsg?: string) {
+interface SVGResumeData {
+  contact?: Record<string, unknown>;
+  contactInfo?: Record<string, unknown>;
+  professionalSummary?: Record<string, unknown> | string;
+  workExperience?: unknown[];
+  education?: unknown[];
+  skills?: unknown[];
+  summary?: string;
+  experience?: unknown[];
+}
+
+function generateDataBasedSVG(resumeData: SVGResumeData, version: string, template: string, errorMsg?: string) {
   const colors = {
     professional: { primary: '#1e40af', accent: '#3b82f6' },
     modern: { primary: '#7c3aed', accent: '#8b5cf6' },
@@ -144,7 +169,7 @@ function generateDataBasedSVG(resumeData: any, version: string, template: string
   
   // Extract real data with fallbacks
   const contact = resumeData?.contact || resumeData?.contactInfo || {};
-  const summary = resumeData?.professionalSummary?.summary || resumeData?.summary || resumeData?.professionalSummary || '';
+  const summary = (resumeData as any)?.professionalSummary?.summary || (resumeData as any)?.summary || (resumeData as any)?.professionalSummary || '';
   const workExp = resumeData?.workExperience || resumeData?.experience || [];
   const skills = resumeData?.skills || [];
   const education = resumeData?.education || [];
@@ -192,11 +217,11 @@ function generateDataBasedSVG(resumeData: any, version: string, template: string
         <text x="30" y="195" font-family="Arial" font-size="14" font-weight="bold" fill="${color.primary}">Work Experience</text>
         <line x1="30" y1="200" x2="370" y2="200" stroke="${color.accent}" stroke-width="2"/>
         
-        ${firstJob?.title || firstJob?.position ? `
-          <text x="30" y="220" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${firstJob.title || firstJob.position}</text>
-          <text x="30" y="235" font-family="Arial" font-size="10" fill="#666">${firstJob.company || 'Company'} • ${firstJob.duration || firstJob.dates || 'Duration'}</text>
-          ${firstJob.description ? `
-            <text x="30" y="250" font-family="Arial" font-size="9" fill="#333">${firstJob.description.substring(0, 60)}${firstJob.description.length > 60 ? '...' : ''}</text>
+        ${(firstJob as any)?.title || (firstJob as any)?.position ? `
+          <text x="30" y="220" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${(firstJob as any).title || (firstJob as any).position}</text>
+          <text x="30" y="235" font-family="Arial" font-size="10" fill="#666">${(firstJob as any).company || 'Company'} • ${(firstJob as any).duration || (firstJob as any).dates || 'Duration'}</text>
+          ${(firstJob as any).description ? `
+            <text x="30" y="250" font-family="Arial" font-size="9" fill="#333">${(firstJob as any).description.substring(0, 60)}${(firstJob as any).description.length > 60 ? '...' : ''}</text>
           ` : ''}
         ` : `
           <text x="30" y="220" font-family="Arial" font-size="12" fill="#666">No work experience data available</text>
@@ -207,8 +232,9 @@ function generateDataBasedSVG(resumeData: any, version: string, template: string
         <line x1="30" y1="290" x2="370" y2="290" stroke="${color.accent}" stroke-width="2"/>
         
         ${displaySkills.length > 0 ? 
-          displaySkills.map((skill: any, index: number) => {
-            const skillName = typeof skill === 'string' ? skill : skill?.name || skill?.skill || `Skill ${index + 1}`;
+          displaySkills.map((skill: unknown, index: number) => {
+            const skillObj = skill as { name?: string; skill?: string } | string;
+            const skillName = typeof skillObj === 'string' ? skillObj : skillObj?.name || skillObj?.skill || `Skill ${index + 1}`;
             const x = 30 + (index * 80);
             return `
               <rect x="${x}" y="300" width="${Math.min(skillName.length * 6 + 10, 70)}" height="18" fill="${color.accent}" rx="3"/>
@@ -222,9 +248,9 @@ function generateDataBasedSVG(resumeData: any, version: string, template: string
         <text x="30" y="350" font-family="Arial" font-size="14" font-weight="bold" fill="${color.primary}">Education</text>
         <line x1="30" y1="355" x2="370" y2="355" stroke="${color.accent}" stroke-width="2"/>
         
-        ${firstEdu?.degree || firstEdu?.title ? `
-          <text x="30" y="375" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${firstEdu.degree || firstEdu.title}</text>
-          <text x="30" y="390" font-family="Arial" font-size="10" fill="#666">${firstEdu.school || firstEdu.institution || 'Institution'} • ${firstEdu.year || firstEdu.dates || 'Year'}</text>
+        ${(firstEdu as any)?.degree || (firstEdu as any)?.title ? `
+          <text x="30" y="375" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${(firstEdu as any).degree || (firstEdu as any).title}</text>
+          <text x="30" y="390" font-family="Arial" font-size="10" fill="#666">${(firstEdu as any).school || (firstEdu as any).institution || 'Institution'} • ${(firstEdu as any).year || (firstEdu as any).dates || 'Year'}</text>
         ` : `
           <text x="30" y="375" font-family="Arial" font-size="10" fill="#666">No education data available</text>
         `}

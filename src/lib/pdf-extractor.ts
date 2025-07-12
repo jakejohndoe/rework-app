@@ -348,31 +348,6 @@ function extractSkills(text: string): string[] {
   return skills.slice(0, 20); // Limit to 20 skills
 }
 
-/**
- * Parse date range from text
- */
-function parseDateRange(dateText: string): { startDate: string; endDate: string } {
-  const currentMatch = dateText.match(/Present|Current|Now/i);
-  const endDate = currentMatch ? 'Present' : '';
-  
-  const years = dateText.match(/20\d\d/g);
-  if (years && years.length >= 2) {
-    return {
-      startDate: years[0],
-      endDate: endDate || years[years.length - 1]
-    };
-  } else if (years && years.length === 1) {
-    return {
-      startDate: years[0],
-      endDate: endDate || years[0]
-    };
-  }
-  
-  return {
-    startDate: '',
-    endDate: endDate
-  };
-}
 
 /**
  * Main function to extract and parse resume from PDF buffer

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { uploadToS3, generateS3Key, getContentType } from '@/lib/s3'
 import { generatePDFThumbnail } from '@/lib/pdf-thumbnail-generator'

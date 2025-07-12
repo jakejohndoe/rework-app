@@ -17,7 +17,7 @@ export interface ResumeAnalysis {
   atsScore: number
   readabilityScore: number
   completenessScore: number
-  optimizedContent?: any
+  optimizedContent?: Record<string, unknown>
 }
 
 export interface AnalysisSuggestion {
@@ -229,7 +229,15 @@ Focus on technical skills, relevant experience, and ATS optimization.
 `
 }
 
-function validateAnalysis(analysis: any): ResumeAnalysis {
+function validateAnalysis(analysis: {
+  matchScore?: number;
+  matchedKeywords?: unknown;
+  missingKeywords?: unknown;
+  suggestions?: unknown;
+  atsScore?: number;
+  readabilityScore?: number;
+  completenessScore?: number;
+}): ResumeAnalysis {
   return {
     matchScore: clamp(analysis.matchScore || 0, 0, 100),
     matchedKeywords: Array.isArray(analysis.matchedKeywords) 
@@ -247,17 +255,24 @@ function validateAnalysis(analysis: any): ResumeAnalysis {
   }
 }
 
-function validateSuggestion(suggestion: any): AnalysisSuggestion {
+function validateSuggestion(suggestion: {
+  section?: string;
+  type?: string;
+  current?: unknown;
+  suggested?: unknown;
+  impact?: string;
+  reason?: unknown;
+}): AnalysisSuggestion {
   const validSections = ['Professional Summary', 'Experience', 'Skills', 'Education', 'Contact']
   const validTypes = ['improve', 'add']
   const validImpacts = ['high', 'medium', 'low']
 
   return {
-    section: validSections.includes(suggestion.section) ? suggestion.section : 'Professional Summary',
-    type: validTypes.includes(suggestion.type) ? suggestion.type : 'improve',
+    section: validSections.includes(suggestion.section || '') ? suggestion.section as any : 'Professional Summary',
+    type: validTypes.includes(suggestion.type || '') ? suggestion.type as any : 'improve',
     current: String(suggestion.current || ''),
     suggested: String(suggestion.suggested || ''),
-    impact: validImpacts.includes(suggestion.impact) ? suggestion.impact : 'medium',
+    impact: validImpacts.includes(suggestion.impact || '') ? suggestion.impact as any : 'medium',
     reason: String(suggestion.reason || ''),
   }
 }

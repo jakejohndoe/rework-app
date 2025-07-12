@@ -4,12 +4,12 @@ import { signIn, getProviders } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
-  const [providers, setProviders] = useState<any>(null)
+  const [providers, setProviders] = useState<Record<string, { id: string; name: string; type: string }> | null>(null)
 
   useEffect(() => {
     async function loadProviders() {
@@ -95,5 +95,17 @@ export default function SignInPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }

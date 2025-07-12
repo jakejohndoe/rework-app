@@ -19,7 +19,7 @@ interface ApplySuggestionRequest {
 }
 
 // Helper function to safely convert Prisma JsonValue to TypeScript types
-function safeJsonParse<T>(jsonValue: any): T | undefined {
+function safeJsonParse<T>(jsonValue: unknown): T | undefined {
   if (!jsonValue) return undefined
   try {
     // If it's already an object, return it directly
@@ -78,15 +78,15 @@ export async function POST(
       workExperience: safeJsonParse<WorkExperience[]>(resume.workExperience),
       education: safeJsonParse<Education[]>(resume.education),
       skills: safeJsonParse<SkillsStructure>(resume.skills),
-      projects: safeJsonParse<any[]>(resume.projects),
-      additionalSections: safeJsonParse<any>(resume.additionalSections),
+      projects: safeJsonParse<Array<Record<string, unknown>>>(resume.projects) as any,
+      additionalSections: safeJsonParse<Record<string, unknown>>(resume.additionalSections),
     }
 
     // Apply each suggestion to the appropriate field
     const updatedData = await applySuggestionsToStructuredData(currentData, suggestions)
 
     // Save the updated resume data with explicit any casting for Prisma JSON fields
-    const updatedResume = await prisma.resume.update({
+    await prisma.resume.update({
       where: { id: resumeId },
       data: {
         contactInfo: updatedData.contactInfo as any,
@@ -183,7 +183,7 @@ async function applySuggestionsToStructuredData(
         updatedData.additionalSections = {}
       }
       // Use bracket notation to avoid TypeScript indexing issues
-      (updatedData.additionalSections as Record<string, any>)[suggestion.section] = suggestion.suggested
+      (updatedData.additionalSections as Record<string, unknown>)[suggestion.section] = suggestion.suggested
     }
   }
 
@@ -336,7 +336,6 @@ function applySkillsSuggestion(
   }
 
   // Parse skills from the suggestion text
-  const suggestionText = suggestion.suggested.toLowerCase()
   const extractedSkills = parseSkillsFromText(suggestion.suggested)
 
   // Add extracted skills to appropriate categories

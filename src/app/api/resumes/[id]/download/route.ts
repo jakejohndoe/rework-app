@@ -10,17 +10,17 @@ import PDFResumeDocument from '@/lib/pdf-generator';
 // Handle both GET and POST requests
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await Promise.resolve(params);
+  const resolvedParams = await params;
   return handleDownload(request, resolvedParams, {});
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await Promise.resolve(params);
+  const resolvedParams = await params;
   try {
     const body = await request.json();
     return handleDownload(request, resolvedParams, body);
@@ -65,7 +65,20 @@ async function handleDownload(
     console.log('✅ Resume found:', resume.title);
 
     // Determine which version to use
-    let resumeData: any = {};
+    interface ResumeData {
+      contactInfo?: Record<string, unknown>;
+      professionalSummary?: Record<string, unknown>;
+      workExperience?: unknown[];
+      education?: unknown[];
+      skills?: unknown[];
+      projects?: unknown[];
+      isOptimized?: boolean;
+      template?: string;
+      colors?: { primary: string; accent: string };
+      summary?: string;
+    }
+    
+    let resumeData: ResumeData = {};
     const isOptimized = options.version === 'optimized' || options.version === undefined;
 
     console.log('🎯 Using optimized version:', isOptimized);
@@ -116,10 +129,10 @@ async function handleDownload(
         const contentString = String(content);
         resumeData = JSON.parse(contentString);
         resumeData.isOptimized = false;
-      } catch (e) {
+      } catch {
         console.log('⚠️ JSON parse failed, using raw content');
         if (typeof content === 'object') {
-          resumeData = content as any;
+          resumeData = content as ResumeData;
         } else {
           resumeData = { summary: String(content) };
         }
@@ -172,10 +185,10 @@ async function handleDownload(
       },
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ PDF generation failed:', error);
-    console.error('❌ Error stack:', error.stack);
-    return new NextResponse(`PDF Generation Error: ${error.message}`, { status: 500 });
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'Unknown error');
+    return new NextResponse(`PDF Generation Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
   }
 }
 

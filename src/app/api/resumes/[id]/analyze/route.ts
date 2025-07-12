@@ -124,7 +124,16 @@ export async function POST(
     }
 
     // ENHANCED: Extract ALL structured resume data
-    const { structuredText, hasStructuredData } = extractStructuredResumeData(resume)
+    const { structuredText, hasStructuredData } = extractStructuredResumeData({
+      contactInfo: resume.contactInfo,
+      professionalSummary: resume.professionalSummary,
+      workExperience: resume.workExperience,
+      education: resume.education,
+      skills: resume.skills,
+      projects: resume.projects,
+      additionalSections: resume.additionalSections,
+      currentContent: resume.currentContent,
+    } as unknown as ResumeData)
     
     console.log('📝 Resume content type:', hasStructuredData ? 'Structured (PREMIUM)' : 'Legacy')
     console.log('📝 Resume content length:', structuredText.length)
@@ -152,7 +161,10 @@ export async function POST(
     }
 
     // FIXED: Get contact info - handle both field names
-    const contactInfo = getContactInfo(resume)
+    const contactInfo = getContactInfo({
+      contactInfo: resume.contactInfo,
+      contactinfo: resume.contactInfo,
+    } as unknown as { contactInfo?: ContactInfo; contactinfo?: ContactInfo })
 
     // NEW: WOW FACTOR AI analysis with enhanced prompting
     const analysis = await performWowFactorAnalysisWithOpenAI(
@@ -218,7 +230,11 @@ export async function POST(
 }
 
 // FIXED: Helper function to get contact info - handles both field names
-function getContactInfo(resume: any): ContactInfo | null {
+function getContactInfo(resume: {
+  contactInfo?: ContactInfo;
+  contactinfo?: ContactInfo;
+  // Add other known properties if needed
+}): ContactInfo | null {
   // Try the new structured field first
   if (resume.contactInfo) {
     return resume.contactInfo as ContactInfo
@@ -526,7 +542,29 @@ function calculateContactQuality(contactInfo: ContactInfo): number {
 }
 
 // NEW: Helper function to ensure minimum 3 suggestions
-function enhanceToMinimumSuggestions(existingSuggestions: any[]): any[] {
+function enhanceToMinimumSuggestions(existingSuggestions: Array<{
+  section: string;
+  type: 'improve' | 'add' | 'reframe';
+  priority?: 'critical' | 'high' | 'medium';
+  current: string;
+  suggested: string;
+  impact: 'high' | 'medium' | 'low';
+  reason: string;
+  quantifiedBenefit?: string;
+  implementationTime?: string;
+  competitiveAdvantage?: string;
+}>): Array<{
+  section: string;
+  type: 'improve' | 'add' | 'reframe';
+  priority?: 'critical' | 'high' | 'medium';
+  current: string;
+  suggested: string;
+  impact: 'high' | 'medium' | 'low';
+  reason: string;
+  quantifiedBenefit?: string;
+  implementationTime?: string;
+  competitiveAdvantage?: string;
+}> {
   const suggestions = [...existingSuggestions]
   
   // Define default suggestions to fill gaps
@@ -597,7 +635,18 @@ function enhanceToMinimumSuggestions(existingSuggestions: any[]): any[] {
   while (suggestions.length < 3) {
     const nextSuggestion = defaultSuggestions[suggestions.length]
     if (nextSuggestion) {
-      suggestions.push(nextSuggestion)
+      suggestions.push(nextSuggestion as {
+        section: string;
+        type: 'improve' | 'add' | 'reframe';
+        priority?: 'critical' | 'high' | 'medium';
+        current: string;
+        suggested: string;
+        impact: 'high' | 'medium' | 'low';
+        reason: string;
+        quantifiedBenefit?: string;
+        implementationTime?: string;
+        competitiveAdvantage?: string;
+      })
     } else {
       break
     }
@@ -705,11 +754,78 @@ function createEnhancedFallbackAnalysisWithMinimumSuggestions(): EnhancedAnalysi
 }
 
 // 🚀 ENHANCED: Resume data extraction with FULL structured data support
-function extractStructuredResumeData(resume: any): { structuredText: string, hasStructuredData: boolean } {
+interface ResumeData {
+  contactInfo?: ContactInfo;
+  contactinfo?: ContactInfo;
+  professionalSummary?: {
+    targetRole?: string;
+    careerLevel?: string;
+    keyStrengths?: string[];
+    summary?: string;
+  };
+  workExperience?: Array<{
+    jobTitle?: string;
+    company?: string;
+    startDate?: string;
+    endDate?: string;
+    achievements?: string[];
+    technologies?: string[];
+  }>;
+  education?: Array<{
+    degree?: string;
+    fieldOfStudy?: string;
+    institution?: string;
+    graduationYear?: string;
+    gpa?: string;
+    honors?: string[];
+    relevantCoursework?: string[];
+  }>;
+  skills?: {
+    technical?: string[];
+    tools?: string[];
+    soft?: string[];
+    certifications?: string[];
+    frameworks?: string[];
+    databases?: string[];
+  };
+  additionalSections?: string;
+  currentContent?: {
+    sections?: {
+      contact?: string;
+      summary?: string;
+      experience?: string;
+      education?: string;
+      skills?: string;
+      other?: string;
+    };
+    contact?: {
+      fullName?: string;
+      email?: string;
+      phone?: string;
+      location?: string;
+    };
+    summary?: string;
+    experience?: Array<{
+      title: string;
+      company: string;
+      startDate: string;
+      endDate?: string;
+      description?: string;
+    }>;
+    education?: Array<{
+      degree: string;
+      school: string;
+      year?: string;
+    }>;
+    skills?: string[];
+  };
+}
+
+function extractStructuredResumeData(resume: ResumeData): { structuredText: string, hasStructuredData: boolean } {
   console.log('🔍 Extracting ALL structured resume data...')
   
   let hasStructuredData = false
-  let text: string[] = []
+  const text: string[] = []
   
   try {
     // 1. ✅ CONTACT INFORMATION (Already working)
@@ -752,7 +868,7 @@ function extractStructuredResumeData(resume: any): { structuredText: string, has
       hasStructuredData = true
       text.push('=== WORK EXPERIENCE (STRUCTURED) ===')
       
-      resume.workExperience.forEach((job: any, index: number) => {
+      resume.workExperience.forEach((job, index) => {
         text.push(`Job ${index + 1}:`)
         text.push(`• Position: ${job.jobTitle || 'Not specified'}`)
         text.push(`• Company: ${job.company || 'Not specified'}`)
@@ -777,7 +893,7 @@ function extractStructuredResumeData(resume: any): { structuredText: string, has
       hasStructuredData = true
       text.push('=== EDUCATION (STRUCTURED) ===')
       
-      resume.education.forEach((edu: any, index: number) => {
+      resume.education.forEach((edu, index) => {
         text.push(`Education ${index + 1}:`)
         text.push(`• Degree: ${edu.degree || 'Not specified'}`)
         text.push(`• Field of Study: ${edu.fieldOfStudy || 'Not specified'}`)
@@ -904,7 +1020,7 @@ function extractStructuredResumeData(resume: any): { structuredText: string, has
         
         if (content.experience && Array.isArray(content.experience)) {
           text.push('=== WORK EXPERIENCE (AUTO-FILL) ===')
-          content.experience.forEach((job: any) => {
+          content.experience.forEach((job) => {
             text.push(`${job.title} at ${job.company} (${job.startDate} - ${job.endDate || 'Present'})`)
             if (job.description) text.push(job.description)
             text.push('')
@@ -913,7 +1029,7 @@ function extractStructuredResumeData(resume: any): { structuredText: string, has
         
         if (content.education && Array.isArray(content.education)) {
           text.push('=== EDUCATION (AUTO-FILL) ===')
-          content.education.forEach((edu: any) => {
+          content.education.forEach((edu) => {
             text.push(`${edu.degree} from ${edu.school} (${edu.year || 'Year not specified'})`)
           })
           text.push('')

@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 
 export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | null> {
   let tempPdfPath: string | null = null;
-  let outputFiles: string[] = [];
+  const outputFiles: string[] = [];
 
   try {
     console.log('📄 Starting PDF thumbnail generation...');
@@ -16,7 +16,7 @@ export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | 
     const tempDir = join(tmpdir(), 'rework-thumbnails');
     try {
       mkdirSync(tempDir, { recursive: true });
-    } catch (e) {
+    } catch (_e) {
       // Directory might already exist
     }
 
@@ -111,7 +111,7 @@ export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | 
       outputFiles.forEach(file => {
         try {
           unlinkSync(file);
-        } catch (e) {
+        } catch (_e) {
           // File might not exist
         }
       });
