@@ -598,7 +598,7 @@ export default function DashboardPage() {
                                   resumeId={resume.id}
                                   size="sm"
                                   variant="ghost"
-                                  showVersions={!!resume.lastOptimized}
+                                  showVersions={false}
                                   showPreview={true}
                                   className="text-slate-400 hover:text-white text-xs px-2 py-1 h-auto hover:scale-105 transition-all duration-300"
                                 />
@@ -824,7 +824,7 @@ export default function DashboardPage() {
                     </p>
                   ) : (
                     <p className="text-sm text-slate-200 leading-relaxed">
-                      🏆 <strong>power user:</strong> download both original and ai-optimized versions of your resume. use different versions for different types of job applications for better results.
+                      🏆 <strong>optimization master:</strong> all your resumes are ai-optimized! consider creating targeted versions for specific job categories or industries.
                     </p>
                   )}
                 </CardContent>

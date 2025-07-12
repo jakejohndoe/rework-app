@@ -94,16 +94,6 @@ export function DownloadButton({
           Download Optimized PDF
         </DropdownMenuItem>
         
-        {showVersions && (
-          <DropdownMenuItem
-            onClick={() => downloadPDF({ resumeId, version: 'original' })}
-            disabled={isDownloading}
-            className="gap-2 text-white hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white cursor-pointer"
-          >
-            <Download className="h-4 w-4" />
-            Download Original PDF
-          </DropdownMenuItem>
-        )}
 
         {/* Preview Options */}
         {showPreview && (
@@ -118,16 +108,6 @@ export function DownloadButton({
               Preview Optimized
             </DropdownMenuItem>
             
-            {showVersions && (
-              <DropdownMenuItem
-                onClick={() => previewPDF({ resumeId, version: 'original' })}
-                disabled={isDownloading}
-                className="gap-2 text-white hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white cursor-pointer"
-              >
-                <Eye className="h-4 w-4" />
-                Preview Original
-              </DropdownMenuItem>
-            )}
           </>
         )}
       </DropdownMenuContent>
