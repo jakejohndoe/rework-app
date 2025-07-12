@@ -13,7 +13,10 @@ import {
   Sparkles,
   Target,
   Clock,
-  ArrowRight
+  ArrowRight,
+  CheckCircle,
+  Upload,
+  Zap
 } from "lucide-react"
 
 export default function HomePage() {
@@ -284,6 +287,84 @@ export default function HomePage() {
               🔒 no credit card required • 3 free resumes • cancel anytime
             </p>
           </div>
+
+          {/* Welcome Back Card for Signed-In Users */}
+          {session && (
+            <div className="mb-16">
+              <Card className="bg-gradient-to-br from-slate-800/50 via-purple-900/20 to-cyan-900/20 backdrop-blur-lg border border-white/20 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] relative overflow-hidden group max-w-4xl mx-auto">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400"></div>
+                
+                <CardHeader className="text-center relative z-10 pb-6">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl md:text-3xl text-white mb-1">
+                        Welcome back, {session.user?.name?.split(' ')[0] || 'there'}! 👋
+                      </CardTitle>
+                      <CardDescription className="text-slate-300 text-lg">
+                        Ready to create your next optimized resume?
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="relative z-10">
+                  <div className="grid md:grid-cols-3 gap-6 mb-8">
+                    {/* Quick Action Cards */}
+                    <Link href="/dashboard" className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-cyan-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
+                            <Upload className="w-6 h-6 text-white" />
+                          </div>
+                          <h3 className="text-white font-semibold mb-1 group-hover/action:text-cyan-300 transition-colors">Create Resume</h3>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Upload & optimize</p>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link href="/dashboard" className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-purple-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
+                            <Zap className="w-6 h-6 text-white" />
+                          </div>
+                          <h3 className="text-white font-semibold mb-1 group-hover/action:text-purple-300 transition-colors">AI Optimize</h3>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Smart enhancement</p>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link href="/templates" className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-green-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
+                            <FileText className="w-6 h-6 text-white" />
+                          </div>
+                          <h3 className="text-white font-semibold mb-1 group-hover/action:text-green-300 transition-colors">Browse Templates</h3>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Professional designs</p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="text-center">
+                    <Link href="/dashboard">
+                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white border-0 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 px-8 py-3 text-lg font-medium group">
+                        Go to Dashboard
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Enhanced Quick Stats for Logged-in Users */}
           {session && (
