@@ -376,6 +376,7 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     padding: 20,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
+    hyphenationFactor: 0,
   },
   header: {
     marginBottom: 8,
@@ -450,6 +451,7 @@ const createModernStyles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
+    hyphenationFactor: 0,
   },
   sidebar: {
     width: '35%',
@@ -548,6 +550,7 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     padding: 35,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
+    hyphenationFactor: 0,
   },
   header: {
     marginBottom: 20,
@@ -623,6 +626,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     padding: 0,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
+    hyphenationFactor: 0,
   },
   headerSection: {
     backgroundColor: colors.primary,
@@ -1204,9 +1208,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
                 </Text>
               </View>
               <Text style={styles.content}>
-                {job.achievements && Array.isArray(job.achievements) 
-                  ? job.achievements.join('. ') + '.'
-                  : job.description || job.responsibilities || 'Managed key responsibilities and delivered results.'}
+                {job.description || 'Managed key responsibilities and delivered results.'}
               </Text>
             </View>
           ))}
@@ -1219,7 +1221,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
           <Text style={styles.sectionTitle}>Education</Text>
           <View style={styles.divider} />
           {data.education.map((edu: any, index: number) => (
-            <View key={index} style={{ marginBottom: 15 }}>
+            <View key={index} style={{ marginBottom: 8 }}>
               <Text style={styles.jobTitleMinimal}>
                 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
               </Text>
@@ -1334,9 +1336,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
                       </Text>
                     </View>
                     <Text style={styles.descriptionCreative}>
-                      {job.achievements && Array.isArray(job.achievements) 
-                        ? job.achievements.join('. ') + '.'
-                        : job.description || job.responsibilities || 'Delivered innovative solutions and exceeded performance targets.'}
+                      {job.description || 'Delivered innovative solutions and exceeded performance targets.'}
                     </Text>
                   </View>
                 ))}
