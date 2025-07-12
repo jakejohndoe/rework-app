@@ -36,74 +36,117 @@ const optimizeContentForOnePage = (data: any, template: string) => {
       workExperience: prioritizeWorkExperience(data.workExperience || []),
       education: prioritizeEducation(data.education || []),
       skills: prioritizeSkills(data.skills || []),
-      professionalSummary: optimizeSummary(summaryText, template)
+      professionalSummary: optimizeSummary(data.professionalSummary || summaryText || '', template)
     };
+    
+    console.log('✅ Content optimization complete:', {
+      workExpLength: optimized.workExperience?.length,
+      educationLength: optimized.education?.length,
+      skillsLength: optimized.skills?.length,
+      summaryLength: optimized.professionalSummary?.length
+    });
     
     return optimized;
   } catch (error) {
     console.error('❌ Error in optimizeContentForOnePage:', error);
+    console.error('📊 Data that caused error:', JSON.stringify(data, null, 2));
     // Return data as-is if optimization fails
     return data;
   }
 };
 
-const prioritizeWorkExperience = (experiences: any[]) => {
-  if (!experiences || experiences.length === 0) return [];
-  
-  // Sort by end date (most recent first), then by relevance
-  return experiences
-    .sort((a, b) => {
-      // Prioritize current jobs (no end date)
-      if (!a.endDate && b.endDate) return -1;
-      if (a.endDate && !b.endDate) return 1;
-      
-      // Then sort by end date
-      const dateA = new Date(a.endDate || a.startDate || '1970');
-      const dateB = new Date(b.endDate || b.startDate || '1970');
-      return dateB.getTime() - dateA.getTime();
-    })
-    .slice(0, 3) // Keep top 3 most recent/relevant
-    .map(job => ({
-      ...job,
-      description: optimizeJobDescription(job.description || job.responsibilities || '', job.achievements)
-    }));
+const prioritizeWorkExperience = (experiences: any) => {
+  try {
+    if (!experiences) return [];
+    
+    // Ensure we have an array
+    let expArray = Array.isArray(experiences) ? experiences : [];
+    
+    if (expArray.length === 0) return [];
+    
+    // Sort by end date (most recent first), then by relevance
+    return expArray
+      .sort((a, b) => {
+        // Prioritize current jobs (no end date)
+        if (!a.endDate && b.endDate) return -1;
+        if (a.endDate && !b.endDate) return 1;
+        
+        // Then sort by end date
+        const dateA = new Date(a.endDate || a.startDate || '1970');
+        const dateB = new Date(b.endDate || b.startDate || '1970');
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, 3) // Keep top 3 most recent/relevant
+      .map(job => ({
+        ...job,
+        description: optimizeJobDescription(job.description || job.responsibilities || '', job.achievements)
+      }));
+  } catch (error) {
+    console.error('❌ Error in prioritizeWorkExperience:', error);
+    return [];
+  }
 };
 
-const prioritizeEducation = (education: any[]) => {
-  if (!education || education.length === 0) return [];
-  
-  return education
-    .sort((a, b) => {
-      // Prioritize by graduation year (most recent first)
-      const yearA = parseInt(a.year || a.endDate?.split('-')[0] || '1970');
-      const yearB = parseInt(b.year || b.endDate?.split('-')[0] || '1970');
-      return yearB - yearA;
-    })
-    .slice(0, 2); // Keep top 2 most recent
+const prioritizeEducation = (education: any) => {
+  try {
+    if (!education) return [];
+    
+    // Ensure we have an array
+    let eduArray = Array.isArray(education) ? education : [];
+    
+    if (eduArray.length === 0) return [];
+    
+    return eduArray
+      .sort((a, b) => {
+        // Prioritize by graduation year (most recent first)
+        const yearA = parseInt(a.year || a.endDate?.split('-')[0] || '1970');
+        const yearB = parseInt(b.year || b.endDate?.split('-')[0] || '1970');
+        return yearB - yearA;
+      })
+      .slice(0, 2); // Keep top 2 most recent
+  } catch (error) {
+    console.error('❌ Error in prioritizeEducation:', error);
+    return [];
+  }
 };
 
 const prioritizeSkills = (skills: any) => {
-  if (!skills) return [];
-  
-  // Convert to array if it's a string
-  let skillsArray = Array.isArray(skills) ? skills : 
-    (typeof skills === 'string' ? skills.split(',').map(s => s.trim()) : []);
-  
-  // Remove duplicates and empty strings
-  skillsArray = [...new Set(skillsArray.filter(skill => skill && skill.trim().length > 0))];
-  
-  // Prioritize by length (shorter, more impactful skills first) and limit to 8-12
-  return skillsArray
-    .sort((a, b) => {
-      const skillA = typeof a === 'string' ? a : a.name || '';
-      const skillB = typeof b === 'string' ? b : b.name || '';
-      return skillA.length - skillB.length;
-    })
-    .slice(0, 10); // Optimal number for one page
+  try {
+    if (!skills) return [];
+    
+    // Convert to array if it's a string
+    let skillsArray = Array.isArray(skills) ? skills : 
+      (typeof skills === 'string' ? skills.split(',').map(s => s.trim()) : []);
+    
+    // Remove duplicates and empty strings
+    skillsArray = [...new Set(skillsArray.filter(skill => skill && skill.trim && skill.trim().length > 0))];
+    
+    // Prioritize by length (shorter, more impactful skills first) and limit to 8-12
+    return skillsArray
+      .sort((a, b) => {
+        const skillA = typeof a === 'string' ? a : (a.name || String(a) || '');
+        const skillB = typeof b === 'string' ? b : (b.name || String(b) || '');
+        return skillA.length - skillB.length;
+      })
+      .slice(0, 10); // Optimal number for one page
+  } catch (error) {
+    console.error('❌ Error in prioritizeSkills:', error);
+    return [];
+  }
 };
 
-const optimizeSummary = (summary: string, template: string) => {
-  if (!summary || summary.length === 0) return '';
+const optimizeSummary = (summary: string | any, template: string) => {
+  // Ensure summary is a string
+  let summaryStr = '';
+  if (typeof summary === 'string') {
+    summaryStr = summary;
+  } else if (summary && typeof summary === 'object') {
+    summaryStr = summary.summary || summary.optimized || summary.text || summary.content || JSON.stringify(summary);
+  } else {
+    summaryStr = String(summary || '');
+  }
+  
+  if (!summaryStr || summaryStr.length === 0) return '';
   
   // Template-specific character limits for optimal one-page fit
   const limits = {
@@ -115,10 +158,10 @@ const optimizeSummary = (summary: string, template: string) => {
   
   const limit = limits[template as keyof typeof limits] || 150;
   
-  if (summary.length <= limit) return summary;
+  if (summaryStr.length <= limit) return summaryStr;
   
   // Smart truncation: prefer to end at sentence boundaries
-  const truncated = summary.substring(0, limit);
+  const truncated = summaryStr.substring(0, limit);
   const lastSentence = truncated.lastIndexOf('.');
   const lastSpace = truncated.lastIndexOf(' ');
   
@@ -774,7 +817,7 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
 
 // Helper function to extract skills array from skills object
 const extractSkillsArray = (skills: any): string[] => {
-  const skillsArray = [];
+  const skillsArray: string[] = [];
   
   // Early return if skills is null or undefined
   if (!skills) return skillsArray;
