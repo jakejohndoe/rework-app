@@ -57,8 +57,8 @@ const prioritizeEducation = (education: any[]) => {
     .slice(0, 2); // Keep top 2 most recent
 };
 
-const prioritizeSkills = (skills: any[]) => {
-  if (!skills || skills.length === 0) return [];
+const prioritizeSkills = (skills: any) => {
+  if (!skills) return [];
   
   // Convert to array if it's a string
   let skillsArray = Array.isArray(skills) ? skills : 
