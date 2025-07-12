@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { useSession, signIn, signOut } from "next-auth/react"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
+import { toast } from "sonner"
+import confetti from "canvas-confetti"
 import { 
   Brain, 
   FileText, 
@@ -24,8 +26,10 @@ export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 }) // Default center position
   const [isLoaded, setIsLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [showSparkles, setShowSparkles] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLButtonElement>(null)
+  const welcomeCardRef = useRef<HTMLDivElement>(null)
 
   // Client-side mount check
   useEffect(() => {
@@ -48,6 +52,93 @@ export default function HomePage() {
     if (!isMounted) return
     setTimeout(() => setIsLoaded(true), 100)
   }, [isMounted])
+
+  // Sign-in celebration effect
+  useEffect(() => {
+    if (!session || status === "loading" || !isMounted) return
+
+    // Check if this is a fresh sign-in
+    const hasShownCelebration = localStorage.getItem('sign-in-celebrated')
+    const currentTime = Date.now()
+    const celebrationTime = localStorage.getItem('sign-in-celebration-time')
+    
+    // Show celebration if never shown or it's been more than 1 hour
+    const shouldShowCelebration = !hasShownCelebration || 
+      !celebrationTime || 
+      (currentTime - parseInt(celebrationTime)) > 3600000 // 1 hour
+
+    if (shouldShowCelebration) {
+      // Delay to ensure UI is loaded
+      setTimeout(() => {
+        triggerSignInCelebration()
+        localStorage.setItem('sign-in-celebrated', 'true')
+        localStorage.setItem('sign-in-celebration-time', currentTime.toString())
+      }, 1000)
+    }
+  }, [session, status, isMounted])
+
+  const triggerSignInCelebration = () => {
+    // 1. Confetti Burst - Multi-wave celebration
+    const colors = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+    
+    // Initial burst
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: colors
+    })
+
+    // Side bursts
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      })
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      })
+    }, 200)
+
+    // Final celebration burst
+    setTimeout(() => {
+      confetti({
+        particleCount: 30,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: colors
+      })
+    }, 400)
+
+    // 2. Welcome Toast Notification
+    setTimeout(() => {
+      toast.success(
+        `Welcome back${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 🎉`, 
+        {
+          description: "Ready to create an amazing resume? Let's get started!",
+          duration: 4000,
+          action: {
+            label: "Get Started",
+            onClick: () => window.location.href = '/dashboard'
+          }
+        }
+      )
+    }, 500)
+
+    // 3. Sparkle Animation on Welcome Card
+    setTimeout(() => {
+      setShowSparkles(true)
+      // Turn off sparkles after 10 seconds
+      setTimeout(() => setShowSparkles(false), 10000)
+    }, 2000)
+  }
 
   // Magnetic button effect
   const handleCtaMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -291,10 +382,30 @@ export default function HomePage() {
           {/* Welcome Back Card for Signed-In Users */}
           {session && (
             <div className="mb-16">
-              <Card className="bg-gradient-to-br from-slate-800/50 via-purple-900/20 to-cyan-900/20 backdrop-blur-lg border border-white/20 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] relative overflow-hidden group max-w-4xl mx-auto">
+              <Card ref={welcomeCardRef} className="bg-gradient-to-br from-slate-800/50 via-purple-900/20 to-cyan-900/20 backdrop-blur-lg border border-white/20 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] relative overflow-hidden group max-w-4xl mx-auto">
                 {/* Animated Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400"></div>
+                
+                {/* Sparkle Animation */}
+                {showSparkles && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {[...Array(12)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute animate-ping"
+                        style={{
+                          left: `${15 + (i * 7) % 70}%`,
+                          top: `${10 + (i * 11) % 80}%`,
+                          animationDelay: `${i * 0.3}s`,
+                          animationDuration: '2s'
+                        }}
+                      >
+                        <Sparkles className="w-4 h-4 text-cyan-300 opacity-70" />
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 <CardHeader className="text-center relative z-10 pb-6">
                   <div className="flex items-center justify-center gap-3 mb-4">
