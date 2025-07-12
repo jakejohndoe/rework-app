@@ -9,7 +9,6 @@ const config: NextConfig = {
   },
   serverExternalPackages: [
     'pdf-parse',        // Keep for text extraction
-    'pdf-poppler',      // Add for thumbnail generation
     'sharp',            // Add for image optimization
   ],
   

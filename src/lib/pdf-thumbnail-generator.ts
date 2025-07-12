@@ -6,6 +6,12 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 
 export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | null> {
+  // Skip thumbnail generation on Linux (Vercel) for now
+  if (process.platform === 'linux') {
+    console.log('⚠️ Skipping thumbnail generation on Linux platform (Vercel)')
+    return null
+  }
+
   let tempPdfPath: string | null = null;
   const outputFiles: string[] = [];
 
