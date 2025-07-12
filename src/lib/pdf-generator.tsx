@@ -148,34 +148,55 @@ const optimizeSummary = (summary: string | any, template: string) => {
   
   if (!summaryStr || summaryStr.length === 0) return '';
   
-  // Template-specific character limits for optimal one-page fit
+  // Generous character limits with smaller fonts for complete sentences
   const limits = {
-    professional: 160,
-    modern: 120,
-    minimal: 140,
-    creative: 130
+    professional: 300,
+    modern: 250,
+    minimal: 280,
+    creative: 270
   };
   
-  const limit = limits[template as keyof typeof limits] || 150;
+  const limit = limits[template as keyof typeof limits] || 280;
   
   if (summaryStr.length <= limit) return summaryStr;
   
-  // Smart truncation: prefer to end at sentence boundaries
-  const truncated = summaryStr.substring(0, limit);
-  const lastSentence = truncated.lastIndexOf('.');
-  const lastSpace = truncated.lastIndexOf(' ');
+  // Smart truncation: ALWAYS preserve complete sentences
+  const sentences = summaryStr.split('. ');
+  let result = '';
   
-  // If we can find a sentence boundary within 70% of the limit, use it
-  if (lastSentence > limit * 0.7) {
-    return truncated.substring(0, lastSentence + 1);
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i].trim();
+    if (!sentence) continue;
+    
+    // Add sentence with proper punctuation
+    const withPunctuation = sentence.endsWith('.') ? sentence : sentence + '.';
+    const testResult = result + (result ? ' ' : '') + withPunctuation;
+    
+    // If adding this sentence would exceed the limit, stop here
+    if (testResult.length > limit && result.length > 0) {
+      break;
+    }
+    
+    result = testResult;
   }
   
-  // Otherwise, truncate at last word boundary
-  if (lastSpace > limit * 0.8) {
-    return truncated.substring(0, lastSpace) + '...';
+  // If we couldn't fit even one sentence, return the original but ensure it fits
+  if (!result && summaryStr.length > 0) {
+    // Find the last complete sentence that fits
+    const words = summaryStr.split(' ');
+    result = '';
+    for (const word of words) {
+      const testResult = result + (result ? ' ' : '') + word;
+      if (testResult.length > limit - 1) break;
+      result = testResult;
+    }
+    // Ensure it ends properly
+    if (result && !result.endsWith('.')) {
+      result = result.replace(/[,;:]$/, '') + '.';
+    }
   }
   
-  return truncated.substring(0, limit - 3) + '...';
+  return result || summaryStr.substring(0, limit).trim();
 };
 
 const optimizeJobDescription = (description: string | any, achievements?: string[] | any) => {
@@ -208,31 +229,46 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // Optimize length for one-page format (aim for 150-200 chars per job)
-  const maxLength = 180;
+  // More generous length for smaller fonts - complete sentences only
+  const maxLength = 250;
   
   if (content.length <= maxLength) return content;
   
-  // Smart truncation preserving key information
+  // Smart truncation preserving complete sentences - NO ELLIPSES
   const sentences = content.split('. ');
   let optimized = '';
   
   for (const sentence of sentences) {
-    if ((optimized + sentence + '. ').length <= maxLength) {
-      optimized += sentence + '. ';
+    const sentenceWithPeriod = sentence.trim() + (sentence.endsWith('.') ? '' : '.');
+    const testContent = optimized + (optimized ? ' ' : '') + sentenceWithPeriod;
+    
+    if (testContent.length <= maxLength) {
+      optimized = testContent;
     } else {
       break;
     }
   }
   
   // If we got at least one complete sentence, use it
-  if (optimized.length > maxLength * 0.6) {
+  if (optimized.trim().length > 0) {
     return optimized.trim();
   }
   
-  // Otherwise, truncate more aggressively
-  const lastSpace = content.substring(0, maxLength - 3).lastIndexOf(' ');
-  return content.substring(0, lastSpace) + '...';
+  // If no complete sentence fits, fit as many complete words as possible
+  const words = content.split(' ');
+  let result = '';
+  for (const word of words) {
+    const testResult = result + (result ? ' ' : '') + word;
+    if (testResult.length > maxLength - 1) break;
+    result = testResult;
+  }
+  
+  // Ensure proper ending
+  if (result && !result.endsWith('.')) {
+    result = result.replace(/[,;:]$/, '') + '.';
+  }
+  
+  return result || content.substring(0, maxLength).trim();
 };
 
 // Helper function to get template configuration with custom colors
@@ -302,28 +338,28 @@ const getTemplateConfig = (template: string, customColors?: { primary: string; a
 // Professional Template Styles - Dynamic
 const createProfessionalStyles = (colors: any) => StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 20,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 15,
     paddingBottom: 15,
     borderBottomWidth: 3,
     borderBottomColor: colors.primary,
     textAlign: 'center',
   },
   name: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   title: {
-    fontSize: 14,
+    fontSize: 10,
     color: colors.secondary,
-    marginBottom: 15,
+    marginBottom: 12,
   },
   contactRow: {
     flexDirection: 'row',
@@ -332,25 +368,25 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     gap: 15,
   },
   contactItem: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.secondary,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginTop: 18,
-    marginBottom: 8,
-    paddingBottom: 3,
+    marginTop: 15,
+    marginBottom: 6,
+    paddingBottom: 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
   },
   content: {
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 9,
+    lineHeight: 1.4,
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -363,11 +399,11 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     color: colors.primary,
   },
   jobDate: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.secondary,
   },
   company: {
-    fontSize: 12,
+    fontSize: 10,
     color: colors.secondary,
     marginBottom: 8,
   },
@@ -388,28 +424,28 @@ const createModernStyles = (colors: any) => StyleSheet.create({
   },
   mainContent: {
     width: '65%',
-    padding: 25,
+    padding: 20,
     paddingTop: 30,
   },
   name: {
-    fontSize: 24,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 6,
+  },
+  title: {
+    fontSize: 9,
+    color: colors.secondary,
+    marginBottom: 16,
+  },
+  sidebarSection: {
+    marginBottom: 18,
+  },
+  sidebarTitle: {
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 8,
-  },
-  title: {
-    fontSize: 13,
-    color: colors.secondary,
-    marginBottom: 20,
-  },
-  sidebarSection: {
-    marginBottom: 25,
-  },
-  sidebarTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
     textTransform: 'uppercase',
   },
   contactItem: {
@@ -421,9 +457,9 @@ const createModernStyles = (colors: any) => StyleSheet.create({
     marginBottom: 8,
   },
   skillName: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.text,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   skillBar: {
     height: 4,
@@ -436,36 +472,36 @@ const createModernStyles = (colors: any) => StyleSheet.create({
     borderRadius: 2,
   },
   mainSectionTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 15,
-    marginTop: 20,
+    marginBottom: 12,
+    marginTop: 16,
   },
   experienceItem: {
-    marginBottom: 20,
+    marginBottom: 15,
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
   jobTitleMain: {
-    fontSize: 13,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   jobCompany: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.primary,
     marginBottom: 2,
   },
   jobDateMain: {
-    fontSize: 10,
+    fontSize: 9,
     color: colors.secondary,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   jobDescription: {
-    fontSize: 11,
+    fontSize: 9,
     lineHeight: 1.5,
     color: '#374151',
   },
@@ -483,14 +519,14 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
   },
   name: {
-    fontSize: 26,
+    fontSize: 22,
     color: colors.primary,
     marginBottom: 5,
   },
   title: {
     fontSize: 13,
     color: colors.secondary,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   contactRow: {
     flexDirection: 'row',
@@ -513,11 +549,11 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: colors.accent,
-    marginBottom: 20,
+    marginBottom: 15,
     width: 50,
   },
   content: {
-    fontSize: 11,
+    fontSize: 9,
     lineHeight: 1.7,
     color: colors.text,
     marginBottom: 15,
@@ -526,7 +562,7 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     marginBottom: 15,
   },
   jobTitleMinimal: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 2,
@@ -537,11 +573,11 @@ const createMinimalStyles = (colors: any) => StyleSheet.create({
     marginBottom: 8,
   },
   companyMinimal: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.secondary,
   },
   dateMinimal: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.secondary,
   },
 });
@@ -555,13 +591,13 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
   },
   headerSection: {
     backgroundColor: colors.primary,
-    padding: 30,
+    padding: 20,
     paddingBottom: 40,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   avatar: {
     width: 60,
@@ -574,13 +610,13 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     flex: 1,
   },
   nameCreative: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 5,
   },
   titleCreative: {
-    fontSize: 14,
+    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 15,
   },
@@ -600,7 +636,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     color: '#ffffff',
   },
   bodySection: {
-    padding: 25,
+    padding: 20,
   },
   twoColumnRow: {
     flexDirection: 'row',
@@ -613,7 +649,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     width: '40%',
   },
   creativeSectionTitle: {
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 15,
@@ -639,7 +675,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     marginBottom: 8,
   },
   companyCreative: {
-    fontSize: 11,
+    fontSize: 9,
     color: colors.secondary,
   },
   dateCreative: {
@@ -669,7 +705,7 @@ const createCreativeStyles = (colors: any) => StyleSheet.create({
     color: colors.primary,
   },
   progressSection: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   progressItem: {
     marginBottom: 10,
