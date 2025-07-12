@@ -886,6 +886,46 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
   };
 };
 
+// Helper function to extract optimized resume data with proper contact info
+const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
+  const getContactInfo = () => {
+    let contactInfo = {};
+    if (resumeData.contactInfo || resumeData.contact) {
+      const contact = resumeData.contactInfo || resumeData.contact;
+      if (typeof contact === 'string') {
+        try {
+          contactInfo = JSON.parse(contact);
+        } catch (e) {
+          contactInfo = {};
+        }
+      } else {
+        contactInfo = contact || {};
+      }
+    }
+    return contactInfo as any;
+  };
+
+  const contactInfo = getContactInfo();
+  
+  return {
+    fullName: contactInfo?.name || 
+              contactInfo?.fullName || 
+              (contactInfo?.firstName && contactInfo?.lastName ? 
+                `${contactInfo.firstName} ${contactInfo.lastName}` : '') ||
+              resumeTitle || 
+              resumeData.fullName || 
+              'Your Name',
+    email: contactInfo?.email || resumeData.email || '',
+    phone: contactInfo?.phone || resumeData.phone || '',
+    location: contactInfo?.location || resumeData.location || '',
+    linkedin: contactInfo?.linkedin || resumeData.linkedin || '',
+    professionalSummary: resumeData.professionalSummary || '',
+    workExperience: resumeData.workExperience || [],
+    education: resumeData.education || [],
+    skills: resumeData.skills || {}
+  };
+};
+
 // Helper function to extract skills array from skills object
 const extractSkillsArray = (skills: any): string[] => {
   const skillsArray: string[] = [];
@@ -914,18 +954,8 @@ const extractSkillsArray = (skills: any): string[] => {
 
 // FIXED: Professional Template Component
 const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  // Use optimized data directly (already processed by optimizeContentForOnePage)
-  const data = {
-    fullName: resumeData.fullName || resumeData.contact?.fullName || resumeData.contactInfo?.fullName || 'Your Name',
-    email: resumeData.email || resumeData.contact?.email || resumeData.contactInfo?.email || '',
-    phone: resumeData.phone || resumeData.contact?.phone || resumeData.contactInfo?.phone || '',
-    location: resumeData.location || resumeData.contact?.location || resumeData.contactInfo?.location || '',
-    linkedin: resumeData.linkedin || resumeData.contact?.linkedin || resumeData.contactInfo?.linkedin || '',
-    professionalSummary: resumeData.professionalSummary || '',
-    workExperience: resumeData.workExperience || [],
-    education: resumeData.education || [],
-    skills: resumeData.skills || {}
-  };
+  // Use optimized data with proper contact extraction
+  const data = extractOptimizedData(resumeData, resumeTitle);
   const styles = createProfessionalStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
@@ -1022,18 +1052,8 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
 
 // FIXED: Modern Template Component
 const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  // Use optimized data directly (already processed by optimizeContentForOnePage)
-  const data = {
-    fullName: resumeData.fullName || resumeData.contact?.fullName || resumeData.contactInfo?.fullName || 'Your Name',
-    email: resumeData.email || resumeData.contact?.email || resumeData.contactInfo?.email || '',
-    phone: resumeData.phone || resumeData.contact?.phone || resumeData.contactInfo?.phone || '',
-    location: resumeData.location || resumeData.contact?.location || resumeData.contactInfo?.location || '',
-    linkedin: resumeData.linkedin || resumeData.contact?.linkedin || resumeData.contactInfo?.linkedin || '',
-    professionalSummary: resumeData.professionalSummary || '',
-    workExperience: resumeData.workExperience || [],
-    education: resumeData.education || [],
-    skills: resumeData.skills || {}
-  };
+  // Use optimized data with proper contact extraction
+  const data = extractOptimizedData(resumeData, resumeTitle);
   const styles = createModernStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
@@ -1138,18 +1158,8 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
 
 // FIXED: Minimal Template Component
 const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  // Use optimized data directly (already processed by optimizeContentForOnePage)
-  const data = {
-    fullName: resumeData.fullName || resumeData.contact?.fullName || resumeData.contactInfo?.fullName || 'Your Name',
-    email: resumeData.email || resumeData.contact?.email || resumeData.contactInfo?.email || '',
-    phone: resumeData.phone || resumeData.contact?.phone || resumeData.contactInfo?.phone || '',
-    location: resumeData.location || resumeData.contact?.location || resumeData.contactInfo?.location || '',
-    linkedin: resumeData.linkedin || resumeData.contact?.linkedin || resumeData.contactInfo?.linkedin || '',
-    professionalSummary: resumeData.professionalSummary || '',
-    workExperience: resumeData.workExperience || [],
-    education: resumeData.education || [],
-    skills: resumeData.skills || {}
-  };
+  // Use optimized data with proper contact extraction
+  const data = extractOptimizedData(resumeData, resumeTitle);
   const styles = createMinimalStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
@@ -1244,18 +1254,8 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
 
 // FIXED: Creative Template Component
 const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
-  // Use optimized data directly (already processed by optimizeContentForOnePage)
-  const data = {
-    fullName: resumeData.fullName || resumeData.contact?.fullName || resumeData.contactInfo?.fullName || 'Your Name',
-    email: resumeData.email || resumeData.contact?.email || resumeData.contactInfo?.email || '',
-    phone: resumeData.phone || resumeData.contact?.phone || resumeData.contactInfo?.phone || '',
-    location: resumeData.location || resumeData.contact?.location || resumeData.contactInfo?.location || '',
-    linkedin: resumeData.linkedin || resumeData.contact?.linkedin || resumeData.contactInfo?.linkedin || '',
-    professionalSummary: resumeData.professionalSummary || '',
-    workExperience: resumeData.workExperience || [],
-    education: resumeData.education || [],
-    skills: resumeData.skills || {}
-  };
+  // Use optimized data with proper contact extraction
+  const data = extractOptimizedData(resumeData, resumeTitle);
   const styles = createCreativeStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
