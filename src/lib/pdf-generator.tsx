@@ -8,6 +8,149 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 
+// Smart One-Page Optimization Functions
+const optimizeContentForOnePage = (data: any, template: string) => {
+  // Prioritize and limit content to fit one page optimally
+  const optimized = {
+    ...data,
+    workExperience: prioritizeWorkExperience(data.workExperience || []),
+    education: prioritizeEducation(data.education || []),
+    skills: prioritizeSkills(data.skills || []),
+    professionalSummary: optimizeSummary(data.professionalSummary || '', template)
+  };
+  
+  return optimized;
+};
+
+const prioritizeWorkExperience = (experiences: any[]) => {
+  if (!experiences || experiences.length === 0) return [];
+  
+  // Sort by end date (most recent first), then by relevance
+  return experiences
+    .sort((a, b) => {
+      // Prioritize current jobs (no end date)
+      if (!a.endDate && b.endDate) return -1;
+      if (a.endDate && !b.endDate) return 1;
+      
+      // Then sort by end date
+      const dateA = new Date(a.endDate || a.startDate || '1970');
+      const dateB = new Date(b.endDate || b.startDate || '1970');
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, 3) // Keep top 3 most recent/relevant
+    .map(job => ({
+      ...job,
+      description: optimizeJobDescription(job.description || job.responsibilities || '', job.achievements)
+    }));
+};
+
+const prioritizeEducation = (education: any[]) => {
+  if (!education || education.length === 0) return [];
+  
+  return education
+    .sort((a, b) => {
+      // Prioritize by graduation year (most recent first)
+      const yearA = parseInt(a.year || a.endDate?.split('-')[0] || '1970');
+      const yearB = parseInt(b.year || b.endDate?.split('-')[0] || '1970');
+      return yearB - yearA;
+    })
+    .slice(0, 2); // Keep top 2 most recent
+};
+
+const prioritizeSkills = (skills: any[]) => {
+  if (!skills || skills.length === 0) return [];
+  
+  // Convert to array if it's a string
+  let skillsArray = Array.isArray(skills) ? skills : 
+    (typeof skills === 'string' ? skills.split(',').map(s => s.trim()) : []);
+  
+  // Remove duplicates and empty strings
+  skillsArray = [...new Set(skillsArray.filter(skill => skill && skill.trim().length > 0))];
+  
+  // Prioritize by length (shorter, more impactful skills first) and limit to 8-12
+  return skillsArray
+    .sort((a, b) => {
+      const skillA = typeof a === 'string' ? a : a.name || '';
+      const skillB = typeof b === 'string' ? b : b.name || '';
+      return skillA.length - skillB.length;
+    })
+    .slice(0, 10); // Optimal number for one page
+};
+
+const optimizeSummary = (summary: string, template: string) => {
+  if (!summary || summary.length === 0) return '';
+  
+  // Template-specific character limits for optimal one-page fit
+  const limits = {
+    professional: 160,
+    modern: 120,
+    minimal: 140,
+    creative: 130
+  };
+  
+  const limit = limits[template as keyof typeof limits] || 150;
+  
+  if (summary.length <= limit) return summary;
+  
+  // Smart truncation: prefer to end at sentence boundaries
+  const truncated = summary.substring(0, limit);
+  const lastSentence = truncated.lastIndexOf('.');
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  // If we can find a sentence boundary within 70% of the limit, use it
+  if (lastSentence > limit * 0.7) {
+    return truncated.substring(0, lastSentence + 1);
+  }
+  
+  // Otherwise, truncate at last word boundary
+  if (lastSpace > limit * 0.8) {
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated.substring(0, limit - 3) + '...';
+};
+
+const optimizeJobDescription = (description: string, achievements?: string[]) => {
+  if (!description || description.length === 0) {
+    return achievements && achievements.length > 0 
+      ? achievements.slice(0, 2).join('. ') + '.'
+      : 'Responsible for key initiatives and strategic projects.';
+  }
+  
+  // Combine description with top achievements if available
+  let content = description;
+  if (achievements && achievements.length > 0) {
+    const topAchievements = achievements.slice(0, 2).join('. ');
+    content = `${description} ${topAchievements}.`;
+  }
+  
+  // Optimize length for one-page format (aim for 150-200 chars per job)
+  const maxLength = 180;
+  
+  if (content.length <= maxLength) return content;
+  
+  // Smart truncation preserving key information
+  const sentences = content.split('. ');
+  let optimized = '';
+  
+  for (const sentence of sentences) {
+    if ((optimized + sentence + '. ').length <= maxLength) {
+      optimized += sentence + '. ';
+    } else {
+      break;
+    }
+  }
+  
+  // If we got at least one complete sentence, use it
+  if (optimized.length > maxLength * 0.6) {
+    return optimized.trim();
+  }
+  
+  // Otherwise, truncate more aggressively
+  const lastSpace = content.substring(0, maxLength - 3).lastIndexOf(' ');
+  return content.substring(0, lastSpace) + '...';
+};
+
 // Helper function to get template configuration with custom colors
 const getTemplateConfig = (template: string, customColors?: { primary: string; accent: string }) => {
   const defaultConfigs = {
@@ -608,9 +751,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <Text style={styles.name}>{data.fullName}</Text>
         {data.professionalSummary && (
           <Text style={styles.title}>
-            {data.professionalSummary.length > 80 
-              ? data.professionalSummary.substring(0, 80) + '...'
-              : data.professionalSummary}
+            {data.professionalSummary || 'Professional summary will be displayed here.'}
           </Text>
         )}
         <View style={styles.contactRow}>
@@ -633,7 +774,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
       {data.workExperience.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Professional Experience</Text>
-          {data.workExperience.slice(0, 3).map((job: any, index: number) => (
+          {data.workExperience.map((job: any, index: number) => (
             <View key={index} style={{ marginBottom: 10 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
@@ -659,7 +800,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
       {data.education.length > 0 && (
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
-          {data.education.slice(0, 2).map((edu: any, index: number) => (
+          {data.education.map((edu: any, index: number) => (
             <View key={index} style={{ marginBottom: 10 }}>
               <View style={styles.jobHeader}>
                 <Text style={styles.jobTitle}>
@@ -682,7 +823,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <View>
           <Text style={styles.sectionTitle}>Core Skills</Text>
           <Text style={styles.content}>
-{skillsArray.slice(0, 8).join(' • ')}
+{skillsArray.join(' • ')}
           </Text>
         </View>
       )}
@@ -702,7 +843,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
   const styles = createModernStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
-  // Generate skill levels for demo
+  // Generate skill levels for demo - limit to 8 for progress bars
   const skillsWithLevels = skillsArray.slice(0, 8).map((skill: any) => ({
     name: typeof skill === 'string' ? skill : skill.name || skill,
     level: Math.floor(Math.random() * 40) + 60 // 60-100%
@@ -714,9 +855,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
       <View style={styles.sidebar}>
         <Text style={styles.name}>{data.fullName}</Text>
         <Text style={styles.title}>
-          {data.professionalSummary 
-            ? data.professionalSummary.substring(0, 50) + '...' 
-            : 'Professional'}
+          {data.professionalSummary || 'Professional'}
         </Text>
 
         {/* Contact */}
@@ -747,7 +886,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
         {data.education.length > 0 && (
           <View style={styles.sidebarSection}>
             <Text style={styles.sidebarTitle}>Education</Text>
-            {data.education.slice(0, 2).map((edu: any, index: number) => (
+            {data.education.map((edu: any, index: number) => (
               <View key={index} style={{ marginBottom: 12 }}>
                 <Text style={[styles.skillName, { fontWeight: 'bold' }]}>
                   {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
@@ -774,7 +913,7 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
         {data.workExperience.length > 0 && (
           <View>
             <Text style={styles.mainSectionTitle}>Experience</Text>
-            {data.workExperience.slice(0, 3).map((job: any, index: number) => (
+            {data.workExperience.map((job: any, index: number) => (
               <View key={index} style={styles.experienceItem}>
                 <Text style={styles.jobTitleMain}>
                   {job.jobTitle || job.title || job.position || 'Position'}
@@ -815,9 +954,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
       <View style={styles.header}>
         <Text style={styles.name}>{data.fullName}</Text>
         <Text style={styles.title}>
-          {data.professionalSummary 
-            ? data.professionalSummary.substring(0, 60) + '...' 
-            : 'Professional'}
+          {data.professionalSummary || 'Professional'}
         </Text>
         <View style={styles.contactRow}>
           {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
@@ -840,7 +977,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
         <View>
           <Text style={styles.sectionTitle}>Experience</Text>
           <View style={styles.divider} />
-          {data.workExperience.slice(0, 3).map((job: any, index: number) => (
+          {data.workExperience.map((job: any, index: number) => (
             <View key={index} style={styles.experienceHeader}>
               <Text style={styles.jobTitleMinimal}>
                 {job.jobTitle || job.title || job.position || 'Position'}
@@ -866,7 +1003,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
         <View>
           <Text style={styles.sectionTitle}>Education</Text>
           <View style={styles.divider} />
-          {data.education.slice(0, 2).map((edu: any, index: number) => (
+          {data.education.map((edu: any, index: number) => (
             <View key={index} style={{ marginBottom: 15 }}>
               <Text style={styles.jobTitleMinimal}>
                 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
@@ -886,7 +1023,7 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
           <Text style={styles.sectionTitle}>Skills</Text>
           <View style={styles.divider} />
           <Text style={styles.content}>
-            {skillsArray.slice(0, 15).join(' • ')}
+            {skillsArray.join(' • ')}
           </Text>
         </View>
       )}
@@ -906,7 +1043,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
   const styles = createCreativeStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
-  // Generate skill levels and categories
+  // Generate skill levels and categories - limit to 6 for progress bars
   const skillsWithLevels = skillsArray.slice(0, 6).map((skill: any) => ({
     name: typeof skill === 'string' ? skill : skill.name || skill,
     level: Math.floor(Math.random() * 30) + 70 // 70-100%
@@ -923,9 +1060,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
           <View style={styles.headerText}>
             <Text style={styles.nameCreative}>{data.fullName}</Text>
             <Text style={styles.titleCreative}>
-              {data.professionalSummary 
-                ? data.professionalSummary.substring(0, 50) + '...' 
-                : 'Creative Professional'}
+              {data.professionalSummary || 'Creative Professional'}
             </Text>
           </View>
         </View>
@@ -971,7 +1106,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
             {data.workExperience.length > 0 && (
               <View>
                 <Text style={styles.creativeSectionTitle}>Experience</Text>
-                {data.workExperience.slice(0, 3).map((job: any, index: number) => (
+                {data.workExperience.map((job: any, index: number) => (
                   <View key={index} style={styles.experienceCard}>
                     <Text style={styles.jobTitleCreative}>
                       {job.jobTitle || job.title || job.position || 'Position'}
@@ -1031,7 +1166,7 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
             {data.education.length > 0 && (
               <View>
                 <Text style={styles.creativeSectionTitle}>Education</Text>
-                {data.education.slice(0, 2).map((edu: any, index: number) => (
+                {data.education.map((edu: any, index: number) => (
                   <View key={index} style={[styles.experienceCard, { backgroundColor: colors.light, borderLeftColor: colors.accent }]}>
                     <Text style={styles.jobTitleCreative}>
                       {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
@@ -1071,23 +1206,32 @@ export {
 const PDFDocument = (props: any) => {
   const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle } = props;
   
+  // Smart one-page optimization before rendering
+  const optimizedData = optimizeContentForOnePage(resumeData, template);
+  
   // Get template configuration with custom colors
   const config = getTemplateConfig(template, colors);
   console.log('📄 PDF Generator - Using colors:', colors);
+  console.log('📄 PDF Generator - Content optimized for one page:', {
+    workExperience: optimizedData.workExperience?.length || 0,
+    education: optimizedData.education?.length || 0,
+    skills: optimizedData.skills?.length || 0,
+    summaryLength: optimizedData.professionalSummary?.length || 0
+  });
   console.log('📄 PDF Generator - Template config:', config.colors);
   console.log('📄 PDF Generator - Resume title:', resumeTitle);
 
   const renderTemplate = () => {
     switch (template) {
       case 'modern':
-        return <ModernTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
+        return <ModernTemplate resumeData={optimizedData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'minimal':
-        return <MinimalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
+        return <MinimalTemplate resumeData={optimizedData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'creative':
-        return <CreativeTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
+        return <CreativeTemplate resumeData={optimizedData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
       case 'professional':
       default:
-        return <ProfessionalTemplate resumeData={resumeData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
+        return <ProfessionalTemplate resumeData={optimizedData} isOptimized={isOptimized} colors={config.colors} resumeTitle={resumeTitle} />;
     }
   };
 

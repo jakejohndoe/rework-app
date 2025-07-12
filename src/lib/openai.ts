@@ -102,13 +102,18 @@ ${currentContent}
 Job Description:
 ${jobDescription}
 
-Instructions:
-- Keep the same factual information
+ONE-PAGE OPTIMIZATION INSTRUCTIONS:
+- Keep the same factual information but optimize for conciseness
 - Improve keyword alignment with the job description
-- Enhance impact and clarity
+- Enhance impact and clarity while maintaining brevity
 - Maintain professional tone
 - Use action verbs and quantified achievements where appropriate
 - Ensure ATS-friendly formatting
+- CRITICAL: Optimize for maximum impact in minimum space (one-page format)
+- For Work Experience: Limit each job description to 150-180 characters
+- For Professional Summary: Keep under 200 characters total
+- For Skills: Focus on the most relevant 8-12 skills only
+- Prioritize recent and job-relevant content over older experience
 
 Return only the optimized ${sectionName} content, no additional text.
 `
@@ -225,7 +230,17 @@ Guidelines:
 - readabilityScore: Clarity and structure
 - completenessScore: Coverage of job requirements
 
-Focus on technical skills, relevant experience, and ATS optimization.
+CRITICAL ONE-PAGE OPTIMIZATION REQUIREMENTS:
+- ALL suggestions MUST prioritize the most recent and relevant experience
+- Professional Summary should be 150-200 characters max for optimal one-page fit
+- Work Experience: Focus on top 3 most recent/relevant positions only
+- Job descriptions should be 150-180 characters each with key achievements
+- Education: Include only highest degree and most relevant certifications
+- Skills: Prioritize the 8-12 most important skills that match the job
+- Remove or de-prioritize older, less relevant experience to ensure one-page format
+- Optimize for maximum impact per line while maintaining ATS compatibility
+
+Focus on technical skills, relevant experience, ATS optimization, and ONE-PAGE FORMAT.
 `
 }
 
