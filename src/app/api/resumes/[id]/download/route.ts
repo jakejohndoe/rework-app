@@ -66,6 +66,7 @@ async function handleDownload(
 
     // Determine which version to use
     interface ResumeData {
+      contact?: Record<string, unknown>;
       contactInfo?: Record<string, unknown>;
       professionalSummary?: Record<string, unknown>;
       workExperience?: unknown[];
@@ -88,7 +89,8 @@ async function handleDownload(
       console.log('📊 Using structured (optimized) resume data with proper parsing');
       
       resumeData = {
-        // Parse contactInfo the same way as preview
+        // Parse contactInfo the same way as preview - NOTE: preview uses 'contact' key
+        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         
         // Parse professionalSummary the same way as preview  
@@ -110,8 +112,11 @@ async function handleDownload(
       };
 
       console.log('📋 Optimized data parsed:', {
+        hasContact: !!resumeData.contact,
         hasContactInfo: !!resumeData.contactInfo,
         hasProfessionalSummary: !!resumeData.professionalSummary,
+        professionalSummaryType: typeof resumeData.professionalSummary,
+        professionalSummaryKeys: resumeData.professionalSummary && typeof resumeData.professionalSummary === 'object' ? Object.keys(resumeData.professionalSummary) : 'N/A',
         workExpCount: resumeData.workExperience?.length || 0,
         skillsCount: resumeData.skills?.length || 0,
         educationCount: resumeData.education?.length || 0
@@ -166,10 +171,18 @@ async function handleDownload(
     });
 
     // Generate PDF
-    const buffer = await renderToBuffer(element);
-    
-    console.log('✅ PDF generated successfully, size:', buffer.length);
-    console.log('📄 PDF should now match preview exactly');
+    let buffer;
+    try {
+      buffer = await renderToBuffer(element);
+      console.log('✅ PDF generated successfully, size:', buffer.length);
+      console.log('📄 PDF should now match preview exactly');
+    } catch (renderError) {
+      console.error('❌ renderToBuffer failed:', renderError);
+      console.error('❌ Resume data keys:', Object.keys(resumeData));
+      console.error('❌ Professional summary type:', typeof resumeData.professionalSummary);
+      console.error('❌ Professional summary value:', resumeData.professionalSummary);
+      throw renderError;
+    }
 
     // Create descriptive filename
     const versionText = isOptimized ? 'optimized' : 'original';

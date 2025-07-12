@@ -10,16 +10,41 @@ import {
 
 // Smart One-Page Optimization Functions
 const optimizeContentForOnePage = (data: any, template: string) => {
-  // Prioritize and limit content to fit one page optimally
-  const optimized = {
-    ...data,
-    workExperience: prioritizeWorkExperience(data.workExperience || []),
-    education: prioritizeEducation(data.education || []),
-    skills: prioritizeSkills(data.skills || []),
-    professionalSummary: optimizeSummary(data.professionalSummary || '', template)
-  };
-  
-  return optimized;
+  try {
+    // Extract summary string if professionalSummary is an object
+    let summaryText = '';
+    if (data.professionalSummary) {
+      if (typeof data.professionalSummary === 'string') {
+        summaryText = data.professionalSummary;
+      } else if (typeof data.professionalSummary === 'object') {
+        // Handle object format from parsed JSON
+        summaryText = data.professionalSummary.summary || 
+                      data.professionalSummary.optimized || 
+                      data.professionalSummary.text ||
+                      '';
+        
+        // If still not a string, convert it
+        if (typeof summaryText !== 'string') {
+          summaryText = String(summaryText);
+        }
+      }
+    }
+    
+    // Prioritize and limit content to fit one page optimally
+    const optimized = {
+      ...data,
+      workExperience: prioritizeWorkExperience(data.workExperience || []),
+      education: prioritizeEducation(data.education || []),
+      skills: prioritizeSkills(data.skills || []),
+      professionalSummary: optimizeSummary(summaryText, template)
+    };
+    
+    return optimized;
+  } catch (error) {
+    console.error('❌ Error in optimizeContentForOnePage:', error);
+    // Return data as-is if optimization fails
+    return data;
+  }
 };
 
 const prioritizeWorkExperience = (experiences: any[]) => {
@@ -110,18 +135,34 @@ const optimizeSummary = (summary: string, template: string) => {
   return truncated.substring(0, limit - 3) + '...';
 };
 
-const optimizeJobDescription = (description: string, achievements?: string[]) => {
-  if (!description || description.length === 0) {
-    return achievements && achievements.length > 0 
-      ? achievements.slice(0, 2).join('. ') + '.'
-      : 'Responsible for key initiatives and strategic projects.';
+const optimizeJobDescription = (description: string | any, achievements?: string[] | any) => {
+  // Ensure description is a string
+  let descriptionStr = '';
+  if (typeof description === 'string') {
+    descriptionStr = description;
+  } else if (description && typeof description === 'object') {
+    descriptionStr = description.text || description.content || JSON.stringify(description);
+  }
+  
+  if (!descriptionStr || descriptionStr.length === 0) {
+    // Handle achievements that might also be objects
+    if (achievements && Array.isArray(achievements) && achievements.length > 0) {
+      const achievementStrings = achievements.map(a => 
+        typeof a === 'string' ? a : (a.text || a.content || JSON.stringify(a))
+      );
+      return achievementStrings.slice(0, 2).join('. ') + '.';
+    }
+    return 'Responsible for key initiatives and strategic projects.';
   }
   
   // Combine description with top achievements if available
-  let content = description;
-  if (achievements && achievements.length > 0) {
-    const topAchievements = achievements.slice(0, 2).join('. ');
-    content = `${description} ${topAchievements}.`;
+  let content = descriptionStr;
+  if (achievements && Array.isArray(achievements) && achievements.length > 0) {
+    const achievementStrings = achievements.map(a => 
+      typeof a === 'string' ? a : (a.text || a.content || JSON.stringify(a))
+    );
+    const topAchievements = achievementStrings.slice(0, 2).join('. ');
+    content = `${descriptionStr} ${topAchievements}.`;
   }
   
   // Optimize length for one-page format (aim for 150-200 chars per job)
@@ -647,7 +688,13 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
         // It's an object - extract the summary field
         professionalSummary = resumeData.professionalSummary.summary || 
                              resumeData.professionalSummary.optimized || 
-                             resumeData.professionalSummary;
+                             resumeData.professionalSummary.text ||
+                             '';
+        
+        // If it's still an object, try to convert to string
+        if (typeof professionalSummary === 'object') {
+          professionalSummary = JSON.stringify(professionalSummary);
+        }
       }
     }
 
@@ -706,6 +753,11 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
                    resumeTitle || 
                    'Professional Resume';
 
+  // Ensure professionalSummary is always a string
+  if (typeof professionalSummary !== 'string') {
+    professionalSummary = String(professionalSummary || '');
+  }
+
   return {
     contactInfo,
     professionalSummary,
@@ -723,16 +775,24 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
 // Helper function to extract skills array from skills object
 const extractSkillsArray = (skills: any): string[] => {
   const skillsArray = [];
-  if (skills.technical && Array.isArray(skills.technical)) skillsArray.push(...skills.technical);
-  if (skills.frameworks && Array.isArray(skills.frameworks)) skillsArray.push(...skills.frameworks);
-  if (skills.tools && Array.isArray(skills.tools)) skillsArray.push(...skills.tools);
-  if (skills.cloud && Array.isArray(skills.cloud)) skillsArray.push(...skills.cloud);
-  if (skills.databases && Array.isArray(skills.databases)) skillsArray.push(...skills.databases);
-  if (skills.soft && Array.isArray(skills.soft)) skillsArray.push(...skills.soft);
   
-  // Fallback to treating skills as simple array
-  if (skillsArray.length === 0 && Array.isArray(skills)) {
-    skillsArray.push(...skills);
+  // Early return if skills is null or undefined
+  if (!skills) return skillsArray;
+  
+  try {
+    if (skills.technical && Array.isArray(skills.technical)) skillsArray.push(...skills.technical);
+    if (skills.frameworks && Array.isArray(skills.frameworks)) skillsArray.push(...skills.frameworks);
+    if (skills.tools && Array.isArray(skills.tools)) skillsArray.push(...skills.tools);
+    if (skills.cloud && Array.isArray(skills.cloud)) skillsArray.push(...skills.cloud);
+    if (skills.databases && Array.isArray(skills.databases)) skillsArray.push(...skills.databases);
+    if (skills.soft && Array.isArray(skills.soft)) skillsArray.push(...skills.soft);
+    
+    // Fallback to treating skills as simple array
+    if (skillsArray.length === 0 && Array.isArray(skills)) {
+      skillsArray.push(...skills);
+    }
+  } catch (error) {
+    console.error('❌ Error extracting skills array:', error);
   }
   
   return skillsArray;
@@ -1206,8 +1266,11 @@ export {
 const PDFDocument = (props: any) => {
   const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle } = props;
   
+  // Ensure resumeData is an object
+  const safeResumeData = resumeData || {};
+  
   // Smart one-page optimization before rendering
-  const optimizedData = optimizeContentForOnePage(resumeData, template);
+  const optimizedData = optimizeContentForOnePage(safeResumeData, template);
   
   // Get template configuration with custom colors
   const config = getTemplateConfig(template, colors);
@@ -1216,10 +1279,12 @@ const PDFDocument = (props: any) => {
     workExperience: optimizedData.workExperience?.length || 0,
     education: optimizedData.education?.length || 0,
     skills: optimizedData.skills?.length || 0,
-    summaryLength: optimizedData.professionalSummary?.length || 0
+    summaryLength: optimizedData.professionalSummary?.length || 0,
+    summaryType: typeof optimizedData.professionalSummary
   });
   console.log('📄 PDF Generator - Template config:', config.colors);
   console.log('📄 PDF Generator - Resume title:', resumeTitle);
+  console.log('📄 PDF Generator - Optimized data keys:', Object.keys(optimizedData));
 
   const renderTemplate = () => {
     switch (template) {
