@@ -229,20 +229,19 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // Concise descriptions for one-page format - much shorter and focused
-  const maxLength = 120; // Significantly reduced for tighter formatting
+  // Ultra-concise descriptions for guaranteed one-page format
+  const maxLength = 60; // Extremely short for multiple work experiences
   
   if (content.length <= maxLength) return content;
   
-  // Extract key action words and achievements only
+  // Only the most essential terms for ultra-short descriptions
   const keyTerms = [
-    // Action verbs (keep these)
-    'developed', 'created', 'built', 'designed', 'implemented', 'managed', 'led', 'improved', 
-    'optimized', 'increased', 'reduced', 'achieved', 'delivered', 'launched', 'maintained',
-    'collaborated', 'coordinated', 'analyzed', 'streamlined', 'automated',
-    // Technologies and metrics (prioritize these)
-    'react', 'node', 'javascript', 'python', 'sql', 'aws', 'api', 'database', 'frontend', 
-    'backend', 'full-stack', '%', '$', 'million', 'thousand', 'users', 'customers'
+    // Core action verbs
+    'built', 'created', 'developed', 'led', 'managed', 'improved', 'increased',
+    // Essential tech terms
+    'react', 'node', 'javascript', 'python', 'api', 'database', 'aws',
+    // Impact metrics
+    '%', '$', 'users', 'revenue', 'performance'
   ];
   
   // Split into sentences and prioritize those with key terms
@@ -279,16 +278,32 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     return firstSentence + (firstSentence.endsWith('.') ? '' : '.');
   }
   
-  // Last resort: fit key words only
-  const words = firstSentence.split(' ');
+  // Ultra-compact: Extract key terms only for bullet-point style
+  const allWords = content.toLowerCase().split(/[\s,\.]+/);
+  const importantWords = allWords.filter(word => 
+    keyTerms.some(term => word.includes(term)) || 
+    /\d/.test(word) || // Numbers (metrics)
+    word.length > 6 // Longer words likely to be important
+  );
+  
+  // Build concise description with key terms
   let result = '';
-  for (const word of words) {
-    const testResult = result + (result ? ' ' : '') + word;
-    if (testResult.length > maxLength - 1) break;
-    result = testResult;
+  const originalWords = content.split(' ');
+  for (const word of originalWords) {
+    if (importantWords.includes(word.toLowerCase().replace(/[^\w]/g, ''))) {
+      const testResult = result + (result ? ' ' : '') + word;
+      if (testResult.length > maxLength - 1) break;
+      result = testResult;
+    }
   }
   
-  return result + '.' || content.substring(0, maxLength - 1).trim() + '.';
+  // Ensure it ends properly and is meaningful
+  if (result.length < 20) {
+    // If too short, take first meaningful phrase
+    result = content.substring(0, maxLength - 1).trim();
+  }
+  
+  return result.replace(/[,;:]$/, '') + '.';
 };
 
 // Helper function to get template configuration with custom colors
