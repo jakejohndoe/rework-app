@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { useSession, signIn, signOut } from "next-auth/react"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { toast } from "sonner"
 import confetti from "canvas-confetti"
 import { 
   Brain, 
@@ -27,6 +26,7 @@ export default function HomePage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [showSparkles, setShowSparkles] = useState(false)
+  const [showWelcomeBadge, setShowWelcomeBadge] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLButtonElement>(null)
   const welcomeCardRef = useRef<HTMLDivElement>(null)
@@ -117,19 +117,11 @@ export default function HomePage() {
       })
     }, 400)
 
-    // 2. Welcome Toast Notification
+    // 2. Welcome Badge Animation
     setTimeout(() => {
-      toast.success(
-        `Welcome back${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 🎉`, 
-        {
-          description: "Ready to create an amazing resume? Let's get started!",
-          duration: 4000,
-          action: {
-            label: "Get Started",
-            onClick: () => window.location.href = '/dashboard'
-          }
-        }
-      )
+      setShowWelcomeBadge(true)
+      // Hide badge after 4 seconds
+      setTimeout(() => setShowWelcomeBadge(false), 4000)
     }, 500)
 
     // 3. Sparkle Animation on Welcome Card
@@ -408,6 +400,15 @@ export default function HomePage() {
                 )}
                 
                 <CardHeader className="text-center relative z-10 pb-6">
+                  {/* Animated Welcome Badge */}
+                  {showWelcomeBadge && (
+                    <div className="absolute top-4 right-4 z-20 animate-in slide-in-from-right-5 fade-in duration-500">
+                      <Badge className="bg-gradient-to-r from-green-500/90 to-emerald-600/90 text-white border-0 px-4 py-2 animate-pulse backdrop-blur-sm">
+                        ✨ Successfully signed in!
+                      </Badge>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
                       <CheckCircle className="w-6 h-6 text-white" />
