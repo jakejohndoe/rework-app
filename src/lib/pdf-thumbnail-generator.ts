@@ -1,5 +1,4 @@
 // src/lib/pdf-thumbnail-generator.ts
-import pdf from 'pdf-poppler';
 import sharp from 'sharp';
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -11,6 +10,9 @@ export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | 
     console.log('⚠️ Skipping thumbnail generation on Linux platform (Vercel)')
     return null
   }
+
+  // Dynamic import to avoid loading pdf-poppler on Linux
+  const pdf = await import('pdf-poppler');
 
   let tempPdfPath: string | null = null;
   const outputFiles: string[] = [];
@@ -51,7 +53,7 @@ export async function generatePDFThumbnail(pdfBuffer: Buffer): Promise<string | 
           reject(new Error('PDF conversion timeout after 10 seconds'));
         }, 10000);
 
-        pdf.convert(tempPdfPath!, options)
+        pdf.default.convert(tempPdfPath!, options)
           .then(() => {
             clearTimeout(timeout);
             resolve();
