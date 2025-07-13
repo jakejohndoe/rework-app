@@ -99,9 +99,6 @@ export async function GET(
       where: {
         id: resumeId,
         user: { email: session.user.email }
-      },
-      include: {
-        jobApplication: true
       }
     })
 
