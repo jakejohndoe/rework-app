@@ -1562,6 +1562,8 @@ const PDFDocument = (props: any) => {
   // Get template configuration with custom colors
   const config = getTemplateConfig(template, colors);
   console.log('📄 PDF Generator - Using colors:', colors);
+  console.log('📄 PDF Generator - RAW RESUME DATA:', JSON.stringify(safeResumeData, null, 2));
+  console.log('📄 PDF Generator - OPTIMIZED DATA:', JSON.stringify(optimizedData, null, 2));
   console.log('📄 PDF Generator - Content optimized for one page:', {
     workExperience: optimizedData.workExperience?.length || 0,
     education: optimizedData.education?.length || 0,
