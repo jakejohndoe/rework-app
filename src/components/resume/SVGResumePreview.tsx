@@ -382,9 +382,24 @@ export function SVGResumePreview({
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-{(job.achievements && Array.isArray(job.achievements) 
+{(() => {
+              const content = job.achievements && Array.isArray(job.achievements) 
                 ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and implemented security protocols.').substring(0, 160)}...
+                : job.description || job.responsibilities || 'Led network infrastructure projects and implemented security protocols.';
+              
+              // Smart truncation at sentence boundaries
+              if (content.length <= 160) return content;
+              
+              const sentences = content.split('. ');
+              let result = '';
+              for (const sentence of sentences) {
+                const withSentence = result + (result ? '. ' : '') + sentence;
+                if (withSentence.length > 160) break;
+                result = withSentence;
+              }
+              
+              return result + (result.endsWith('.') ? '' : '.');
+            })()}
             </div>
           </foreignObject>
         </g>
@@ -533,9 +548,24 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{(job.achievements && Array.isArray(job.achievements) 
+{(() => {
+              const content = job.achievements && Array.isArray(job.achievements) 
                 ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 150)}...
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
+              
+              // Smart truncation at sentence boundaries
+              if (content.length <= 150) return content;
+              
+              const sentences = content.split('. ');
+              let result = '';
+              for (const sentence of sentences) {
+                const withSentence = result + (result ? '. ' : '') + sentence;
+                if (withSentence.length > 150) break;
+                result = withSentence;
+              }
+              
+              return result + (result.endsWith('.') ? '' : '.');
+            })()}
             </div>
           </foreignObject>
         </g>
@@ -631,9 +661,24 @@ export function SVGResumePreview({
 
           <foreignObject x="50" y={330 + index * 90} width="500" height="40">
             <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
-{(job.achievements && Array.isArray(job.achievements) 
+{(() => {
+              const content = job.achievements && Array.isArray(job.achievements) 
                 ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 180)}...
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
+              
+              // Smart truncation at sentence boundaries  
+              if (content.length <= 180) return content;
+              
+              const sentences = content.split('. ');
+              let result = '';
+              for (const sentence of sentences) {
+                const withSentence = result + (result ? '. ' : '') + sentence;
+                if (withSentence.length > 180) break;
+                result = withSentence;
+              }
+              
+              return result + (result.endsWith('.') ? '' : '.');
+            })()}
             </div>
           </foreignObject>
         </g>
@@ -779,9 +824,24 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{(job.achievements && Array.isArray(job.achievements) 
+{(() => {
+              const content = job.achievements && Array.isArray(job.achievements) 
                 ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.').substring(0, 140)}...
+                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
+              
+              // Smart truncation at sentence boundaries
+              if (content.length <= 140) return content;
+              
+              const sentences = content.split('. ');
+              let result = '';
+              for (const sentence of sentences) {
+                const withSentence = result + (result ? '. ' : '') + sentence;
+                if (withSentence.length > 140) break;
+                result = withSentence;
+              }
+              
+              return result + (result.endsWith('.') ? '' : '.');
+            })()}
             </div>
           </foreignObject>
         </g>
