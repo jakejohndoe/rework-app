@@ -1056,9 +1056,10 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
   const education = parseEducation();
   const skills = parseSkills();
 
-  // DEBUG: Let's see what's actually in the database
-  console.log('🔍 REAL DATABASE WORK EXPERIENCE:', workExperience);
-  console.log('🔍 Work experience type and length:', typeof workExperience, workExperience.length);
+  // If work experience is empty, that means suggestions haven't been applied yet
+  if (workExperience.length === 0) {
+    console.log('⚠️ No work experience found - suggestions may not have been applied during finalization');
+  }
 
   console.log('🔍 extractOptimizedData - Work Experience:', {
     originalType: typeof resumeData.workExperience,

@@ -47,6 +47,7 @@ export async function POST(
     const resumeId = id
 
     console.log('🔄 Applying AI suggestions to resume:', resumeId)
+    console.log('📊 Session user ID:', session.user.id)
 
     // Get the request body
     const body: ApplySuggestionRequest = await request.json()
@@ -69,7 +70,10 @@ export async function POST(
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
     }
 
-    console.log(`📝 Applying ${suggestions.length} suggestions to resume`)
+    console.log(`📝 Applying ${suggestions.length} suggestions to resume:`)
+    suggestions.forEach((suggestion, index) => {
+      console.log(`  ${index + 1}. [${suggestion.section}] ${suggestion.type}: "${suggestion.suggested.substring(0, 100)}..."`)
+    })
 
     // Get current structured data with safe parsing
     const currentData: StructuredResumeData = {
@@ -113,6 +117,7 @@ export async function POST(
     })
 
     console.log('✅ Successfully applied suggestions and created version')
+    console.log('💾 Final work experience data saved to database:', JSON.stringify(updatedData.workExperience, null, 2))
 
     return NextResponse.json({
       success: true,
@@ -276,6 +281,11 @@ function applyWorkExperienceSuggestion(
   currentExperience: WorkExperience[] | undefined,
   suggestion: { type: 'improve' | 'add', suggested: string }
 ): WorkExperience[] {
+  console.log('🔧 applyWorkExperienceSuggestion called:')
+  console.log('  Current experience count:', currentExperience?.length || 0)
+  console.log('  Suggestion type:', suggestion.type)
+  console.log('  Suggestion content:', suggestion.suggested.substring(0, 200))
+  
   const experience = currentExperience || []
 
   if (suggestion.type === 'add') {
@@ -317,6 +327,17 @@ function applyWorkExperienceSuggestion(
       experience.push(newExperience)
     }
   }
+
+  console.log('✅ Work experience result:')
+  console.log('  Final experience count:', experience.length)
+  experience.forEach((exp, index) => {
+    console.log(`  ${index + 1}. ${exp.jobTitle} at ${exp.company} (${exp.achievements?.length || 0} achievements)`)
+    if (exp.achievements) {
+      exp.achievements.forEach((achievement, i) => {
+        console.log(`     Achievement ${i + 1}: ${achievement.substring(0, 100)}...`)
+      })
+    }
+  })
 
   return experience
 }

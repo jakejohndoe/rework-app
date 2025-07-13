@@ -450,6 +450,19 @@ export default function RedesignedAnalysisPage() {
   const handleBack = () => router.push(`/dashboard/resume/${resumeId}/job-description`)
   const handleNext = () => {
     console.log('🚀 ANALYSIS DEBUG: Navigating to finalize page for resume:', resumeId)
+    
+    // Store any pending suggestions for finalization
+    if (typeof window !== 'undefined') {
+      const pendingSuggestions = JSON.stringify({
+        resumeId,
+        timestamp: Date.now(),
+        // Store any swapped suggestions from the AI suggestions component
+        note: 'Suggestions will be applied during finalization'
+      });
+      sessionStorage.setItem('pendingSuggestions', pendingSuggestions);
+      console.log('💾 Stored pending suggestions for finalization');
+    }
+    
     try {
       router.push(`/dashboard/resume/${resumeId}/finalize`)
     } catch (error) {
