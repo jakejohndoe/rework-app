@@ -1056,41 +1056,9 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
   const education = parseEducation();
   const skills = parseSkills();
 
-  // TEMPORARY: If work experience is empty, add sample data based on what we know exists
-  if (workExperience.length === 0) {
-    console.log('🔧 TEMP FIX: Adding work experience with REAL applied suggestions');
-    workExperience = [
-      {
-        id: "temp-1",
-        jobTitle: "Founder / Developer", 
-        company: "Rework",
-        startDate: "2024",
-        endDate: "present",
-        location: "Remote",
-        achievements: [
-          "Increased keyword match accuracy by 85% through the implementation of a document comparison system, leading to a 25% increase in user satisfaction ratings"
-        ],
-        technologies: ["React", "TypeScript", "Node.js", "AWS", "OpenAI API"],
-        isCurrentRole: true,
-        keyMetrics: "85% keyword match rate, 200+ active users"
-      },
-      {
-        id: "temp-2",
-        jobTitle: "Rental Agent",
-        company: "Property Management Company", 
-        startDate: "2023",
-        endDate: "2024",
-        location: "Saint Paul, Minnesota",
-        achievements: [
-          "Managed property leasing operations and client relationships with 95% tenant satisfaction",
-          "Achieved 20% faster lease processing through streamlined documentation workflows"
-        ],
-        technologies: ["Property Management Software", "CRM Systems"],
-        isCurrentRole: false,
-        keyMetrics: "95% tenant satisfaction, 40+ properties managed"
-      }
-    ];
-  }
+  // DEBUG: Let's see what's actually in the database
+  console.log('🔍 REAL DATABASE WORK EXPERIENCE:', workExperience);
+  console.log('🔍 Work experience type and length:', typeof workExperience, workExperience.length);
 
   console.log('🔍 extractOptimizedData - Work Experience:', {
     originalType: typeof resumeData.workExperience,
