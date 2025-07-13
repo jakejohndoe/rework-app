@@ -1,7 +1,7 @@
 // src/components/resume/SVGResumePreview.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ interface SVGResumePreviewProps {
   className?: string;
   showDownload?: boolean;
   onDownload?: () => void;
+  enableSvgToPdf?: boolean;
   colors?: {
     primary: string;
     accent: string;
@@ -63,11 +64,14 @@ export function SVGResumePreview({
   className = '',
   showDownload = false,
   onDownload,
+  enableSvgToPdf = false,
   colors
 }: SVGResumePreviewProps) {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // Template configurations - now uses custom colors if provided
   const getTemplateConfig = (template: string, customColors?: { primary: string; accent: string }) => {
@@ -304,9 +308,60 @@ export function SVGResumePreview({
     return extractedData;
   };
 
+  // SVG to PDF conversion function
+  const handleSvgToPdfDownload = async () => {
+    if (!svgRef.current || !enableSvgToPdf) return;
+    
+    setIsDownloading(true);
+    try {
+      // Get the SVG content as a string
+      const svgElement = svgRef.current;
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElement);
+      
+      console.log('🎨 Converting SVG to PDF...');
+      
+      // Send to conversion API
+      const response = await fetch(`/api/resumes/${resumeId}/svg-to-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          svgContent: svgString,
+          template,
+          colors
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`SVG to PDF conversion failed: ${response.statusText}`);
+      }
+      
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `resume-${template}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log('✅ SVG to PDF download complete');
+    } catch (error) {
+      console.error('❌ SVG to PDF conversion failed:', error);
+      alert('Failed to convert SVG to PDF. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
-    <svg viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
       <defs>
         <linearGradient id="profGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -397,19 +452,29 @@ export function SVGResumePreview({
                 return 'Responsible for key projects and strategic initiatives in technology and development.';
               }
               
-              // Smart truncation at sentence boundaries
-              if (content.length <= 160) return content;
+              // Clean up the content first - remove extra whitespace and newlines
+              const cleanContent = content.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
               
-              const sentences = content.split('. ');
+              // If content fits, return it
+              if (cleanContent.length <= 160) return cleanContent;
+              
+              // Smart truncation at sentence boundaries
+              const sentences = cleanContent.split('. ');
               let result = '';
               for (const sentence of sentences) {
                 if (!sentence.trim()) continue;
-                const withSentence = result + (result ? '. ' : '') + sentence;
+                const testSentence = sentence.trim();
+                const withSentence = result + (result ? '. ' : '') + testSentence;
                 if (withSentence.length > 160) break;
                 result = withSentence;
               }
               
-              return result + (result.endsWith('.') ? '' : '.');
+              // Ensure proper ending
+              if (result && !result.endsWith('.')) {
+                result += '.';
+              }
+              
+              return result || cleanContent.substring(0, 157) + '...';
             })()}
             </div>
           </foreignObject>
@@ -470,7 +535,7 @@ export function SVGResumePreview({
 
   // 🎨 MODERN TEMPLATE
   const renderModernTemplate = (data: ResumeData) => (
-    <svg viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
       <defs>
         <linearGradient id="modernBg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor: '#f8fafc'}} />
@@ -615,7 +680,7 @@ export function SVGResumePreview({
 
   // 🎨 MINIMAL TEMPLATE
   const renderMinimalTemplate = (data: ResumeData) => (
-    <svg viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
       {/* Clean white background */}
       <rect width="612" height="792" fill="white"/>
       
@@ -746,7 +811,7 @@ export function SVGResumePreview({
 
   // 🎨 CREATIVE TEMPLATE
   const renderCreativeTemplate = (data: ResumeData) => (
-    <svg viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
       <defs>
         <linearGradient id="creativeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -1036,11 +1101,16 @@ export function SVGResumePreview({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={onDownload}
+                  onClick={enableSvgToPdf ? handleSvgToPdfDownload : onDownload}
+                  disabled={isDownloading}
                   className="text-white border-white/20 hover:bg-white/10"
                 >
-                  <Download className="w-3 h-3 mr-1" />
-                  Download
+                  {isDownloading ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <Download className="w-3 h-3 mr-1" />
+                  )}
+                  {isDownloading ? 'Converting...' : 'Download'}
                 </Button>
               )}
             </div>

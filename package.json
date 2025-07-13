@@ -41,6 +41,7 @@
     "pdfjs-dist": "^5.3.31",
     "postcss": "^8.5.3",
     "prisma": "^6.8.2",
+    "puppeteer": "^24.12.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
