@@ -1068,13 +1068,26 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
         endDate: "present",
         location: "Remote",
         achievements: [
-          "AI powered application that optimizes resumes to match specific job listings",
-          "Increased user engagement by 85% through enhanced keyword matching features", 
-          "Reduced resume optimization time by 90% through automated analysis"
+          "Increased keyword match accuracy by 85% through the implementation of a document comparison system, leading to a 25% increase in user satisfaction ratings"
         ],
         technologies: ["React", "TypeScript", "Node.js", "AWS", "OpenAI API"],
         isCurrentRole: true,
         keyMetrics: "85% keyword match rate, 200+ active users"
+      },
+      {
+        id: "temp-2",
+        jobTitle: "Rental Agent",
+        company: "Property Management Company", 
+        startDate: "2023",
+        endDate: "2024",
+        location: "Saint Paul, Minnesota",
+        achievements: [
+          "Managed property leasing operations and client relationships with 95% tenant satisfaction",
+          "Achieved 20% faster lease processing through streamlined documentation workflows"
+        ],
+        technologies: ["Property Management Software", "CRM Systems"],
+        isCurrentRole: false,
+        keyMetrics: "95% tenant satisfaction, 40+ properties managed"
       }
     ];
   }
