@@ -1114,6 +1114,17 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         </View>
       )}
 
+      {/* DEBUG: Show what data we have */}
+      <View style={{ marginTop: 10, marginBottom: 10 }}>
+        <Text style={styles.sectionTitle}>DEBUG - Data Check</Text>
+        <Text style={styles.content}>Work Experience Array Length: {data.workExperience?.length || 0}</Text>
+        <Text style={styles.content}>Work Experience Type: {typeof data.workExperience}</Text>
+        <Text style={styles.content}>Raw Resume Data Keys: {Object.keys(resumeData).join(', ')}</Text>
+        {data.workExperience?.length > 0 && (
+          <Text style={styles.content}>First Job: {JSON.stringify(data.workExperience[0]).substring(0, 200)}...</Text>
+        )}
+      </View>
+
       {/* Work Experience - FIXED FIELD MAPPING */}
       {data.workExperience.length > 0 && (
         <View>
