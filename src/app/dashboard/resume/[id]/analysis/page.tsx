@@ -362,7 +362,7 @@ export default function RedesignedAnalysisPage() {
       
       try {
         // First try to load existing analysis
-        const response = await fetch(`/api/resumes/${resumeId}/analysis`)
+        const response = await fetch(`/api/resumes/${resumeId}/analyze`)
         if (response.ok) {
           const data = await response.json()
           if (data.analysis) {

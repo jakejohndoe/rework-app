@@ -89,7 +89,8 @@ async function handleDownload(
       console.log('📊 Using structured (optimized) resume data with proper parsing');
       
       resumeData = {
-        // Parse contactInfo consistently
+        // Parse contactInfo consistently - add BOTH contactInfo and contact for compatibility
+        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         
         // Parse professionalSummary the same way as preview  
@@ -110,12 +111,19 @@ async function handleDownload(
         isOptimized: true
       };
 
+      console.log('📋 RAW DATABASE RESUME FIELDS:', {
+        workExperienceType: typeof resume.workExperience,
+        workExperienceContent: JSON.stringify(resume.workExperience),
+        workExpRawLength: Array.isArray(resume.workExperience) ? resume.workExperience.length : 'not array'
+      });
+
       console.log('📋 Optimized data parsed:', {
         hasContactInfo: !!resumeData.contactInfo,
         hasProfessionalSummary: !!resumeData.professionalSummary,
         professionalSummaryType: typeof resumeData.professionalSummary,
         professionalSummaryKeys: resumeData.professionalSummary && typeof resumeData.professionalSummary === 'object' ? Object.keys(resumeData.professionalSummary) : 'N/A',
         workExpCount: resumeData.workExperience?.length || 0,
+        workExpContent: JSON.stringify(resumeData.workExperience),
         skillsCount: resumeData.skills?.length || 0,
         educationCount: resumeData.education?.length || 0
       });
