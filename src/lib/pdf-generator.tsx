@@ -1077,8 +1077,14 @@ const extractSkillsArray = (skills: any): string[] => {
 
 // FIXED: Professional Template Component
 const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) => {
+  // DEBUG: Log everything we receive
+  console.log('🎯 PROFESSIONAL TEMPLATE - Raw resumeData:', JSON.stringify(resumeData, null, 2));
+  
   // Use optimized data with proper contact extraction
   const data = extractOptimizedData(resumeData, resumeTitle);
+  console.log('🎯 PROFESSIONAL TEMPLATE - Extracted data:', JSON.stringify(data, null, 2));
+  console.log('🎯 PROFESSIONAL TEMPLATE - Work experience count:', data.workExperience?.length || 0);
+  
   const styles = createProfessionalStyles(colors);
   const skillsArray = extractSkillsArray(data.skills);
 
