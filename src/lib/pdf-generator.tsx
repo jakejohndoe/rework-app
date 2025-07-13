@@ -262,7 +262,7 @@ const optimizeJobDescription = (description: string | any, achievements?: string
       const achievementStrings = achievements.map(a => 
         typeof a === 'string' ? a : (a.text || a.content || JSON.stringify(a))
       );
-      return achievementStrings.slice(0, 3).join('. ') + '.';
+      return achievementStrings.slice(0, 2).join('. ') + '.';
     }
     return 'Responsible for key initiatives and strategic projects.';
   }
@@ -277,8 +277,8 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // More reasonable description length for better readability
-  const maxLength = 150; // Increased from 60 to allow more meaningful content
+  // Balanced description length - almost full but slightly shortened
+  const maxLength = 300; // Good balance - allows substantial content while ensuring one page
   
   if (content.length <= maxLength) return content;
   
