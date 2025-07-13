@@ -9,26 +9,19 @@ import {
 } from '@react-pdf/renderer';
 
 // Smart One-Page Optimization Functions
-const optimizeContentForOnePage = (data: any, template: string) => {
+const optimizeContentForOnePage = (data: any, template: string, enableOptimization: boolean = true) => {
+  // If optimization is disabled, return data as-is with proper summary extraction
+  if (!enableOptimization) {
+    console.log('📄 One-page optimization disabled, using full content');
+    return {
+      ...data,
+      professionalSummary: extractSummaryText(data.professionalSummary)
+    };
+  }
+
   try {
-    // Extract summary string if professionalSummary is an object
-    let summaryText = '';
-    if (data.professionalSummary) {
-      if (typeof data.professionalSummary === 'string') {
-        summaryText = data.professionalSummary;
-      } else if (typeof data.professionalSummary === 'object') {
-        // Handle object format from parsed JSON
-        summaryText = data.professionalSummary.summary || 
-                      data.professionalSummary.optimized || 
-                      data.professionalSummary.text ||
-                      '';
-        
-        // If still not a string, convert it
-        if (typeof summaryText !== 'string') {
-          summaryText = String(summaryText);
-        }
-      }
-    }
+    // Extract summary text from various formats
+    const summaryText = extractSummaryText(data.professionalSummary);
     
     // Prioritize and limit content to fit one page optimally
     const optimized = {
@@ -36,7 +29,7 @@ const optimizeContentForOnePage = (data: any, template: string) => {
       workExperience: prioritizeWorkExperience(data.workExperience || []),
       education: prioritizeEducation(data.education || []),
       skills: prioritizeSkills(data.skills || []),
-      professionalSummary: optimizeSummary(data.professionalSummary || summaryText || '', template)
+      professionalSummary: optimizeSummary(summaryText, template)
     };
     
     console.log('✅ Content optimization complete:', {
@@ -50,9 +43,30 @@ const optimizeContentForOnePage = (data: any, template: string) => {
   } catch (error) {
     console.error('❌ Error in optimizeContentForOnePage:', error);
     console.error('📊 Data that caused error:', JSON.stringify(data, null, 2));
-    // Return data as-is if optimization fails
-    return data;
+    // Return data as-is with proper summary extraction if optimization fails
+    return {
+      ...data,
+      professionalSummary: extractSummaryText(data.professionalSummary)
+    };
   }
+};
+
+// Helper function to extract summary text from various formats
+const extractSummaryText = (professionalSummary: any): string => {
+  if (!professionalSummary) return '';
+  
+  if (typeof professionalSummary === 'string') {
+    return professionalSummary;
+  } else if (typeof professionalSummary === 'object') {
+    // Handle object format from parsed JSON
+    return professionalSummary.summary || 
+           professionalSummary.optimized || 
+           professionalSummary.text ||
+           professionalSummary.content ||
+           '';
+  }
+  
+  return String(professionalSummary);
 };
 
 const prioritizeWorkExperience = (experiences: any) => {
@@ -78,13 +92,28 @@ const prioritizeWorkExperience = (experiences: any) => {
         const dateB = new Date(b.endDate || b.startDate || '1970');
         return dateB.getTime() - dateA.getTime();
       })
-      .slice(0, 3) // Keep top 3 most recent/relevant
+      .slice(0, 5) // Keep top 5 most recent/relevant (increased from 3)
       .map((job, index) => {
         console.log(`🔍 DEBUG: Processing job ${index + 1}:`, Object.keys(job));
         console.log(`🔍 DEBUG: Job ${index + 1} ALL FIELDS:`, JSON.stringify(job, null, 2));
         
-        // Try multiple description fields
-        const originalDesc = job.description || job.responsibilities || job.summary || job.duties || job.text || job.content || '';
+        // Try multiple description fields - comprehensive list
+        const originalDesc = job.description || 
+                             job.responsibilities || 
+                             job.summary || 
+                             job.duties || 
+                             job.text || 
+                             job.content || 
+                             job.jobDescription ||
+                             job.role ||
+                             job.tasks ||
+                             job.details ||
+                             job.experience ||
+                             job.achievements ||
+                             job.accomplishments ||
+                             job.overview ||
+                             job.about ||
+                             '';
         console.log(`🔍 DEBUG: Job ${index + 1} - Original description length:`, originalDesc.length);
         console.log(`🔍 DEBUG: Job ${index + 1} - Original description:`, originalDesc.substring(0, 300) + (originalDesc.length > 300 ? '...' : ''));
         
@@ -122,7 +151,7 @@ const prioritizeEducation = (education: any) => {
         const yearB = parseInt(b.year || b.endDate?.split('-')[0] || '1970');
         return yearB - yearA;
       })
-      .slice(0, 2); // Keep top 2 most recent
+      .slice(0, 3); // Keep top 3 most recent (increased from 2)
   } catch (error) {
     console.error('❌ Error in prioritizeEducation:', error);
     return [];
@@ -147,7 +176,7 @@ const prioritizeSkills = (skills: any) => {
         const skillB = typeof b === 'string' ? b : (b.name || String(b) || '');
         return skillA.length - skillB.length;
       })
-      .slice(0, 10); // Optimal number for one page
+      .slice(0, 15); // Increased skill limit for better representation
   } catch (error) {
     console.error('❌ Error in prioritizeSkills:', error);
     return [];
@@ -167,12 +196,12 @@ const optimizeSummary = (summary: string | any, template: string) => {
   
   if (!summaryStr || summaryStr.length === 0) return '';
   
-  // Generous character limits with smaller fonts for complete sentences
+  // More generous character limits for better content preservation
   const limits = {
-    professional: 300,
-    modern: 250,
-    minimal: 280,
-    creative: 270
+    professional: 400,
+    modern: 350,
+    minimal: 380,
+    creative: 370
   };
   
   const limit = limits[template as keyof typeof limits] || 280;
@@ -233,7 +262,7 @@ const optimizeJobDescription = (description: string | any, achievements?: string
       const achievementStrings = achievements.map(a => 
         typeof a === 'string' ? a : (a.text || a.content || JSON.stringify(a))
       );
-      return achievementStrings.slice(0, 2).join('. ') + '.';
+      return achievementStrings.slice(0, 3).join('. ') + '.';
     }
     return 'Responsible for key initiatives and strategic projects.';
   }
@@ -248,8 +277,8 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // Ultra-concise descriptions for guaranteed one-page format
-  const maxLength = 60; // Extremely short for multiple work experiences
+  // More reasonable description length for better readability
+  const maxLength = 150; // Increased from 60 to allow more meaningful content
   
   if (content.length <= maxLength) return content;
   
@@ -398,18 +427,18 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     hyphenationFactor: 0,
   },
   header: {
-    marginBottom: 8,
-    paddingBottom: 8,
-    borderBottomWidth: 3,
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 2,
     borderBottomColor: colors.primary,
     textAlign: 'center',
   },
   name: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   title: {
     fontSize: 10,
@@ -427,21 +456,21 @@ const createProfessionalStyles = (colors: any) => StyleSheet.create({
     color: colors.secondary,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 'bold',
     fontFamily: 'Times-Roman',
     color: colors.primary,
-    marginTop: 8,
-    marginBottom: 4,
-    paddingBottom: 1,
+    marginTop: 10,
+    marginBottom: 5,
+    paddingBottom: 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
   },
   content: {
-    fontSize: 9,
-    lineHeight: 1.4,
+    fontSize: 10,
+    lineHeight: 1.5,
     color: colors.text,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -913,8 +942,8 @@ const extractResumeData = (resumeData: any, resumeTitle?: string) => {
 const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
   const getContactInfo = () => {
     let contactInfo = {};
-    if (resumeData.contactInfo || resumeData.contact) {
-      const contact = resumeData.contactInfo || resumeData.contact;
+    if (resumeData.contactInfo) {
+      const contact = resumeData.contactInfo;
       if (typeof contact === 'string') {
         try {
           contactInfo = JSON.parse(contact);
@@ -930,6 +959,9 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
 
   const contactInfo = getContactInfo();
   
+  // Extract professional summary text properly
+  const summaryText = extractSummaryText(resumeData.professionalSummary);
+  
   return {
     fullName: contactInfo?.name || 
               contactInfo?.fullName || 
@@ -942,7 +974,7 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
     phone: contactInfo?.phone || resumeData.phone || '',
     location: contactInfo?.location || resumeData.location || '',
     linkedin: contactInfo?.linkedin || resumeData.linkedin || '',
-    professionalSummary: resumeData.professionalSummary || '',
+    professionalSummary: summaryText,
     workExperience: resumeData.workExperience || [],
     education: resumeData.education || [],
     skills: resumeData.skills || {}
@@ -1024,9 +1056,14 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
               </View>
               <Text style={styles.company}>{job.company || 'Company Name'}</Text>
               
-              <Text style={styles.content}>
-                {job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
-              </Text>
+              {(job.description || job.responsibilities || job.achievements) && (
+                <Text style={styles.content}>
+                  {job.description || job.responsibilities || 
+                   (job.achievements && Array.isArray(job.achievements) ? 
+                    job.achievements.slice(0, 3).join('. ') + '.' : 
+                    'Responsible for key initiatives and strategic projects.')}
+                </Text>
+              )}
             </View>
           ))}
         </View>
@@ -1160,9 +1197,10 @@ const ModernTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) =
                   {job.startDate || '2020'} - {job.endDate || 'Present'}
                 </Text>
                 <Text style={styles.jobDescription}>
-                  {job.achievements && Array.isArray(job.achievements) 
-                    ? job.achievements.join('. ') + '.'
-                    : job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
+                  {job.description || job.responsibilities || 
+                   (job.achievements && Array.isArray(job.achievements) ? 
+                    job.achievements.slice(0, 3).join('. ') + '.' : 
+                    'Responsible for key initiatives and strategic projects.')}
                 </Text>
               </View>
             ))}
@@ -1227,7 +1265,10 @@ const MinimalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any) 
                 </Text>
               </View>
               <Text style={styles.content}>
-                {job.description || 'Managed key responsibilities and delivered results.'}
+                {job.description || job.responsibilities || 
+                 (job.achievements && Array.isArray(job.achievements) ? 
+                  job.achievements.slice(0, 2).join('. ') + '.' : 
+                  'Managed key responsibilities and delivered results.')}
               </Text>
             </View>
           ))}
@@ -1355,7 +1396,10 @@ const CreativeTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: any)
                       </Text>
                     </View>
                     <Text style={styles.descriptionCreative}>
-                      {job.description || 'Delivered innovative solutions and exceeded performance targets.'}
+                      {job.description || job.responsibilities || 
+                       (job.achievements && Array.isArray(job.achievements) ? 
+                        job.achievements.slice(0, 2).join('. ') + '.' : 
+                        'Delivered innovative solutions and exceeded performance targets.')}
                     </Text>
                   </View>
                 ))}
@@ -1439,13 +1483,13 @@ export {
 
 // FIXED: Main PDF Document Component
 const PDFDocument = (props: any) => {
-  const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle } = props;
+  const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle, enableOnePageOptimization = true } = props;
   
   // Ensure resumeData is an object
   const safeResumeData = resumeData || {};
   
-  // Smart one-page optimization before rendering
-  const optimizedData = optimizeContentForOnePage(safeResumeData, template);
+  // Smart one-page optimization before rendering (now optional)
+  const optimizedData = optimizeContentForOnePage(safeResumeData, template, enableOnePageOptimization);
   
   // Get template configuration with custom colors
   const config = getTemplateConfig(template, colors);

@@ -40,7 +40,6 @@ export async function GET(
 
     // Determine which data to use and extract real content
     interface PreviewResumeData {
-      contact?: Record<string, unknown>;
       contactInfo?: Record<string, unknown>;
       professionalSummary?: Record<string, unknown>;
       workExperience?: unknown[];
@@ -61,7 +60,7 @@ export async function GET(
       console.log('📊 Using structured (optimized) resume data');
       
       resumeData = {
-        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
+        contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         professionalSummary: resume.professionalSummary ? (typeof resume.professionalSummary === 'string' ? JSON.parse(resume.professionalSummary) : resume.professionalSummary) : {},
         workExperience: resume.workExperience ? (typeof resume.workExperience === 'string' ? JSON.parse(resume.workExperience) : resume.workExperience) : [],
         education: resume.education ? (typeof resume.education === 'string' ? JSON.parse(resume.education) : resume.education) : [],
@@ -71,7 +70,7 @@ export async function GET(
       };
 
       console.log('📋 Optimized data extracted:', {
-        hasContact: !!resumeData.contact,
+        hasContactInfo: !!resumeData.contactInfo,
         hasSummary: !!resumeData.professionalSummary,
         workExpCount: resumeData.workExperience?.length || 0,
         skillsCount: resumeData.skills?.length || 0,
@@ -92,7 +91,7 @@ export async function GET(
         resumeData.isOptimized = false;
         
         console.log('📋 Original data extracted:', {
-          hasContact: !!resumeData.contact,
+          hasContactInfo: !!resumeData.contactInfo,
           hasSummary: !!resumeData.summary,
           dataKeys: Object.keys(resumeData)
         });
@@ -104,7 +103,7 @@ export async function GET(
         } else {
           // If it's just text, create basic structure
           resumeData = { 
-            contact: { name: 'Resume Content' },
+            contactInfo: { name: 'Resume Content' },
             summary: String(content).substring(0, 200) + '...',
             isOptimized: false
           };
@@ -120,7 +119,9 @@ export async function GET(
       const element = React.createElement(PDFResumeDocument, {
         resumeData,
         template,
-        isOptimized
+        isOptimized,
+        resumeTitle: resume.title,
+        enableOnePageOptimization: true // For preview, we keep optimization enabled
       });
 
       const buffer = await renderToBuffer(element);
@@ -168,7 +169,7 @@ function generateDataBasedSVG(resumeData: SVGResumeData, version: string, templa
   const color = colors[template as keyof typeof colors] || colors.professional;
   
   // Extract real data with fallbacks
-  const contact = resumeData?.contact || resumeData?.contactInfo || {};
+  const contact = resumeData?.contactInfo || {};
   const summary = (resumeData as any)?.professionalSummary?.summary || (resumeData as any)?.summary || (resumeData as any)?.professionalSummary || '';
   const workExp = resumeData?.workExperience || resumeData?.experience || [];
   const skills = resumeData?.skills || [];

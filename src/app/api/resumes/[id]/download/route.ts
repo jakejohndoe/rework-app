@@ -37,6 +37,7 @@ async function handleDownload(
     version?: 'original' | 'optimized'; 
     template?: string;
     colors?: { primary: string; accent: string };
+    enableOnePageOptimization?: boolean;
   } = {}
 ) {
   try {
@@ -66,7 +67,6 @@ async function handleDownload(
 
     // Determine which version to use
     interface ResumeData {
-      contact?: Record<string, unknown>;
       contactInfo?: Record<string, unknown>;
       professionalSummary?: Record<string, unknown>;
       workExperience?: unknown[];
@@ -89,8 +89,7 @@ async function handleDownload(
       console.log('📊 Using structured (optimized) resume data with proper parsing');
       
       resumeData = {
-        // Parse contactInfo the same way as preview - NOTE: preview uses 'contact' key
-        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
+        // Parse contactInfo consistently
         contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         
         // Parse professionalSummary the same way as preview  
@@ -112,7 +111,6 @@ async function handleDownload(
       };
 
       console.log('📋 Optimized data parsed:', {
-        hasContact: !!resumeData.contact,
         hasContactInfo: !!resumeData.contactInfo,
         hasProfessionalSummary: !!resumeData.professionalSummary,
         professionalSummaryType: typeof resumeData.professionalSummary,
@@ -161,13 +159,14 @@ async function handleDownload(
     console.log('🎯 Contact data sample:', resumeData.contactInfo ? JSON.stringify(resumeData.contactInfo).substring(0, 100) : 'none');
     console.log('🎯 Summary data sample:', resumeData.professionalSummary ? JSON.stringify(resumeData.professionalSummary).substring(0, 100) : 'none');
 
-    // Create React element with colors support
+    // Create React element with colors support and optimization control
     const element = React.createElement(PDFResumeDocument, {
       resumeData,
       template,
       colors,
       isOptimized,
-      resumeTitle: resume.title
+      resumeTitle: resume.title,
+      enableOnePageOptimization: options.enableOnePageOptimization ?? true // Default to true for backward compatibility
     });
 
     // Generate PDF
