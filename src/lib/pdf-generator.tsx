@@ -64,8 +64,10 @@ const prioritizeWorkExperience = (experiences: any) => {
     
     if (expArray.length === 0) return [];
     
+    console.log('🔍 DEBUG: Original work experience data:', JSON.stringify(expArray, null, 2));
+    
     // Sort by end date (most recent first), then by relevance
-    return expArray
+    const processed = expArray
       .sort((a, b) => {
         // Prioritize current jobs (no end date)
         if (!a.endDate && b.endDate) return -1;
@@ -77,10 +79,27 @@ const prioritizeWorkExperience = (experiences: any) => {
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 3) // Keep top 3 most recent/relevant
-      .map(job => ({
-        ...job,
-        description: optimizeJobDescription(job.description || job.responsibilities || '', job.achievements)
-      }));
+      .map((job, index) => {
+        console.log(`🔍 DEBUG: Processing job ${index + 1}:`, Object.keys(job));
+        console.log(`🔍 DEBUG: Job ${index + 1} ALL FIELDS:`, JSON.stringify(job, null, 2));
+        
+        // Try multiple description fields
+        const originalDesc = job.description || job.responsibilities || job.summary || job.duties || job.text || job.content || '';
+        console.log(`🔍 DEBUG: Job ${index + 1} - Original description length:`, originalDesc.length);
+        console.log(`🔍 DEBUG: Job ${index + 1} - Original description:`, originalDesc.substring(0, 300) + (originalDesc.length > 300 ? '...' : ''));
+        
+        const optimizedDesc = optimizeJobDescription(originalDesc, job.achievements);
+        console.log(`🔍 DEBUG: Job ${index + 1} - Optimized description length:`, optimizedDesc.length);
+        console.log(`🔍 DEBUG: Job ${index + 1} - Optimized description:`, optimizedDesc);
+        
+        return {
+          ...job,
+          description: optimizedDesc
+        };
+      });
+      
+    console.log('🔍 DEBUG: Final processed work experience:', JSON.stringify(processed, null, 2));
+    return processed;
   } catch (error) {
     console.error('❌ Error in prioritizeWorkExperience:', error);
     return [];
