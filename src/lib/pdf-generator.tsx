@@ -196,12 +196,12 @@ const optimizeSummary = (summary: string | any, template: string) => {
   
   if (!summaryStr || summaryStr.length === 0) return '';
   
-  // More generous character limits for better content preservation
+  // Keep summaries substantial - just slightly shorter for one-page fit
   const limits = {
-    professional: 400,
-    modern: 350,
-    minimal: 380,
-    creative: 370
+    professional: 500,
+    modern: 450,
+    minimal: 480,
+    creative: 470
   };
   
   const limit = limits[template as keyof typeof limits] || 280;
@@ -277,8 +277,8 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // Balanced description length - almost full but slightly shortened
-  const maxLength = 300; // Good balance - allows substantial content while ensuring one page
+  // Keep work experience substantial - just slightly shorter than original
+  const maxLength = 600; // Allow most content, just trim the longest descriptions
   
   if (content.length <= maxLength) return content;
   
@@ -326,6 +326,15 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     return firstSentence + (firstSentence.endsWith('.') ? '' : '.');
   }
   
+  // Final fallback: just trim the original content to maxLength
+  if (content.length > maxLength) {
+    const trimmed = content.substring(0, maxLength).trim();
+    // Find last complete word
+    const lastSpace = trimmed.lastIndexOf(' ');
+    const finalContent = lastSpace > maxLength * 0.8 ? trimmed.substring(0, lastSpace) : trimmed;
+    return finalContent + (finalContent.endsWith('.') ? '' : '.');
+  }
+  
   // Ultra-compact: Extract key terms only for bullet-point style
   const allWords = content.toLowerCase().split(/[\s,\.]+/);
   const importantWords = allWords.filter(word => 
@@ -351,7 +360,14 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     result = content.substring(0, maxLength - 1).trim();
   }
   
-  return result.replace(/[,;:]$/, '') + '.';
+  const finalResult = result.replace(/[,;:]$/, '') + '.';
+  
+  // Safety check: never return empty content
+  if (finalResult.trim().length < 10) {
+    return content.substring(0, Math.min(content.length, maxLength)).trim() + '.';
+  }
+  
+  return finalResult;
 };
 
 // Helper function to get template configuration with custom colors
@@ -1483,7 +1499,7 @@ export {
 
 // FIXED: Main PDF Document Component
 const PDFDocument = (props: any) => {
-  const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle, enableOnePageOptimization = true } = props;
+  const { resumeData = {}, template = 'professional', colors, isOptimized = false, resumeTitle, enableOnePageOptimization = false } = props;
   
   // Ensure resumeData is an object
   const safeResumeData = resumeData || {};
