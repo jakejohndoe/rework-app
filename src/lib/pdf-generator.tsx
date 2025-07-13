@@ -978,6 +978,58 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
   // Extract professional summary text properly
   const summaryText = extractSummaryText(resumeData.professionalSummary);
   
+  // Parse work experience properly - it might be a JSON string
+  const parseWorkExperience = () => {
+    if (!resumeData.workExperience) return [];
+    if (typeof resumeData.workExperience === 'string') {
+      try {
+        return JSON.parse(resumeData.workExperience);
+      } catch (e) {
+        console.error('Failed to parse work experience:', e);
+        return [];
+      }
+    }
+    return Array.isArray(resumeData.workExperience) ? resumeData.workExperience : [];
+  };
+
+  // Parse education properly - it might be a JSON string  
+  const parseEducation = () => {
+    if (!resumeData.education) return [];
+    if (typeof resumeData.education === 'string') {
+      try {
+        return JSON.parse(resumeData.education);
+      } catch (e) {
+        console.error('Failed to parse education:', e);
+        return [];
+      }
+    }
+    return Array.isArray(resumeData.education) ? resumeData.education : [];
+  };
+
+  // Parse skills properly - it might be a JSON string
+  const parseSkills = () => {
+    if (!resumeData.skills) return {};
+    if (typeof resumeData.skills === 'string') {
+      try {
+        return JSON.parse(resumeData.skills);
+      } catch (e) {
+        console.error('Failed to parse skills:', e);
+        return {};
+      }
+    }
+    return resumeData.skills || {};
+  };
+
+  const workExperience = parseWorkExperience();
+  const education = parseEducation();
+  const skills = parseSkills();
+
+  console.log('🔍 extractOptimizedData - Work Experience:', {
+    originalType: typeof resumeData.workExperience,
+    parsedLength: workExperience.length,
+    parsedData: workExperience
+  });
+
   return {
     fullName: contactInfo?.name || 
               contactInfo?.fullName || 
@@ -991,9 +1043,9 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
     location: contactInfo?.location || resumeData.location || '',
     linkedin: contactInfo?.linkedin || resumeData.linkedin || '',
     professionalSummary: summaryText,
-    workExperience: resumeData.workExperience || [],
-    education: resumeData.education || [],
-    skills: resumeData.skills || {}
+    workExperience: workExperience,
+    education: education,
+    skills: skills
   };
 };
 
