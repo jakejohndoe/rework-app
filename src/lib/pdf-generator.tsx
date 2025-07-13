@@ -1153,7 +1153,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <Text style={styles.content}>Work Experience Type: {typeof data.workExperience}</Text>
         <Text style={styles.content}>Raw Work Exp Type: {typeof resumeData.workExperience}</Text>
         <Text style={styles.content}>Raw Work Exp Keys: {resumeData.workExperience ? Object.keys(resumeData.workExperience).join(', ') : 'none'}</Text>
-        <Text style={styles.content}>Raw Work Exp Content: {JSON.stringify(resumeData.workExperience).substring(0, 150)}...</Text>
+        <Text style={styles.content}>Raw Work Exp Content: {JSON.stringify(resumeData.workExperience)}</Text>
         {data.workExperience?.length > 0 && (
           <Text style={styles.content}>First Job: {JSON.stringify(data.workExperience[0]).substring(0, 200)}...</Text>
         )}
