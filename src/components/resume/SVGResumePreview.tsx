@@ -383,9 +383,19 @@ export function SVGResumePreview({
               color: '#374151'
             }}>
 {(() => {
-              const content = job.achievements && Array.isArray(job.achievements) 
+              // Debug log to see what we're getting
+              console.log('🔍 Job data for SVG:', job);
+              
+              const content = job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0
                 ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and implemented security protocols.';
+                : job.description || job.responsibilities || job.summary || job.duties || 'Led network infrastructure projects and implemented security protocols.';
+              
+              console.log('🔍 Content before truncation:', content);
+              
+              // If content is too short, return fallback
+              if (!content || content.trim().length < 10) {
+                return 'Responsible for key projects and strategic initiatives in technology and development.';
+              }
               
               // Smart truncation at sentence boundaries
               if (content.length <= 160) return content;
@@ -393,6 +403,7 @@ export function SVGResumePreview({
               const sentences = content.split('. ');
               let result = '';
               for (const sentence of sentences) {
+                if (!sentence.trim()) continue;
                 const withSentence = result + (result ? '. ' : '') + sentence;
                 if (withSentence.length > 160) break;
                 result = withSentence;

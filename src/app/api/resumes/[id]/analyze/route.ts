@@ -80,6 +80,47 @@ interface EnhancedAnalysisResult {
   }
 }
 
+// GET method to retrieve existing analysis
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+    const resumeId = id
+
+    // Get existing analysis from resume record
+    const resume = await prisma.resume.findFirst({
+      where: {
+        id: resumeId,
+        user: { email: session.user.email }
+      },
+      include: {
+        jobApplication: true
+      }
+    })
+
+    if (!resume) {
+      return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
+    }
+
+    // Return existing analysis if it exists (you might want to store this in a separate field)
+    return NextResponse.json({ 
+      analysis: null, // No existing analysis stored yet
+      resume: resume.title 
+    })
+
+  } catch (error) {
+    console.error('❌ GET /analyze error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
