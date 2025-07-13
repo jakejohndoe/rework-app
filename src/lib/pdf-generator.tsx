@@ -978,18 +978,50 @@ const extractOptimizedData = (resumeData: any, resumeTitle?: string) => {
   // Extract professional summary text properly
   const summaryText = extractSummaryText(resumeData.professionalSummary);
   
-  // Parse work experience properly - it might be a JSON string
+  // Parse work experience properly - handle multiple formats
   const parseWorkExperience = () => {
     if (!resumeData.workExperience) return [];
-    if (typeof resumeData.workExperience === 'string') {
+    
+    let workExp = resumeData.workExperience;
+    
+    // If it's a string, parse it
+    if (typeof workExp === 'string') {
       try {
-        return JSON.parse(resumeData.workExperience);
+        workExp = JSON.parse(workExp);
       } catch (e) {
-        console.error('Failed to parse work experience:', e);
+        console.error('Failed to parse work experience string:', e);
         return [];
       }
     }
-    return Array.isArray(resumeData.workExperience) ? resumeData.workExperience : [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(workExp)) {
+      return workExp;
+    }
+    
+    // If it's an object, it might have the array nested inside
+    if (typeof workExp === 'object' && workExp !== null) {
+      // Check common property names where the array might be stored
+      if (Array.isArray(workExp.experiences)) return workExp.experiences;
+      if (Array.isArray(workExp.jobs)) return workExp.jobs;
+      if (Array.isArray(workExp.positions)) return workExp.positions;
+      if (Array.isArray(workExp.work)) return workExp.work;
+      if (Array.isArray(workExp.employment)) return workExp.employment;
+      
+      // If it's an object with numbered keys, convert to array
+      const keys = Object.keys(workExp);
+      if (keys.length > 0 && keys.every(key => !isNaN(parseInt(key)))) {
+        return keys.map(key => workExp[key]).filter(item => item);
+      }
+      
+      // If it's just one job object, wrap it in an array
+      if (workExp.title || workExp.position || workExp.company || workExp.jobTitle) {
+        return [workExp];
+      }
+    }
+    
+    console.error('Unknown work experience format:', typeof workExp, workExp);
+    return [];
   };
 
   // Parse education properly - it might be a JSON string  
@@ -1119,7 +1151,9 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
         <Text style={styles.sectionTitle}>DEBUG - Data Check</Text>
         <Text style={styles.content}>Work Experience Array Length: {data.workExperience?.length || 0}</Text>
         <Text style={styles.content}>Work Experience Type: {typeof data.workExperience}</Text>
-        <Text style={styles.content}>Raw Resume Data Keys: {Object.keys(resumeData).join(', ')}</Text>
+        <Text style={styles.content}>Raw Work Exp Type: {typeof resumeData.workExperience}</Text>
+        <Text style={styles.content}>Raw Work Exp Keys: {resumeData.workExperience ? Object.keys(resumeData.workExperience).join(', ') : 'none'}</Text>
+        <Text style={styles.content}>Raw Work Exp Content: {JSON.stringify(resumeData.workExperience).substring(0, 150)}...</Text>
         {data.workExperience?.length > 0 && (
           <Text style={styles.content}>First Job: {JSON.stringify(data.workExperience[0]).substring(0, 200)}...</Text>
         )}
