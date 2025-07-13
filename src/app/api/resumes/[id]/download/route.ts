@@ -67,6 +67,7 @@ async function handleDownload(
 
     // Determine which version to use
     interface ResumeData {
+      contact?: Record<string, unknown>;
       contactInfo?: Record<string, unknown>;
       professionalSummary?: Record<string, unknown>;
       workExperience?: unknown[];
@@ -89,9 +90,9 @@ async function handleDownload(
       console.log('📊 Using structured (optimized) resume data with proper parsing');
       
       resumeData = {
-        // Parse contactInfo consistently - add BOTH contactInfo and contact for compatibility
-        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
+        // Parse contactInfo consistently and add contact alias for PDF template compatibility
         contactInfo: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
+        contact: resume.contactInfo ? (typeof resume.contactInfo === 'string' ? JSON.parse(resume.contactInfo) : resume.contactInfo) : {},
         
         // Parse professionalSummary the same way as preview  
         professionalSummary: resume.professionalSummary ? (typeof resume.professionalSummary === 'string' ? JSON.parse(resume.professionalSummary) : resume.professionalSummary) : {},
