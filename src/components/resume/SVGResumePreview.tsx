@@ -309,7 +309,7 @@ export function SVGResumePreview({
   };
 
   // Unified work experience content extraction with keywords
-  const extractWorkExperienceContent = (job: any, maxLength: number = 160) => {
+  const extractWorkExperienceContent = (job: any, maxLength: number = 180) => {
     console.log('🔍 Job data for SVG:', job);
     
     // Extract base content
@@ -319,8 +319,6 @@ export function SVGResumePreview({
     } else {
       content = job.description || job.responsibilities || job.summary || job.duties || '';
     }
-    
-    // Don't add technologies here since we display them separately as bullet points
     
     console.log('🔍 Content before truncation:', content);
     
@@ -332,7 +330,7 @@ export function SVGResumePreview({
     // Clean up the content first - remove extra whitespace and newlines
     const cleanContent = content.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
     
-    // If content fits, return it
+    // If content fits, return it (increased threshold)
     if (cleanContent.length <= maxLength) return cleanContent;
     
     // Smart truncation at sentence boundaries
@@ -352,6 +350,64 @@ export function SVGResumePreview({
     }
     
     return result || cleanContent.substring(0, maxLength - 3) + '...';
+  };
+
+  // Extract skills/keywords from job content when no technologies array exists
+  const extractJobSkills = (job: any) => {
+    // If technologies array exists, use it
+    if (job.technologies && Array.isArray(job.technologies) && job.technologies.length > 0) {
+      return job.technologies;
+    }
+    
+    // Otherwise, extract key skills from content
+    const allContent = [
+      job.description || '',
+      job.responsibilities || '',
+      job.summary || '',
+      job.duties || '',
+      ...(job.achievements || [])
+    ].join(' ');
+    
+    // Common skill patterns to extract
+    const skillPatterns = [
+      /\b(React|Vue|Angular|JavaScript|TypeScript|Node\.js|Python|Java|C\+\+|PHP|Ruby|Go|Rust)\b/gi,
+      /\b(AWS|Azure|GCP|Docker|Kubernetes|MongoDB|PostgreSQL|MySQL|Redis)\b/gi,
+      /\b(Git|GitHub|GitLab|Jira|Agile|Scrum|CI\/CD|DevOps)\b/gi,
+      /\b(HTML|CSS|SASS|Bootstrap|Tailwind|Material UI)\b/gi,
+      /\b(REST API|GraphQL|Microservices|API|Database|SQL|NoSQL)\b/gi,
+      /\b(Leadership|Management|Training|Customer Service|Sales|Marketing)\b/gi,
+      /\b(Excel|Word|PowerPoint|Salesforce|CRM|ERP|POS|Point of Sale)\b/gi,
+      /\b(Communication|Negotiation|Problem Solving|Team Building|Project Management)\b/gi,
+      /\b(RentalWorks|Rental|Equipment|Logistics|Inventory|Operations|Workflows)\b/gi
+    ];
+    
+    const extractedSkills = new Set<string>();
+    
+    skillPatterns.forEach(pattern => {
+      const matches = allContent.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          extractedSkills.add(match.trim());
+        });
+      }
+    });
+    
+    // Convert to array and limit
+    const skillsArray = Array.from(extractedSkills).slice(0, 8);
+    
+    // If still no skills found, add some based on job title
+    if (skillsArray.length === 0) {
+      const jobTitle = (job.jobTitle || job.title || '').toLowerCase();
+      if (jobTitle.includes('developer') || jobTitle.includes('engineer')) {
+        return ['JavaScript', 'React', 'Node.js', 'Git'];
+      } else if (jobTitle.includes('agent') || jobTitle.includes('sales')) {
+        return ['Customer Service', 'Sales', 'Communication', 'CRM'];
+      } else if (jobTitle.includes('manager') || jobTitle.includes('lead')) {
+        return ['Leadership', 'Project Management', 'Team Building', 'Operations'];
+      }
+    }
+    
+    return skillsArray;
   };
 
   // SVG to PDF conversion function
@@ -483,35 +539,38 @@ export function SVGResumePreview({
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 120)}
+{extractWorkExperienceContent(job, 200)}
             </div>
           </foreignObject>
 
           {/* Job-specific skills/technologies */}
-          {job.technologies && job.technologies.length > 0 && (
-            <foreignObject x="55" y={395 + index * 140} width="500" height="35">
-              <div style={{ 
-                fontSize: '9px', 
-                lineHeight: '1.4', 
-                color: '#6b7280',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                marginTop: '4px'
-              }}>
-                {job.technologies.slice(0, 8).map((tech: string, techIndex: number) => (
-                  <span key={techIndex} style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '2px'
-                  }}>
-                    <span style={{color: config.accentColor}}>•</span>
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </foreignObject>
-          )}
+          {(() => {
+            const jobSkills = extractJobSkills(job);
+            return jobSkills && jobSkills.length > 0 && (
+              <foreignObject x="55" y={395 + index * 140} width="500" height="35">
+                <div style={{ 
+                  fontSize: '9px', 
+                  lineHeight: '1.4', 
+                  color: '#6b7280',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginTop: '4px'
+                }}>
+                  {jobSkills.slice(0, 8).map((tech: string, techIndex: number) => (
+                    <span key={techIndex} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '2px'
+                    }}>
+                      <span style={{color: config.accentColor}}>•</span>
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </foreignObject>
+            );
+          })()}
         </g>
       ))}
 
@@ -658,35 +717,38 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 120)}
+{extractWorkExperienceContent(job, 160)}
             </div>
           </foreignObject>
 
           {/* Job-specific skills/technologies */}
-          {job.technologies && job.technologies.length > 0 && (
-            <foreignObject x="60" y={465 + index * 150} width="310" height="30">
-              <div style={{ 
-                fontSize: '9px', 
-                lineHeight: '1.4', 
-                color: '#6b7280',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                marginTop: '2px'
-              }}>
-                {job.technologies.slice(0, 6).map((tech: string, techIndex: number) => (
-                  <span key={techIndex} style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '2px'
-                  }}>
-                    <span style={{color: config.accentColor}}>•</span>
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </foreignObject>
-          )}
+          {(() => {
+            const jobSkills = extractJobSkills(job);
+            return jobSkills && jobSkills.length > 0 && (
+              <foreignObject x="60" y={465 + index * 150} width="310" height="30">
+                <div style={{ 
+                  fontSize: '9px', 
+                  lineHeight: '1.4', 
+                  color: '#6b7280',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginTop: '2px'
+                }}>
+                  {jobSkills.slice(0, 6).map((tech: string, techIndex: number) => (
+                    <span key={techIndex} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '2px'
+                    }}>
+                      <span style={{color: config.accentColor}}>•</span>
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </foreignObject>
+            );
+          })()}
         </g>
       ))}
 
@@ -791,35 +853,38 @@ export function SVGResumePreview({
 
           <foreignObject x="50" y={330 + index * 110} width="500" height="30">
             <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
-{extractWorkExperienceContent(job, 150)}
+{extractWorkExperienceContent(job, 180)}
             </div>
           </foreignObject>
 
           {/* Job-specific skills/technologies */}
-          {job.technologies && job.technologies.length > 0 && (
-            <foreignObject x="50" y={365 + index * 110} width="500" height="25">
-              <div style={{ 
-                fontSize: '9px', 
-                lineHeight: '1.4', 
-                color: '#9ca3af',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '10px',
-                marginTop: '2px'
-              }}>
-                {job.technologies.slice(0, 8).map((tech: string, techIndex: number) => (
-                  <span key={techIndex} style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px'
-                  }}>
-                    <span style={{color: config.accentColor}}>•</span>
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </foreignObject>
-          )}
+          {(() => {
+            const jobSkills = extractJobSkills(job);
+            return jobSkills && jobSkills.length > 0 && (
+              <foreignObject x="50" y={365 + index * 110} width="500" height="25">
+                <div style={{ 
+                  fontSize: '9px', 
+                  lineHeight: '1.4', 
+                  color: '#9ca3af',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  marginTop: '2px'
+                }}>
+                  {jobSkills.slice(0, 8).map((tech: string, techIndex: number) => (
+                    <span key={techIndex} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}>
+                      <span style={{color: config.accentColor}}>•</span>
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </foreignObject>
+            );
+          })()}
         </g>
       ))}
 
@@ -963,35 +1028,38 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 120)}
+{extractWorkExperienceContent(job, 140)}
             </div>
           </foreignObject>
 
           {/* Job-specific skills/technologies */}
-          {job.technologies && job.technologies.length > 0 && (
-            <foreignObject x="95" y={460 + index * 160} width="280" height="35">
-              <div style={{ 
-                fontSize: '9px', 
-                lineHeight: '1.4', 
-                color: '#6b7280',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                marginTop: '2px'
-              }}>
-                {job.technologies.slice(0, 6).map((tech: string, techIndex: number) => (
-                  <span key={techIndex} style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '2px'
-                  }}>
-                    <span style={{color: config.accentColor}}>•</span>
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </foreignObject>
-          )}
+          {(() => {
+            const jobSkills = extractJobSkills(job);
+            return jobSkills && jobSkills.length > 0 && (
+              <foreignObject x="95" y={460 + index * 160} width="280" height="35">
+                <div style={{ 
+                  fontSize: '9px', 
+                  lineHeight: '1.4', 
+                  color: '#6b7280',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginTop: '2px'
+                }}>
+                  {jobSkills.slice(0, 6).map((tech: string, techIndex: number) => (
+                    <span key={techIndex} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '2px'
+                    }}>
+                      <span style={{color: config.accentColor}}>•</span>
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </foreignObject>
+            );
+          })()}
         </g>
       ))}
 
