@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -41,7 +40,8 @@ import {
   FileText,
   Search,
   Database,
-  Settings
+  Settings,
+  CheckCircle
 } from "lucide-react"
 
 // Enhanced analysis result interface
@@ -104,6 +104,10 @@ export default function RedesignedAnalysisPage() {
   const [typewriterText, setTypewriterText] = useState("")
   const [isTypewriterComplete, setIsTypewriterComplete] = useState(false)
   const [stepCompleted, setStepCompleted] = useState(false)
+  
+  // Suggestion Application State
+  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false)
+  const [applicationStep, setApplicationStep] = useState(0)
   
   // Typewriter effect function
   const typewriterEffect = async (text: string, speed: number = 50) => {
@@ -193,6 +197,29 @@ export default function RedesignedAnalysisPage() {
       icon: Sparkles,
       text: "Finalizing your enhanced analysis report...",
       color: "text-yellow-400"
+    }
+  ]
+  
+  const applicationSteps = [
+    {
+      icon: Settings,
+      text: "Preparing to apply AI optimizations...",
+      color: "text-cyan-400"
+    },
+    {
+      icon: Database,
+      text: "Applying content improvements to resume sections...",
+      color: "text-blue-400"
+    },
+    {
+      icon: Sparkles,
+      text: "Optimizing keywords and formatting...",
+      color: "text-purple-400"
+    },
+    {
+      icon: CheckCircle,
+      text: "Finalizing your enhanced resume...",
+      color: "text-emerald-400"
     }
   ]
 
@@ -502,6 +529,62 @@ export default function RedesignedAnalysisPage() {
     }
   }
 
+  // Apply suggestions function
+  const applySuggestionsAndNavigate = async () => {
+    if (!analysisResults || appliedSuggestions.size === 0) {
+      // If no suggestions selected, just navigate
+      router.push(`/dashboard/resume/${resumeId}/finalize`)
+      return
+    }
+
+    setIsApplyingSuggestions(true)
+    setApplicationStep(0)
+
+    try {
+      // Prepare suggestions for API
+      const suggestionsToApply = analysisResults.suggestions
+        .filter((suggestion) => appliedSuggestions.has(suggestion.id))
+        .map((suggestion) => ({
+          section: suggestion.section,
+          type: suggestion.type as 'improve' | 'add',
+          current: suggestion.current,
+          suggested: suggestion.suggested,
+          impact: suggestion.impact,
+          reason: suggestion.reason
+        }))
+
+      console.log('🚀 Applying suggestions:', suggestionsToApply)
+
+      // Step through application process with typewriter effect
+      for (let i = 0; i < applicationSteps.length; i++) {
+        setApplicationStep(i)
+        await typewriterEffect(applicationSteps[i].text, 40)
+        await new Promise(resolve => setTimeout(resolve, 800))
+      }
+
+      // Make API call to apply suggestions
+      const response = await fetch(`/api/resumes/${resumeId}/apply-suggestions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestions: suggestionsToApply })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to apply suggestions')
+      }
+
+      console.log('✅ Suggestions applied successfully!')
+      
+      // Navigate to finalize page
+      router.push(`/dashboard/resume/${resumeId}/finalize`)
+      
+    } catch (error) {
+      console.error('❌ Failed to apply suggestions:', error)
+      setError('Failed to apply suggestions. Please try again.')
+      setIsApplyingSuggestions(false)
+    }
+  }
+
   // Navigation handlers
   const [isNavigating, setIsNavigating] = useState(false)
   
@@ -807,6 +890,107 @@ export default function RedesignedAnalysisPage() {
                     <Button onClick={handleEditJob} variant="outline" className="border-white/20 text-white">
                       edit job description
                     </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Applying Suggestions Loading State */}
+            {isApplyingSuggestions && (
+              <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
+                {/* Neural Network Background */}
+                <div className="absolute inset-0 overflow-hidden">
+                  {/* Neural Nodes */}
+                  {[...Array(8)].map((_, i) => (
+                    <div key={`app-node-${i}`}>
+                      <div
+                        className="absolute w-2 h-2 bg-emerald-400/30 rounded-full"
+                        style={{
+                          left: `${(i * 15 + 15) % 85 + 10}%`,
+                          top: `${(i * 19 + 20) % 70 + 15}%`,
+                          animation: 'neuralPulse 2s ease-in-out infinite',
+                          animationDelay: `${(i * 0.4) % 1.5}s`
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main Application Animation */}
+                <div className="relative flex flex-col items-center" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
+                  {/* Resume Transformation Animation */}
+                  <div className="relative w-64 h-80">
+                    {/* Original Resume */}
+                    <div 
+                      className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20"
+                      style={{
+                        animation: 'paperFloat 2s ease-in-out infinite'
+                      }}
+                    >
+                      {/* Resume Lines */}
+                      <div className="p-8 space-y-4">
+                        {[...Array(6)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-2 bg-gradient-to-r from-slate-400/30 to-slate-400/10 rounded"
+                            style={{
+                              width: `${70 + (i * 5)}%`,
+                              animation: 'optimizeLine 3s ease-in-out infinite',
+                              animationDelay: `${i * 0.2}s`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dynamic Application Icon */}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-full flex items-center justify-center"
+                         style={{
+                           animation: 'brainPulse 1.5s ease-in-out infinite'
+                         }}>
+                      {React.createElement(applicationSteps[applicationStep]?.icon || Settings, { 
+                        className: `w-6 h-6 text-white ${applicationSteps[applicationStep]?.color || 'text-white'}` 
+                      })}
+                    </div>
+
+                    {/* Enhancement Sparkles */}
+                    <div className="absolute -bottom-4 -left-4">
+                      <Sparkles className="w-8 h-8 text-emerald-400 animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Application Text */}
+                  <div className="mt-8 text-center w-full">
+                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse">
+                      Applying AI Optimizations
+                    </h2>
+                    <div className="h-12 flex items-center justify-center mt-2">
+                      <div className="flex items-center gap-3">
+                        {React.createElement(applicationSteps[applicationStep]?.icon || Settings, { 
+                          className: `w-5 h-5 ${applicationSteps[applicationStep]?.color || 'text-cyan-400'}` 
+                        })}
+                        <p className="text-slate-400 text-sm font-mono">
+                          {typewriterText}
+                          {!isTypewriterComplete && <span className="animate-pulse">|</span>}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <div className="w-32 h-2 bg-emerald-400/20 rounded-full overflow-hidden relative">
+                        <div 
+                          className="h-full bg-gradient-to-r from-emerald-400 to-cyan-500 transition-all duration-700 rounded-full relative"
+                          style={{ 
+                            width: `${((applicationStep + 1) / applicationSteps.length) * 100}%`,
+                            boxShadow: '0 0 10px rgba(52, 211, 153, 0.5)'
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/50 to-cyan-500/50 rounded-full animate-pulse" />
+                        </div>
+                      </div>
+                      <span className="text-slate-400 text-xs font-medium">
+                        {applicationStep + 1} / {applicationSteps.length}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1136,17 +1320,27 @@ export default function RedesignedAnalysisPage() {
                               Change Job
                             </Button>
                           </div>
-                          <Link 
-                            href={`/dashboard/resume/${resumeId}/finalize`}
-                            className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group block text-center"
+                          <Button
+                            onClick={applySuggestionsAndNavigate}
+                            disabled={isApplyingSuggestions}
+                            className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group"
                           >
                             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                             <div className="relative z-10 flex items-center justify-center gap-2">
-                              <Award className="w-5 h-5" />
-                              continue to finalize
-                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                              {isApplyingSuggestions ? (
+                                <>
+                                  <Settings className="w-5 h-5 animate-spin" />
+                                  applying suggestions...
+                                </>
+                              ) : (
+                                <>
+                                  <Award className="w-5 h-5" />
+                                  continue to finalize
+                                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                                </>
+                              )}
                             </div>
-                          </Link>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -1235,6 +1429,12 @@ export default function RedesignedAnalysisPage() {
         @keyframes breathe {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.02); }
+        }
+        
+        @keyframes optimizeLine {
+          0% { background: linear-gradient(to right, rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.1)); }
+          50% { background: linear-gradient(to right, rgba(52, 211, 153, 0.6), rgba(34, 211, 238, 0.3)); }
+          100% { background: linear-gradient(to right, rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.1)); }
         }
       `}</style>
     </div>
