@@ -691,27 +691,27 @@ export function SVGResumePreview({
 
       {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={365 + index * 150} width="350" height="135" 
+          <rect x="40" y={365 + index * 170} width="350" height="155" 
                 fill="white" 
                 rx="12" 
                 stroke="#e2e8f0" 
                 strokeWidth="1"/>
           
-          <rect x="40" y={365 + index * 150} width="4" height="135" fill={config.accentColor} rx="2"/>
+          <rect x="40" y={365 + index * 170} width="4" height="155" fill={config.accentColor} rx="2"/>
           
-          <text x="60" y={390 + index * 150} fontSize="13" fontWeight="600" fill={config.primaryColor}>
+          <text x="60" y={390 + index * 170} fontSize="13" fontWeight="600" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
-          <text x="60" y={405 + index * 150} fontSize="11" fontWeight="500" fill={config.accentColor}>
+          <text x="60" y={405 + index * 170} fontSize="11" fontWeight="500" fill={config.accentColor}>
             {job.company || 'Technology Company'}
           </text>
           
-          <text x="310" y={405 + index * 150} fontSize="10" fill="#6b7280">
+          <text x="310" y={405 + index * 170} fontSize="10" fill="#6b7280">
             {job.startDate || '2022'} — {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="60" y={415 + index * 150} width="310" height="45">
+          <foreignObject x="60" y={415 + index * 170} width="310" height="50">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.5', 
@@ -725,7 +725,7 @@ export function SVGResumePreview({
           {(() => {
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="60" y={465 + index * 150} width="310" height="30">
+              <foreignObject x="60" y={470 + index * 170} width="310" height="40">
                 <div style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.4', 
@@ -753,7 +753,7 @@ export function SVGResumePreview({
       ))}
 
       {/* Skills sidebar */}
-      <rect x="410" y="365" width="162" height="220" 
+      <rect x="410" y="365" width="162" height="270" 
             fill="white" 
             rx="12" 
             stroke="#e2e8f0" 
@@ -993,36 +993,36 @@ export function SVGResumePreview({
 
       {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={365 + index * 160} width="350" height="140" 
+          <rect x="40" y={365 + index * 180} width="350" height="165" 
                 fill="white" 
                 rx="16" 
                 stroke={config.accentColor} 
                 strokeWidth="2"/>
           
-          <rect x="40" y={365 + index * 160} width="6" height="140" fill={config.primaryColor} rx="3"/>
+          <rect x="40" y={365 + index * 180} width="6" height="165" fill={config.primaryColor} rx="3"/>
           
           {/* Experience number */}
-          <circle cx="70" cy={390 + index * 160} r="12" fill={config.primaryColor}/>
-          <text x="70" y={395 + index * 160} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
+          <circle cx="70" cy={390 + index * 180} r="12" fill={config.primaryColor}/>
+          <text x="70" y={395 + index * 180} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
             {index + 1}
           </text>
           
           {/* Job title */}
-          <text x="95" y={395 + index * 160} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
+          <text x="95" y={395 + index * 180} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           {/* Company */}
-          <text x="95" y={410 + index * 160} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
+          <text x="95" y={410 + index * 180} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
             {job.company || 'Technology Company'}
           </text>
           
           {/* Dates */}
-          <text x="310" y={410 + index * 160} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
+          <text x="310" y={410 + index * 180} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
             {job.startDate || '2022'} - {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="95" y={420 + index * 160} width="280" height="35">
+          <foreignObject x="95" y={420 + index * 180} width="280" height="45">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.5', 
@@ -1036,7 +1036,7 @@ export function SVGResumePreview({
           {(() => {
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="95" y={460 + index * 160} width="280" height="35">
+              <foreignObject x="95" y={470 + index * 180} width="280" height="45">
                 <div style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.4', 
@@ -1064,13 +1064,13 @@ export function SVGResumePreview({
       ))}
 
       {/* Skills section */}
-      <rect x="410" y="365" width="162" height="240" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
+      <rect x="410" y="365" width="162" height="290" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
       
       <text x="430" y="390" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill={config.primaryColor}>
         Skills
       </text>
 
-      {data.skills.slice(0, 6).map((skill, skillIndex) => (
+      {data.skills.slice(0, 7).map((skill, skillIndex) => (
         <g key={skillIndex}>
           <text x="430" y={415 + skillIndex * 32} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="#374151">
             {skill}
