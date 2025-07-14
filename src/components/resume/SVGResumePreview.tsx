@@ -308,6 +308,61 @@ export function SVGResumePreview({
     return extractedData;
   };
 
+  // Unified work experience content extraction with keywords
+  const extractWorkExperienceContent = (job: any, maxLength: number = 160) => {
+    console.log('🔍 Job data for SVG:', job);
+    
+    // Extract base content
+    let content = '';
+    if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
+      content = job.achievements.join('. ') + '.';
+    } else {
+      content = job.description || job.responsibilities || job.summary || job.duties || '';
+    }
+    
+    // Add technologies/keywords if available
+    if (job.technologies && Array.isArray(job.technologies) && job.technologies.length > 0) {
+      const techKeywords = job.technologies.slice(0, 4).join(', '); // Limit to 4 technologies
+      if (content && !content.includes(techKeywords)) {
+        content += ` Technologies: ${techKeywords}.`;
+      }
+    }
+    
+    console.log('🔍 Content before truncation:', content);
+    
+    // Fallback if no content
+    if (!content || content.trim().length < 10) {
+      const fallbackTech = job.technologies && job.technologies.length > 0 
+        ? ` utilizing ${job.technologies.slice(0, 3).join(', ')}`
+        : '';
+      return `Responsible for key projects and strategic initiatives in technology and development${fallbackTech}.`;
+    }
+    
+    // Clean up the content first - remove extra whitespace and newlines
+    const cleanContent = content.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    
+    // If content fits, return it
+    if (cleanContent.length <= maxLength) return cleanContent;
+    
+    // Smart truncation at sentence boundaries
+    const sentences = cleanContent.split('. ');
+    let result = '';
+    for (const sentence of sentences) {
+      if (!sentence.trim()) continue;
+      const testSentence = sentence.trim();
+      const withSentence = result + (result ? '. ' : '') + testSentence;
+      if (withSentence.length > maxLength) break;
+      result = withSentence;
+    }
+    
+    // Ensure proper ending
+    if (result && !result.endsWith('.')) {
+      result += '.';
+    }
+    
+    return result || cleanContent.substring(0, maxLength - 3) + '...';
+  };
+
   // SVG to PDF conversion function
   const handleSvgToPdfDownload = async () => {
     if (!svgRef.current || !enableSvgToPdf) return;
@@ -396,7 +451,7 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="170" x2="140" y2="170" stroke={config.accentColor} strokeWidth="2"/>
       
-      <foreignObject x="40" y="180" width="532" height="70">
+      <foreignObject x="40" y="180" width="532" height="85">
         <div style={{ 
           fontSize: '11px', 
           lineHeight: '1.6', 
@@ -437,45 +492,7 @@ export function SVGResumePreview({
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-{(() => {
-              // Debug log to see what we're getting
-              console.log('🔍 Job data for SVG:', job);
-              
-              const content = job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0
-                ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || job.summary || job.duties || 'Led network infrastructure projects and implemented security protocols.';
-              
-              console.log('🔍 Content before truncation:', content);
-              
-              // If content is too short, return fallback
-              if (!content || content.trim().length < 10) {
-                return 'Responsible for key projects and strategic initiatives in technology and development.';
-              }
-              
-              // Clean up the content first - remove extra whitespace and newlines
-              const cleanContent = content.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-              
-              // If content fits, return it
-              if (cleanContent.length <= 160) return cleanContent;
-              
-              // Smart truncation at sentence boundaries
-              const sentences = cleanContent.split('. ');
-              let result = '';
-              for (const sentence of sentences) {
-                if (!sentence.trim()) continue;
-                const testSentence = sentence.trim();
-                const withSentence = result + (result ? '. ' : '') + testSentence;
-                if (withSentence.length > 160) break;
-                result = withSentence;
-              }
-              
-              // Ensure proper ending
-              if (result && !result.endsWith('.')) {
-                result += '.';
-              }
-              
-              return result || cleanContent.substring(0, 157) + '...';
-            })()}
+{extractWorkExperienceContent(job, 160)}
             </div>
           </foreignObject>
         </g>
@@ -580,7 +597,7 @@ export function SVGResumePreview({
         Professional Summary
       </text>
       
-      <foreignObject x="60" y="220" width="500" height="70">
+      <foreignObject x="60" y="220" width="500" height="85">
         <div style={{ 
           fontSize: '11px', 
           lineHeight: '1.6', 
@@ -624,24 +641,7 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{(() => {
-              const content = job.achievements && Array.isArray(job.achievements) 
-                ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
-              
-              // Smart truncation at sentence boundaries
-              if (content.length <= 150) return content;
-              
-              const sentences = content.split('. ');
-              let result = '';
-              for (const sentence of sentences) {
-                const withSentence = result + (result ? '. ' : '') + sentence;
-                if (withSentence.length > 150) break;
-                result = withSentence;
-              }
-              
-              return result + (result.endsWith('.') ? '' : '.');
-            })()}
+{extractWorkExperienceContent(job, 150)}
             </div>
           </foreignObject>
         </g>
@@ -737,24 +737,7 @@ export function SVGResumePreview({
 
           <foreignObject x="50" y={330 + index * 90} width="500" height="40">
             <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
-{(() => {
-              const content = job.achievements && Array.isArray(job.achievements) 
-                ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
-              
-              // Smart truncation at sentence boundaries  
-              if (content.length <= 180) return content;
-              
-              const sentences = content.split('. ');
-              let result = '';
-              for (const sentence of sentences) {
-                const withSentence = result + (result ? '. ' : '') + sentence;
-                if (withSentence.length > 180) break;
-                result = withSentence;
-              }
-              
-              return result + (result.endsWith('.') ? '' : '.');
-            })()}
+{extractWorkExperienceContent(job, 180)}
             </div>
           </foreignObject>
         </g>
@@ -847,7 +830,7 @@ export function SVGResumePreview({
         About Me
       </text>
 
-      <foreignObject x="60" y="220" width="500" height="70">
+      <foreignObject x="60" y="220" width="500" height="85">
         <div style={{
           fontFamily: 'sans-serif',
           fontSize: '11px',
@@ -900,24 +883,7 @@ export function SVGResumePreview({
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{(() => {
-              const content = job.achievements && Array.isArray(job.achievements) 
-                ? job.achievements.join('. ') + '.'
-                : job.description || job.responsibilities || 'Led network infrastructure projects and security implementations.';
-              
-              // Smart truncation at sentence boundaries
-              if (content.length <= 140) return content;
-              
-              const sentences = content.split('. ');
-              let result = '';
-              for (const sentence of sentences) {
-                const withSentence = result + (result ? '. ' : '') + sentence;
-                if (withSentence.length > 140) break;
-                result = withSentence;
-              }
-              
-              return result + (result.endsWith('.') ? '' : '.');
-            })()}
+{extractWorkExperienceContent(job, 140)}
             </div>
           </foreignObject>
         </g>
@@ -939,11 +905,11 @@ export function SVGResumePreview({
           {/* Skill progress circle */}
           <circle cx="550" cy={395 + skillIndex * 32} r="8" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
           <circle cx="550" cy={395 + skillIndex * 32} r="8" fill="none" stroke={config.accentColor} strokeWidth="2"
-                  strokeDasharray={`${12 + Math.random() * 8} 50`}
+                  strokeDasharray={`${12 + (skillIndex * 2)} 50`}
                   transform={`rotate(-90 550 ${395 + skillIndex * 32})`}/>
           
           <text x="550" y={400 + skillIndex * 32} textAnchor="middle" fontSize="7" fill={config.primaryColor} fontWeight="600">
-            {Math.floor(Math.random() * 20) + 80}%
+            {85 + (skillIndex * 3)}%
           </text>
         </g>
       ))}
