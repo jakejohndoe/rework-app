@@ -496,8 +496,9 @@ export function SVGResumePreview({
       console.log('✅ SVG to PDF conversion complete');
     } catch (error) {
       console.error('❌ SVG to PDF conversion failed:', error);
-      console.error('Error details:', error.message);
-      alert(`Failed to convert SVG to PDF: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error details:', errorMessage);
+      alert(`Failed to convert SVG to PDF: ${errorMessage}`);
     } finally {
       setIsDownloading(false);
     }
