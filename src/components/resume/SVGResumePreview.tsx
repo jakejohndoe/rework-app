@@ -1025,13 +1025,13 @@ export function SVGResumePreview({
             {job.startDate || '2022'} - {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="95" y={430 + index * 170} width="280" height="40">
+          <foreignObject x="95" y={430 + index * 170} width="280" height="50">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 130)}
+{extractWorkExperienceContent(job, 160)}
             </div>
           </foreignObject>
 
@@ -1039,7 +1039,7 @@ export function SVGResumePreview({
           {(() => {
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="95" y={475 + index * 170} width="280" height="40">
+              <foreignObject x="95" y={485 + index * 170} width="280" height="35">
                 <div style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.3', 
