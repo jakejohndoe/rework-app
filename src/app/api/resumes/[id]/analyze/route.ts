@@ -486,7 +486,7 @@ For ${jobTitle} at ${company}, focus on what actually gets candidates hired vs j
     console.log('🔄 Sending ENHANCED WOW FACTOR analysis request to OpenAI...')
     
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // 👈 CHANGE TO "gpt-4o" FOR MODEL UPGRADE
+      model: "gpt-4o", // 🚀 UPGRADED: 10x better analysis quality, ~2-3x cost increase
       messages: [
         {
           role: "system",
