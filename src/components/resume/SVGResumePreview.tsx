@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface SVGResumePreviewProps {
   resumeId: string;
@@ -311,8 +312,6 @@ export function SVGResumePreview({
 
   // Unified work experience content extraction with keywords
   const extractWorkExperienceContent = (job: any, maxLength: number = 180) => {
-    console.log('🔍 Job data for SVG:', job);
-    
     // Extract base content
     let content = '';
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
@@ -321,7 +320,7 @@ export function SVGResumePreview({
       content = job.description || job.responsibilities || job.summary || job.duties || '';
     }
     
-    console.log('🔍 Content before truncation:', content);
+    // Debug logging removed to prevent console spam
     
     // Fallback if no content
     if (!content || content.trim().length < 10) {
@@ -453,61 +452,32 @@ export function SVGResumePreview({
     }
   };
 
-  // SVG to PDF via Canvas Rasterization
+  // SVG to PDF via html2canvas
   const handleSvgToPdfDownload = async () => {
     if (!svgRef.current) return;
     
     setIsDownloading(true);
     try {
-      console.log('🎨 Converting SVG to PDF via Canvas...');
+      console.log('🎨 Converting SVG to PDF via html2canvas...');
       
-      // Get the SVG content as a string
-      const svgElement = svgRef.current;
-      const serializer = new XMLSerializer();
-      let svgString = serializer.serializeToString(svgElement);
-      
-      // Ensure SVG has proper namespace
-      if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
-        svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
-      }
-      
-      // Create a canvas for high-resolution rendering
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      
-      // Set high resolution for print quality (2x scaling)
-      const scale = 2;
-      const svgWidth = 612; // SVG viewBox width
-      const svgHeight = 792; // SVG viewBox height
-      
-      canvas.width = svgWidth * scale;
-      canvas.height = svgHeight * scale;
-      ctx.scale(scale, scale);
-      
-      // Create image from SVG
-      const img = new Image();
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const imgUrl = URL.createObjectURL(svgBlob);
-      
-      await new Promise((resolve, reject) => {
-        img.onload = () => {
-          // Draw SVG to canvas
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, svgWidth, svgHeight);
-          ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
-          URL.revokeObjectURL(imgUrl);
-          resolve(null);
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(imgUrl);
-          reject(new Error('Failed to load SVG image'));
-        };
-        img.src = imgUrl;
+      // Use html2canvas to capture the SVG element directly
+      const canvas = await html2canvas(svgRef.current, {
+        scale: 2, // High resolution for print quality
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        width: 612,
+        height: 792,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 612,
+        windowHeight: 792
       });
       
-      // Convert canvas to PNG
-      const pngDataUrl = canvas.toDataURL('image/png', 1.0);
+      console.log('✅ Canvas generated successfully');
+      
+      // Convert canvas to PNG data URL
+      const imgData = canvas.toDataURL('image/png', 1.0);
       
       // Create PDF with jsPDF
       const pdf = new jsPDF({
@@ -516,12 +486,8 @@ export function SVGResumePreview({
         format: 'letter'
       });
       
-      // Letter size in points: 612 x 792
-      const pdfWidth = 612;
-      const pdfHeight = 792;
-      
-      // Add image to PDF (full page, no margins for exact match)
-      pdf.addImage(pngDataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, '', 'FAST');
+      // Add image to PDF (full page)
+      pdf.addImage(imgData, 'PNG', 0, 0, 612, 792, '', 'FAST');
       
       // Download the PDF
       const filename = `resume-${template}-${Date.now()}.pdf`;
@@ -530,7 +496,8 @@ export function SVGResumePreview({
       console.log('✅ SVG to PDF conversion complete');
     } catch (error) {
       console.error('❌ SVG to PDF conversion failed:', error);
-      alert('Failed to convert SVG to PDF. Please try again.');
+      console.error('Error details:', error.message);
+      alert(`Failed to convert SVG to PDF: ${error.message}`);
     } finally {
       setIsDownloading(false);
     }
