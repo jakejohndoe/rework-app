@@ -422,6 +422,8 @@ export function SVGResumePreview({
       const svgString = serializer.serializeToString(svgElement);
       
       console.log('🎨 Converting SVG to PDF...');
+      console.log('🔍 SVG string length:', svgString.length);
+      console.log('🔍 SVG string preview:', svgString.substring(0, 300));
       
       // Send to conversion API
       const response = await fetch(`/api/resumes/${resumeId}/svg-to-pdf`, {

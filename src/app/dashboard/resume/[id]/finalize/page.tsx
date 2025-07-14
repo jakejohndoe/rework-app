@@ -590,6 +590,7 @@ export default function EnhancedFinalizePage() {
                   showDownload={true}
                   onDownload={() => handleDownload('optimized')}
                   colors={selectedColors}
+                  enableSvgToPdf={true}
                 />
               </div>
             </div>

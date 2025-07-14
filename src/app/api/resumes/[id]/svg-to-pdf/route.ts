@@ -33,6 +33,12 @@ export async function POST(
       return new NextResponse('SVG content is required', { status: 400 });
     }
 
+    // Debug: Log SVG content length and preview
+    console.log('🔍 SVG content length:', svgContent.length);
+    console.log('🔍 SVG preview (first 200 chars):', svgContent.substring(0, 200));
+    console.log('🔍 SVG contains viewBox:', svgContent.includes('viewBox'));
+    console.log('🔍 SVG contains foreignObject:', svgContent.includes('foreignObject'));
+
     // Get resume info for filename
     const resume = await prisma.resume.findFirst({
       where: {
@@ -46,6 +52,15 @@ export async function POST(
     }
 
     console.log('🎨 Converting SVG to PDF for:', resume.title);
+
+    // Ensure SVG has proper namespace and attributes
+    let processedSvgContent = svgContent;
+    if (!processedSvgContent.includes('xmlns="http://www.w3.org/2000/svg"')) {
+      processedSvgContent = processedSvgContent.replace(
+        '<svg',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+      );
+    }
 
     // Create HTML wrapper for the SVG
     const htmlContent = `
@@ -127,11 +142,13 @@ export async function POST(
         </head>
         <body>
           <div class="resume-container">
-            ${svgContent}
+            ${processedSvgContent}
           </div>
         </body>
       </html>
     `;
+
+    console.log('🔍 Processed SVG preview:', processedSvgContent.substring(0, 300));
 
     // Launch Puppeteer to convert HTML to PDF
     const browser = await puppeteer.launch({
