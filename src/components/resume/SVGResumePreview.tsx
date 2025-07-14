@@ -987,48 +987,48 @@ export function SVGResumePreview({
       </foreignObject>
 
       {/* Experience section */}
-      <text x="40" y="345" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
+      <text x="40" y="335" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
         Experience
       </text>
 
       {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={365 + index * 180} width="350" height="165" 
+          <rect x="40" y={350 + index * 170} width="350" height="155" 
                 fill="white" 
                 rx="16" 
                 stroke={config.accentColor} 
                 strokeWidth="2"/>
           
-          <rect x="40" y={365 + index * 180} width="6" height="165" fill={config.primaryColor} rx="3"/>
+          <rect x="40" y={350 + index * 170} width="6" height="155" fill={config.primaryColor} rx="3"/>
           
           {/* Experience number */}
-          <circle cx="70" cy={390 + index * 180} r="12" fill={config.primaryColor}/>
-          <text x="70" y={395 + index * 180} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
+          <circle cx="70" cy={375 + index * 170} r="12" fill={config.primaryColor}/>
+          <text x="70" y={380 + index * 170} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
             {index + 1}
           </text>
           
           {/* Job title */}
-          <text x="95" y={395 + index * 180} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
+          <text x="95" y={380 + index * 170} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           {/* Company */}
-          <text x="95" y={410 + index * 180} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
+          <text x="95" y={395 + index * 170} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
             {job.company || 'Technology Company'}
           </text>
           
           {/* Dates */}
-          <text x="310" y={410 + index * 180} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
+          <text x="310" y={395 + index * 170} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
             {job.startDate || '2022'} - {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="95" y={420 + index * 180} width="280" height="45">
+          <foreignObject x="95" y={405 + index * 170} width="280" height="40">
             <div style={{ 
               fontSize: '10px', 
-              lineHeight: '1.5', 
+              lineHeight: '1.4', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 140)}
+{extractWorkExperienceContent(job, 130)}
             </div>
           </foreignObject>
 
@@ -1036,14 +1036,14 @@ export function SVGResumePreview({
           {(() => {
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="95" y={470 + index * 180} width="280" height="45">
+              <foreignObject x="95" y={450 + index * 170} width="280" height="40">
                 <div style={{ 
                   fontSize: '9px', 
-                  lineHeight: '1.4', 
+                  lineHeight: '1.3', 
                   color: '#6b7280',
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: '8px',
+                  gap: '6px',
                   marginTop: '2px'
                 }}>
                   {jobSkills.slice(0, 6).map((tech: string, techIndex: number) => (
@@ -1064,51 +1064,51 @@ export function SVGResumePreview({
       ))}
 
       {/* Skills section */}
-      <rect x="410" y="365" width="162" height="290" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
+      <rect x="410" y="350" width="162" height="270" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
       
-      <text x="430" y="390" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill={config.primaryColor}>
+      <text x="430" y="375" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill={config.primaryColor}>
         Skills
       </text>
 
-      {data.skills.slice(0, 7).map((skill, skillIndex) => (
+      {data.skills.slice(0, 6).map((skill, skillIndex) => (
         <g key={skillIndex}>
-          <text x="430" y={415 + skillIndex * 32} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="#374151">
+          <text x="430" y={400 + skillIndex * 30} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="#374151">
             {skill}
           </text>
           
           {/* Skill progress circle */}
-          <circle cx="550" cy={410 + skillIndex * 32} r="8" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
-          <circle cx="550" cy={410 + skillIndex * 32} r="8" fill="none" stroke={config.accentColor} strokeWidth="2"
+          <circle cx="550" cy={395 + skillIndex * 30} r="8" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
+          <circle cx="550" cy={395 + skillIndex * 30} r="8" fill="none" stroke={config.accentColor} strokeWidth="2"
                   strokeDasharray={`${12 + (skillIndex * 2)} 50`}
-                  transform={`rotate(-90 550 ${410 + skillIndex * 32})`}/>
+                  transform={`rotate(-90 550 ${395 + skillIndex * 30})`}/>
           
-          <text x="550" y={415 + skillIndex * 32} textAnchor="middle" fontSize="7" fill={config.primaryColor} fontWeight="600">
+          <text x="550" y={400 + skillIndex * 30} textAnchor="middle" fontSize="7" fill={config.primaryColor} fontWeight="600">
             {85 + (skillIndex * 3)}%
           </text>
         </g>
       ))}
 
       {/* Education section */}
-      <rect x="40" y="650" width="280" height="80" fill={config.primaryColor} rx="12"/>
+      <rect x="40" y="690" width="280" height="80" fill={config.primaryColor} rx="12"/>
       
-      <text x="60" y="675" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill="white">
+      <text x="60" y="715" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill="white">
         Education
       </text>
       
       {data.education.slice(0, 1).map((edu, index) => (
         <g key={index}>
-          <text x="60" y="695" fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="white" opacity="0.9">
+          <text x="60" y="735" fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="white" opacity="0.9">
             {edu.degree || 'Bachelor of Science'}
           </text>
           
-          <text x="60" y="710" fontFamily="sans-serif" fontSize="10" fill="white" opacity="0.8">
+          <text x="60" y="750" fontFamily="sans-serif" fontSize="10" fill="white" opacity="0.8">
             {edu.institution || edu.school || 'University'} • {edu.year || edu.endDate || '2020'}
           </text>
         </g>
       ))}
 
       {/* Technology chips */}
-      <text x="340" y="675" fontFamily="sans-serif" fontSize="12" fontWeight="700" fill={config.primaryColor}>
+      <text x="340" y="715" fontFamily="sans-serif" fontSize="12" fontWeight="700" fill={config.primaryColor}>
         Technologies
       </text>
       
@@ -1116,7 +1116,7 @@ export function SVGResumePreview({
         <g key={index}>
           <rect 
             x={340 + (index % 3) * 70} 
-            y={685 + Math.floor(index / 3) * 25} 
+            y={725 + Math.floor(index / 3) * 25} 
             width="65" 
             height="18" 
             fill="white" 
@@ -1126,7 +1126,7 @@ export function SVGResumePreview({
           />
           <text 
             x={372 + (index % 3) * 70} 
-            y={697 + Math.floor(index / 3) * 25} 
+            y={737 + Math.floor(index / 3) * 25} 
             textAnchor="middle" 
             fontSize="8" 
             fontWeight="600"
