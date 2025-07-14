@@ -499,7 +499,7 @@ export function SVGResumePreview({
       <line x1="40" y1="170" x2="140" y2="170" stroke={config.accentColor} strokeWidth="2"/>
       
       <foreignObject x="40" y="180" width="532" height="85">
-        <div style={{ 
+        <div className="serif" style={{ 
           fontSize: '11px', 
           lineHeight: '1.6', 
           color: '#374151',
@@ -534,7 +534,7 @@ export function SVGResumePreview({
           </text>
 
           <foreignObject x="55" y={360 + index * 140} width="500" height="30">
-            <div style={{ 
+            <div className="serif" style={{ 
               fontSize: '10px', 
               lineHeight: '1.4', 
               color: '#374151'
@@ -548,7 +548,7 @@ export function SVGResumePreview({
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
               <foreignObject x="55" y={395 + index * 140} width="500" height="35">
-                <div style={{ 
+                <div className="serif" style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.4', 
                   color: '#6b7280',
@@ -583,7 +583,7 @@ export function SVGResumePreview({
         
         {data.skills.length > 0 && (
           <foreignObject x="40" y="650" width="260" height="80">
-            <div style={{ 
+            <div className="serif" style={{ 
               fontSize: '10px', 
               lineHeight: '1.6', 
               color: '#374151',
@@ -674,7 +674,7 @@ export function SVGResumePreview({
       </text>
       
       <foreignObject x="60" y="220" width="500" height="105">
-        <div style={{ 
+        <div className="sans-serif" style={{ 
           fontSize: '11px', 
           lineHeight: '1.6', 
           color: '#374151',
@@ -713,7 +713,7 @@ export function SVGResumePreview({
           </text>
 
           <foreignObject x="60" y={425 + index * 170} width="310" height="50">
-            <div style={{ 
+            <div className="sans-serif" style={{ 
               fontSize: '10px', 
               lineHeight: '1.5', 
               color: '#374151'
@@ -727,7 +727,7 @@ export function SVGResumePreview({
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
               <foreignObject x="60" y={480 + index * 170} width="310" height="40">
-                <div style={{ 
+                <div className="sans-serif" style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.4', 
                   color: '#6b7280',
@@ -820,7 +820,7 @@ export function SVGResumePreview({
       </text>
 
       <foreignObject x="50" y="155" width="500" height="100">
-        <div style={{
+        <div className="sans-serif" style={{
           fontFamily: 'sans-serif',
           fontSize: '11px',
           lineHeight: '1.6',
@@ -854,7 +854,7 @@ export function SVGResumePreview({
           </text>
 
           <foreignObject x="50" y={330 + index * 110} width="500" height="30">
-            <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
+            <div className="sans-serif" style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
 {extractWorkExperienceContent(job, 180)}
             </div>
           </foreignObject>
@@ -864,7 +864,7 @@ export function SVGResumePreview({
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
               <foreignObject x="50" y={365 + index * 110} width="500" height="25">
-                <div style={{ 
+                <div className="sans-serif" style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.4', 
                   color: '#9ca3af',
@@ -898,7 +898,7 @@ export function SVGResumePreview({
 
         {data.skills.length > 0 && (
           <foreignObject x="50" y="585" width="250" height="100">
-            <div style={{ 
+            <div className="sans-serif" style={{ 
               fontSize: '10px', 
               lineHeight: '1.8', 
               color: '#6b7280',
@@ -978,7 +978,7 @@ export function SVGResumePreview({
       </text>
 
       <foreignObject x="60" y="220" width="500" height="110">
-        <div style={{
+        <div className="sans-serif" style={{
           fontFamily: 'sans-serif',
           fontSize: '11px',
           lineHeight: '1.4',
@@ -1026,7 +1026,7 @@ export function SVGResumePreview({
           </text>
 
           <foreignObject x="95" y={430 + index * 170} width="280" height="50">
-            <div style={{ 
+            <div className="sans-serif" style={{ 
               fontSize: '10px', 
               lineHeight: '1.4', 
               color: '#374151'
@@ -1040,7 +1040,7 @@ export function SVGResumePreview({
             const jobSkills = extractJobSkills(job);
             return jobSkills && jobSkills.length > 0 && (
               <foreignObject x="95" y={485 + index * 170} width="280" height="35">
-                <div style={{ 
+                <div className="sans-serif" style={{ 
                   fontSize: '9px', 
                   lineHeight: '1.3', 
                   color: '#6b7280',

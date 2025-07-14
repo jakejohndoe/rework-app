@@ -53,31 +53,75 @@ export async function POST(
       <html>
         <head>
           <meta charset="utf-8">
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
           <style>
+            @page {
+              margin: 0;
+              size: 8.5in 11in;
+            }
+            
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
             body { 
               margin: 0; 
               padding: 0; 
               width: 8.5in;
               height: 11in;
-              font-family: system-ui, -apple-system, sans-serif;
               background-color: white;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
+            
+            /* Font definitions to match SVG */
+            .serif { font-family: 'Crimson Text', Georgia, serif; }
+            .sans-serif { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+            
             .resume-container {
-              width: 100%;
-              height: 100%;
-              display: flex;
-              justify-content: center;
-              align-items: flex-start;
-              background-color: white;
-            }
-            svg {
               width: 8.5in;
               height: 11in;
+              margin: 0;
+              padding: 0;
+              background-color: white;
+              position: relative;
+            }
+            
+            svg {
+              width: 100%;
+              height: 100%;
+              display: block;
               background-color: white;
             }
-            /* Ensure foreign objects render properly */
+            
+            /* Ensure foreign objects render with correct fonts */
             foreignObject {
-              font-family: system-ui, -apple-system, sans-serif;
+              overflow: visible;
+            }
+            
+            foreignObject div {
+              font-family: inherit;
+              margin: 0;
+              padding: 0;
+            }
+            
+            /* Match SVG text styles */
+            foreignObject .serif {
+              font-family: 'Crimson Text', Georgia, serif;
+            }
+            
+            foreignObject .sans-serif {
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+            
+            /* Ensure proper text rendering */
+            text {
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
             }
           </style>
         </head>
@@ -92,27 +136,43 @@ export async function POST(
     // Launch Puppeteer to convert HTML to PDF
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--font-render-hinting=none']
     });
 
     const page = await browser.newPage();
     
-    // Set page size to letter format
+    // Set viewport to match letter size exactly
+    await page.setViewport({
+      width: 816,  // 8.5 inches * 96 DPI
+      height: 1056, // 11 inches * 96 DPI
+      deviceScaleFactor: 1
+    });
+    
+    // Set page content and wait for fonts to load
     await page.setContent(htmlContent, { 
-      waitUntil: 'networkidle0',
+      waitUntil: ['networkidle0', 'domcontentloaded'],
       timeout: 30000 
     });
+    
+    // Wait a bit more for fonts to fully render
+    await page.evaluateHandle('document.fonts.ready');
+    
+    // Additional wait to ensure all fonts are loaded
+    await page.waitForTimeout(500);
 
-    // Generate PDF
+    // Generate PDF with exact dimensions
     const pdfBuffer = await page.pdf({
-      format: 'letter',
+      width: '8.5in',
+      height: '11in',
       printBackground: true,
       margin: {
-        top: '0.25in',
-        right: '0.25in',
-        bottom: '0.25in',
-        left: '0.25in'
-      }
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      },
+      preferCSSPageSize: false,
+      displayHeaderFooter: false
     });
 
     await browser.close();
