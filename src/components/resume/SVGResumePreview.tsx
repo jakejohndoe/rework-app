@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import jsPDF from 'jspdf';
 
 interface SVGResumePreviewProps {
   resumeId: string;
@@ -452,51 +453,81 @@ export function SVGResumePreview({
     }
   };
 
-  // SVG to PDF conversion function
+  // SVG to PDF via Canvas Rasterization
   const handleSvgToPdfDownload = async () => {
-    if (!svgRef.current || !enableSvgToPdf) return;
+    if (!svgRef.current) return;
     
     setIsDownloading(true);
     try {
+      console.log('🎨 Converting SVG to PDF via Canvas...');
+      
       // Get the SVG content as a string
       const svgElement = svgRef.current;
       const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(svgElement);
+      let svgString = serializer.serializeToString(svgElement);
       
-      console.log('🎨 Converting SVG to PDF...');
-      console.log('🔍 SVG string length:', svgString.length);
-      console.log('🔍 SVG string preview:', svgString.substring(0, 300));
-      
-      // Send to conversion API
-      const response = await fetch(`/api/resumes/${resumeId}/svg-to-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          svgContent: svgString,
-          template,
-          colors
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`SVG to PDF conversion failed: ${response.statusText}`);
+      // Ensure SVG has proper namespace
+      if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+        svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
       }
       
-      // Download the PDF
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `resume-${template}-${Date.now()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Create a canvas for high-resolution rendering
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
       
-      console.log('✅ SVG to PDF download complete');
+      // Set high resolution for print quality (2x scaling)
+      const scale = 2;
+      const svgWidth = 612; // SVG viewBox width
+      const svgHeight = 792; // SVG viewBox height
+      
+      canvas.width = svgWidth * scale;
+      canvas.height = svgHeight * scale;
+      ctx.scale(scale, scale);
+      
+      // Create image from SVG
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const imgUrl = URL.createObjectURL(svgBlob);
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          // Draw SVG to canvas
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, svgWidth, svgHeight);
+          ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+          URL.revokeObjectURL(imgUrl);
+          resolve(null);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(imgUrl);
+          reject(new Error('Failed to load SVG image'));
+        };
+        img.src = imgUrl;
+      });
+      
+      // Convert canvas to PNG
+      const pngDataUrl = canvas.toDataURL('image/png', 1.0);
+      
+      // Create PDF with jsPDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'letter'
+      });
+      
+      // Letter size in points: 612 x 792
+      const pdfWidth = 612;
+      const pdfHeight = 792;
+      
+      // Add image to PDF (full page, no margins for exact match)
+      pdf.addImage(pngDataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, '', 'FAST');
+      
+      // Download the PDF
+      const filename = `resume-${template}-${Date.now()}.pdf`;
+      pdf.save(filename);
+      
+      console.log('✅ SVG to PDF conversion complete');
     } catch (error) {
       console.error('❌ SVG to PDF conversion failed:', error);
       alert('Failed to convert SVG to PDF. Please try again.');
@@ -1285,20 +1316,32 @@ export function SVGResumePreview({
                 </Badge>
               )}
               {showDownload && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSvgDownload}
-                  disabled={isDownloading}
-                  className="text-white border-white/20 hover:bg-white/10"
-                >
-                  {isDownloading ? (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  ) : (
-                    <Download className="w-3 h-3 mr-1" />
-                  )}
-                  {isDownloading ? 'Converting...' : 'Download'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSvgToPdfDownload}
+                    disabled={isDownloading}
+                    className="text-white border-white/20 hover:bg-white/10"
+                  >
+                    {isDownloading ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Download className="w-3 h-3 mr-1" />
+                    )}
+                    {isDownloading ? 'Converting to PDF...' : 'Download PDF'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleSvgDownload}
+                    disabled={isDownloading}
+                    className="text-slate-400 hover:text-white hover:bg-white/10"
+                  >
+                    <FileText className="w-3 h-3 mr-1" />
+                    SVG
+                  </Button>
+                </div>
               )}
             </div>
           </div>
