@@ -158,7 +158,7 @@ export async function POST(
     await page.evaluateHandle('document.fonts.ready');
     
     // Additional wait to ensure all fonts are loaded
-    await page.waitForTimeout(500);
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Generate PDF with exact dimensions
     const pdfBuffer = await page.pdf({
