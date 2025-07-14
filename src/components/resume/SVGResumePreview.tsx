@@ -461,7 +461,7 @@ export function SVGResumePreview({
       console.log('🎨 Converting SVG to PDF via html2canvas...');
       
       // Use html2canvas to capture the SVG element directly
-      const canvas = await html2canvas(svgRef.current, {
+      const canvas = await html2canvas(svgRef.current as HTMLElement, {
         scale: 2, // High resolution for print quality
         useCORS: true,
         allowTaint: false,
