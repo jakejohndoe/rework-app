@@ -320,22 +320,13 @@ export function SVGResumePreview({
       content = job.description || job.responsibilities || job.summary || job.duties || '';
     }
     
-    // Add technologies/keywords if available
-    if (job.technologies && Array.isArray(job.technologies) && job.technologies.length > 0) {
-      const techKeywords = job.technologies.slice(0, 4).join(', '); // Limit to 4 technologies
-      if (content && !content.includes(techKeywords)) {
-        content += ` Technologies: ${techKeywords}.`;
-      }
-    }
+    // Don't add technologies here since we display them separately as bullet points
     
     console.log('🔍 Content before truncation:', content);
     
     // Fallback if no content
     if (!content || content.trim().length < 10) {
-      const fallbackTech = job.technologies && job.technologies.length > 0 
-        ? ` utilizing ${job.technologies.slice(0, 3).join(', ')}`
-        : '';
-      return `Responsible for key projects and strategic initiatives in technology and development${fallbackTech}.`;
+      return 'Responsible for key projects and strategic initiatives in technology and development.';
     }
     
     // Clean up the content first - remove extra whitespace and newlines
@@ -469,32 +460,58 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="290" x2="180" y2="290" stroke={config.accentColor} strokeWidth="2"/>
 
-      {data.workExperience.slice(0, 3).map((job, index) => (
+      {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={310 + index * 100} width="532" height="85" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
-          <rect x="40" y={310 + index * 100} width="4" height="85" fill={config.accentColor} rx="2"/>
+          <rect x="40" y={310 + index * 140} width="532" height="125" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
+          <rect x="40" y={310 + index * 140} width="4" height="125" fill={config.accentColor} rx="2"/>
           
-          <text x="55" y={335 + index * 100} fontSize="13" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+          <text x="55" y={335 + index * 140} fontSize="13" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
-          <text x="450" y={335 + index * 100} fontSize="10" fill="#6b7280" fontFamily="sans-serif">
+          <text x="450" y={335 + index * 140} fontSize="10" fill="#6b7280" fontFamily="sans-serif">
             {job.startDate || '2022'} — {job.endDate || 'Present'}
           </text>
           
-          <text x="55" y={350 + index * 100} fontSize="11" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
+          <text x="55" y={350 + index * 140} fontSize="11" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
             {job.company || 'Technology Company'}
           </text>
 
-          <foreignObject x="55" y={360 + index * 100} width="500" height="30">
+          <foreignObject x="55" y={360 + index * 140} width="500" height="30">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.4', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 160)}
+{extractWorkExperienceContent(job, 120)}
             </div>
           </foreignObject>
+
+          {/* Job-specific skills/technologies */}
+          {job.technologies && job.technologies.length > 0 && (
+            <foreignObject x="55" y={395 + index * 140} width="500" height="35">
+              <div style={{ 
+                fontSize: '9px', 
+                lineHeight: '1.4', 
+                color: '#6b7280',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginTop: '4px'
+              }}>
+                {job.technologies.slice(0, 8).map((tech: string, techIndex: number) => (
+                  <span key={techIndex} style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}>
+                    <span style={{color: config.accentColor}}>•</span>
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </foreignObject>
+          )}
         </g>
       ))}
 
@@ -591,13 +608,13 @@ export function SVGResumePreview({
       </text>
 
       {/* About section */}
-      <rect x="40" y="180" width="532" height="120" fill="white" rx="12" stroke="#e2e8f0" strokeWidth="1"/>
+      <rect x="40" y="180" width="532" height="135" fill="white" rx="12" stroke="#e2e8f0" strokeWidth="1"/>
       
       <text x="60" y="205" fontSize="16" fontWeight="600" fill={config.primaryColor} fontFamily="sans-serif">
         Professional Summary
       </text>
       
-      <foreignObject x="60" y="220" width="500" height="85">
+      <foreignObject x="60" y="220" width="500" height="100">
         <div style={{ 
           fontSize: '11px', 
           lineHeight: '1.6', 
@@ -609,65 +626,102 @@ export function SVGResumePreview({
       </foreignObject>
 
       {/* Experience */}
-      <text x="40" y="330" fontSize="18" fontWeight="600" fill={config.primaryColor} fontFamily="sans-serif">
+      <text x="40" y="345" fontSize="18" fontWeight="600" fill={config.primaryColor} fontFamily="sans-serif">
         Experience
       </text>
 
       {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={350 + index * 120} width="350" height="105" 
+          <rect x="40" y={365 + index * 150} width="350" height="135" 
                 fill="white" 
                 rx="12" 
                 stroke="#e2e8f0" 
                 strokeWidth="1"/>
           
-          <rect x="40" y={350 + index * 120} width="4" height="105" fill={config.accentColor} rx="2"/>
+          <rect x="40" y={365 + index * 150} width="4" height="135" fill={config.accentColor} rx="2"/>
           
-          <text x="60" y={375 + index * 120} fontSize="13" fontWeight="600" fill={config.primaryColor}>
+          <text x="60" y={390 + index * 150} fontSize="13" fontWeight="600" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
-          <text x="60" y={390 + index * 120} fontSize="11" fontWeight="500" fill={config.accentColor}>
+          <text x="60" y={405 + index * 150} fontSize="11" fontWeight="500" fill={config.accentColor}>
             {job.company || 'Technology Company'}
           </text>
           
-          <text x="310" y={390 + index * 120} fontSize="10" fill="#6b7280">
+          <text x="310" y={405 + index * 150} fontSize="10" fill="#6b7280">
             {job.startDate || '2022'} — {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="60" y={400 + index * 120} width="310" height="45">
+          <foreignObject x="60" y={415 + index * 150} width="310" height="45">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 150)}
+{extractWorkExperienceContent(job, 120)}
             </div>
           </foreignObject>
+
+          {/* Job-specific skills/technologies */}
+          {job.technologies && job.technologies.length > 0 && (
+            <foreignObject x="60" y={465 + index * 150} width="310" height="30">
+              <div style={{ 
+                fontSize: '9px', 
+                lineHeight: '1.4', 
+                color: '#6b7280',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginTop: '2px'
+              }}>
+                {job.technologies.slice(0, 6).map((tech: string, techIndex: number) => (
+                  <span key={techIndex} style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}>
+                    <span style={{color: config.accentColor}}>•</span>
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </foreignObject>
+          )}
         </g>
       ))}
 
       {/* Skills sidebar */}
-      <rect x="410" y="350" width="162" height="220" 
+      <rect x="410" y="365" width="162" height="220" 
             fill="white" 
             rx="12" 
             stroke="#e2e8f0" 
             strokeWidth="1"/>
       
-      <text x="430" y="375" fontSize="14" fontWeight="600" fill={config.primaryColor}>
+      <text x="430" y="390" fontSize="14" fontWeight="600" fill={config.primaryColor}>
         Skills
       </text>
 
-      {data.skills.slice(0, 8).map((skill, index) => (
-        <g key={index}>
-          <text x="430" y={395 + index * 24} fontSize="10" fontWeight="500" fill="#374151">
-            {skill.substring(0, 15)}
-          </text>
-          
-          <rect x="430" y={400 + index * 24} width="120" height="4" fill="#e5e7eb" rx="2"/>
-          <rect x="430" y={400 + index * 24} width={60 + Math.random() * 60} height="4" fill={config.accentColor} rx="2"/>
-        </g>
-      ))}
+      {data.skills.slice(0, 8).map((skill, index) => {
+        const percentage = 75 + (index * 3); // Static percentages: 75%, 78%, 81%, etc.
+        const barWidth = (percentage / 100) * 100; // Width out of 100px max
+        
+        return (
+          <g key={index}>
+            <text x="430" y={410 + index * 24} fontSize="10" fontWeight="500" fill="#374151">
+              {skill.substring(0, 15)}
+            </text>
+            
+            {/* Percentage text */}
+            <text x="555" y={410 + index * 24} fontSize="9" fill="#6b7280" textAnchor="end">
+              {percentage}%
+            </text>
+            
+            {/* Progress bar */}
+            <rect x="430" y={415 + index * 24} width="100" height="4" fill="#e5e7eb" rx="2"/>
+            <rect x="430" y={415 + index * 24} width={barWidth} height="4" fill={config.accentColor} rx="2"/>
+          </g>
+        );
+      })}
 
       {/* ReWork badge */}
       {version === 'optimized' && (
@@ -719,27 +773,53 @@ export function SVGResumePreview({
         EXPERIENCE
       </text>
 
-      {data.workExperience.slice(0, 3).map((job, index) => (
+      {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <line x1="50" y1={285 + index * 90} x2="550" y2={285 + index * 90} stroke="#f3f4f6" strokeWidth="1"/>
+          <line x1="50" y1={285 + index * 110} x2="550" y2={285 + index * 110} stroke="#f3f4f6" strokeWidth="1"/>
           
-          <text x="50" y={305 + index * 90} fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor}>
+          <text x="50" y={305 + index * 110} fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
-          <text x="50" y={320 + index * 90} fontFamily="sans-serif" fontSize="11" fill="#6b7280">
+          <text x="50" y={320 + index * 110} fontFamily="sans-serif" fontSize="11" fill="#6b7280">
             {job.company || 'Technology Company'}
           </text>
           
-          <text x="450" y={320 + index * 90} fontFamily="sans-serif" fontSize="11" fill="#9ca3af">
+          <text x="450" y={320 + index * 110} fontFamily="sans-serif" fontSize="11" fill="#9ca3af">
             {job.startDate || '2022'} — {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="50" y={330 + index * 90} width="500" height="40">
+          <foreignObject x="50" y={330 + index * 110} width="500" height="30">
             <div style={{ fontSize: '10px', lineHeight: '1.6', color: '#6b7280' }}>
-{extractWorkExperienceContent(job, 180)}
+{extractWorkExperienceContent(job, 150)}
             </div>
           </foreignObject>
+
+          {/* Job-specific skills/technologies */}
+          {job.technologies && job.technologies.length > 0 && (
+            <foreignObject x="50" y={365 + index * 110} width="500" height="25">
+              <div style={{ 
+                fontSize: '9px', 
+                lineHeight: '1.4', 
+                color: '#9ca3af',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px',
+                marginTop: '2px'
+              }}>
+                {job.technologies.slice(0, 8).map((tech: string, techIndex: number) => (
+                  <span key={techIndex} style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}>
+                    <span style={{color: config.accentColor}}>•</span>
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </foreignObject>
+          )}
         </g>
       ))}
 
@@ -824,13 +904,13 @@ export function SVGResumePreview({
       </text>
 
       {/* About section */}
-      <rect x="40" y="180" width="532" height="120" fill="white" rx="12" stroke={config.primaryColor} strokeWidth="2"/>
+      <rect x="40" y="180" width="532" height="135" fill="white" rx="12" stroke={config.primaryColor} strokeWidth="2"/>
       
       <text x="60" y="205" fontFamily="sans-serif" fontSize="16" fontWeight="700" fill={config.primaryColor}>
         About Me
       </text>
 
-      <foreignObject x="60" y="220" width="500" height="85">
+      <foreignObject x="60" y="220" width="500" height="100">
         <div style={{
           fontFamily: 'sans-serif',
           fontSize: '11px',
@@ -842,73 +922,99 @@ export function SVGResumePreview({
       </foreignObject>
 
       {/* Experience section */}
-      <text x="40" y="330" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
+      <text x="40" y="345" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
         Experience
       </text>
 
       {data.workExperience.slice(0, 2).map((job, index) => (
         <g key={index}>
-          <rect x="40" y={350 + index * 130} width="350" height="110" 
+          <rect x="40" y={365 + index * 160} width="350" height="140" 
                 fill="white" 
                 rx="16" 
                 stroke={config.accentColor} 
                 strokeWidth="2"/>
           
-          <rect x="40" y={350 + index * 130} width="6" height="110" fill={config.primaryColor} rx="3"/>
+          <rect x="40" y={365 + index * 160} width="6" height="140" fill={config.primaryColor} rx="3"/>
           
           {/* Experience number */}
-          <circle cx="70" cy={375 + index * 130} r="12" fill={config.primaryColor}/>
-          <text x="70" y={380 + index * 130} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
+          <circle cx="70" cy={390 + index * 160} r="12" fill={config.primaryColor}/>
+          <text x="70" y={395 + index * 160} textAnchor="middle" fontSize="11" fontWeight="700" fill="white">
             {index + 1}
           </text>
           
           {/* Job title */}
-          <text x="95" y={380 + index * 130} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
+          <text x="95" y={395 + index * 160} fontFamily="sans-serif" fontSize="13" fontWeight="700" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
           </text>
           
           {/* Company */}
-          <text x="95" y={395 + index * 130} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
+          <text x="95" y={410 + index * 160} fontFamily="sans-serif" fontSize="11" fontWeight="600" fill={config.accentColor}>
             {job.company || 'Technology Company'}
           </text>
           
           {/* Dates */}
-          <text x="310" y={395 + index * 130} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
+          <text x="310" y={410 + index * 160} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
             {job.startDate || '2022'} - {job.endDate || 'Present'}
           </text>
 
-          <foreignObject x="95" y={405 + index * 130} width="280" height="45">
+          <foreignObject x="95" y={420 + index * 160} width="280" height="35">
             <div style={{ 
               fontSize: '10px', 
               lineHeight: '1.5', 
               color: '#374151'
             }}>
-{extractWorkExperienceContent(job, 140)}
+{extractWorkExperienceContent(job, 120)}
             </div>
           </foreignObject>
+
+          {/* Job-specific skills/technologies */}
+          {job.technologies && job.technologies.length > 0 && (
+            <foreignObject x="95" y={460 + index * 160} width="280" height="35">
+              <div style={{ 
+                fontSize: '9px', 
+                lineHeight: '1.4', 
+                color: '#6b7280',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginTop: '2px'
+              }}>
+                {job.technologies.slice(0, 6).map((tech: string, techIndex: number) => (
+                  <span key={techIndex} style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}>
+                    <span style={{color: config.accentColor}}>•</span>
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </foreignObject>
+          )}
         </g>
       ))}
 
       {/* Skills section */}
-      <rect x="410" y="350" width="162" height="240" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
+      <rect x="410" y="365" width="162" height="240" fill="white" rx="16" stroke={config.primaryColor} strokeWidth="2"/>
       
-      <text x="430" y="375" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill={config.primaryColor}>
+      <text x="430" y="390" fontFamily="sans-serif" fontSize="14" fontWeight="700" fill={config.primaryColor}>
         Skills
       </text>
 
       {data.skills.slice(0, 6).map((skill, skillIndex) => (
         <g key={skillIndex}>
-          <text x="430" y={400 + skillIndex * 32} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="#374151">
+          <text x="430" y={415 + skillIndex * 32} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill="#374151">
             {skill}
           </text>
           
           {/* Skill progress circle */}
-          <circle cx="550" cy={395 + skillIndex * 32} r="8" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
-          <circle cx="550" cy={395 + skillIndex * 32} r="8" fill="none" stroke={config.accentColor} strokeWidth="2"
+          <circle cx="550" cy={410 + skillIndex * 32} r="8" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
+          <circle cx="550" cy={410 + skillIndex * 32} r="8" fill="none" stroke={config.accentColor} strokeWidth="2"
                   strokeDasharray={`${12 + (skillIndex * 2)} 50`}
-                  transform={`rotate(-90 550 ${395 + skillIndex * 32})`}/>
+                  transform={`rotate(-90 550 ${410 + skillIndex * 32})`}/>
           
-          <text x="550" y={400 + skillIndex * 32} textAnchor="middle" fontSize="7" fill={config.primaryColor} fontWeight="600">
+          <text x="550" y={415 + skillIndex * 32} textAnchor="middle" fontSize="7" fill={config.primaryColor} fontWeight="600">
             {85 + (skillIndex * 3)}%
           </text>
         </g>
