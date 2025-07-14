@@ -3,7 +3,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -37,7 +37,11 @@ import {
   Rocket,
   Award,
   Play,
-  Gauge
+  Gauge,
+  FileText,
+  Search,
+  Database,
+  Settings
 } from "lucide-react"
 
 // Enhanced analysis result interface
@@ -95,6 +99,31 @@ export default function RedesignedAnalysisPage() {
   // Performance State
   const [isMounted, setIsMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  
+  // Animation State
+  const [typewriterText, setTypewriterText] = useState("")
+  const [isTypewriterComplete, setIsTypewriterComplete] = useState(false)
+  const [stepCompleted, setStepCompleted] = useState(false)
+  
+  // Typewriter effect function
+  const typewriterEffect = async (text: string, speed: number = 50) => {
+    setTypewriterText("")
+    setIsTypewriterComplete(false)
+    setStepCompleted(false)
+    
+    for (let i = 0; i <= text.length; i++) {
+      setTypewriterText(text.slice(0, i))
+      await new Promise(resolve => setTimeout(resolve, speed))
+    }
+    
+    setIsTypewriterComplete(true)
+    
+    // Brief celebration effect
+    setTimeout(() => {
+      setStepCompleted(true)
+      setTimeout(() => setStepCompleted(false), 500)
+    }, 300)
+  }
 
   // Mount check for performance
   useEffect(() => {
@@ -130,13 +159,41 @@ export default function RedesignedAnalysisPage() {
   }, [isMounted])
 
   const analysisSteps = [
-    "📄 Loading your resume content and job requirements...",
-    "🔍 Extracting structured data from your professional background...",
-    "💼 Analyzing job requirements and matching keywords...", 
-    "📊 Performing deep category-specific analysis (skills, experience, education)...",
-    "🤖 AI is generating personalized optimization suggestions...",
-    "🎯 Calculating ATS compatibility and match scores...",
-    "✨ Finalizing your enhanced analysis report..."
+    {
+      icon: FileText,
+      text: "Loading your resume content and job requirements...",
+      color: "text-cyan-400"
+    },
+    {
+      icon: Search,
+      text: "Extracting structured data from your professional background...",
+      color: "text-blue-400"
+    },
+    {
+      icon: Briefcase,
+      text: "Analyzing job requirements and matching keywords...",
+      color: "text-indigo-400"
+    },
+    {
+      icon: Database,
+      text: "Performing deep category-specific analysis (skills, experience, education)...",
+      color: "text-purple-400"
+    },
+    {
+      icon: Brain,
+      text: "AI is generating personalized optimization suggestions...",
+      color: "text-pink-400"
+    },
+    {
+      icon: BarChart3,
+      text: "Calculating ATS compatibility and match scores...",
+      color: "text-emerald-400"
+    },
+    {
+      icon: Sparkles,
+      text: "Finalizing your enhanced analysis report...",
+      color: "text-yellow-400"
+    }
   ]
 
   // Memoized calculations for performance
@@ -405,10 +462,11 @@ export default function RedesignedAnalysisPage() {
         headers: { 'Content-Type': 'application/json' }
       })
       
-      // Show gradual progress through all steps
+      // Show gradual progress through all steps with typewriter effect
       for (let i = 0; i < analysisSteps.length; i++) {
         setCurrentStep(i)
-        await new Promise(resolve => setTimeout(resolve, 1800)) // Much slower, more gradual
+        await typewriterEffect(analysisSteps[i].text, 30) // Typewriter effect
+        await new Promise(resolve => setTimeout(resolve, 1200)) // Pause after completion
       }
       
       // Wait for API to complete
@@ -574,24 +632,55 @@ export default function RedesignedAnalysisPage() {
             {/* Loading Analysis State */}
             {isAnalyzing && (
               <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
-                {/* Background Effects */}
+                {/* Neural Network Background */}
                 <div className="absolute inset-0 overflow-hidden">
-                  {[...Array(15)].map((_, i) => (
+                  {/* Neural Nodes */}
+                  {[...Array(12)].map((_, i) => (
+                    <div key={`node-${i}`}>
+                      <div
+                        className="absolute w-2 h-2 bg-cyan-400/20 rounded-full"
+                        style={{
+                          left: `${(i * 13 + 10) % 90 + 5}%`,
+                          top: `${(i * 17 + 15) % 80 + 10}%`,
+                          animation: 'neuralPulse 3s ease-in-out infinite',
+                          animationDelay: `${(i * 0.3) % 2}s`
+                        }}
+                      />
+                      {/* Neural Connections */}
+                      {i < 8 && (
+                        <div
+                          className="absolute h-px bg-gradient-to-r from-purple-400/10 to-transparent"
+                          style={{
+                            left: `${(i * 13 + 10) % 90 + 5}%`,
+                            top: `${(i * 17 + 15) % 80 + 10}%`,
+                            width: `${Math.abs((((i + 3) * 13 + 10) % 90 + 5) - ((i * 13 + 10) % 90 + 5))}%`,
+                            transform: `rotate(${((i * 37) % 180) - 90}deg)`,
+                            transformOrigin: 'left center',
+                            animation: 'connectionFlow 4s ease-in-out infinite',
+                            animationDelay: `${(i * 0.5) % 3}s`
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Data Flow Particles */}
+                  {[...Array(8)].map((_, i) => (
                     <div
-                      key={i}
-                      className="absolute w-1 h-1 bg-cyan-400/10 rounded-full animate-pulse"
+                      key={`particle-${i}`}
+                      className="absolute w-1 h-1 bg-gradient-to-r from-cyan-300 to-purple-300 rounded-full"
                       style={{
-                        left: `${(i * 13 + 10) % 90 + 5}%`,
-                        top: `${(i * 17 + 15) % 80 + 10}%`,
-                        animationDelay: `${(i * 0.5) % 4}s`,
-                        animationDuration: `${4 + (i % 2)}s`
+                        left: `${(i * 15 + 5) % 95}%`,
+                        top: `${(i * 23 + 20) % 70 + 15}%`,
+                        animation: 'dataFlow 6s linear infinite',
+                        animationDelay: `${(i * 0.8) % 5}s`
                       }}
                     />
                   ))}
                 </div>
 
                 {/* Main Loading Animation */}
-                <div className="relative flex flex-col items-center">
+                <div className="relative flex flex-col items-center" style={{ animation: 'breathe 4s ease-in-out infinite' }}>
                   {/* Resume Paper Animation - Fixed position */}
                   <div className="relative w-64 h-80">
                     {/* Paper Background */}
@@ -618,9 +707,14 @@ export default function RedesignedAnalysisPage() {
                       </div>
                     </div>
 
-                    {/* Floating Elements */}
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full animate-pulse flex items-center justify-center">
-                      <Brain className="w-6 h-6 text-white" />
+                    {/* Dynamic Floating Icon */}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center"
+                         style={{
+                           animation: currentStep === 4 ? 'brainPulse 1s ease-in-out infinite' : 'iconFloat 2s ease-in-out infinite'
+                         }}>
+                      {React.createElement(analysisSteps[currentStep]?.icon || Brain, { 
+                        className: `w-6 h-6 text-white ${analysisSteps[currentStep]?.color || 'text-white'}` 
+                      })}
                     </div>
 
                     {/* AI Sparkles */}
@@ -636,6 +730,24 @@ export default function RedesignedAnalysisPage() {
                         <path d="M12 2L13.09 8.26L19 7L15.45 11.82L21 16L14.82 15.45L16 22L11.18 17.45L7 21L8.27 14.73L2 16L6.18 10.45L2 7L8.26 8.09L7 2L11.82 6.55L16 2L14.73 8.27L21 7L16.82 12.55L21 16L14.73 14.73L16 21L11.82 16.82L7 21L8.27 14.91L2 16L6.55 11.18Z"/>
                       </svg>
                     </div>
+                    
+                    {/* Step Completion Celebration */}
+                    {stepCompleted && (
+                      <>
+                        {[...Array(6)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="absolute w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full"
+                            style={{
+                              left: `${20 + i * 15}%`,
+                              top: `${10 + (i % 2) * 20}%`,
+                              animation: 'celebrate 0.6s ease-out forwards',
+                              animationDelay: `${i * 0.1}s`
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
                   </div>
 
                   {/* Loading Text - Positioned below with fixed layout */}
@@ -644,18 +756,29 @@ export default function RedesignedAnalysisPage() {
                       AI Analysis In Progress
                     </h2>
                     <div className="h-12 flex items-center justify-center mt-2">
-                      <p className="text-slate-400 text-sm">
-                        {analysisSteps[currentStep]}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        {React.createElement(analysisSteps[currentStep]?.icon || Brain, { 
+                          className: `w-5 h-5 ${analysisSteps[currentStep]?.color || 'text-cyan-400'}` 
+                        })}
+                        <p className="text-slate-400 text-sm font-mono">
+                          {typewriterText}
+                          {!isTypewriterComplete && <span className="animate-pulse">|</span>}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mt-2">
-                      <div className="w-8 h-1 bg-cyan-400/30 rounded-full overflow-hidden">
+                      <div className="w-32 h-2 bg-cyan-400/20 rounded-full overflow-hidden relative">
                         <div 
-                          className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500"
-                          style={{ width: `${((currentStep + 1) / analysisSteps.length) * 100}%` }}
-                        />
+                          className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-700 rounded-full relative"
+                          style={{ 
+                            width: `${((currentStep + 1) / analysisSteps.length) * 100}%`,
+                            boxShadow: '0 0 10px rgba(34, 211, 238, 0.5)'
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/50 to-purple-500/50 rounded-full animate-pulse" />
+                        </div>
                       </div>
-                      <span className="text-slate-400 text-xs">
+                      <span className="text-slate-400 text-xs font-medium">
                         {currentStep + 1} / {analysisSteps.length}
                       </span>
                     </div>
@@ -1073,6 +1196,45 @@ export default function RedesignedAnalysisPage() {
         @keyframes spinSlow {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes brainPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(147, 51, 234, 0.5); }
+          50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(147, 51, 234, 0.8); }
+        }
+        
+        @keyframes iconFloat {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.05) rotate(2deg); }
+        }
+        
+        @keyframes celebrate {
+          0% { transform: scale(0) translateY(0); opacity: 1; }
+          50% { transform: scale(1.2) translateY(-20px); opacity: 0.8; }
+          100% { transform: scale(0) translateY(-40px); opacity: 0; }
+        }
+        
+        @keyframes neuralPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 5px rgba(34, 211, 238, 0.3); }
+          50% { transform: scale(1.5); box-shadow: 0 0 15px rgba(34, 211, 238, 0.6); }
+        }
+        
+        @keyframes connectionFlow {
+          0% { opacity: 0; }
+          50% { opacity: 0.3; }
+          100% { opacity: 0; }
+        }
+        
+        @keyframes dataFlow {
+          0% { transform: translateX(-100px) translateY(-50px); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateX(100px) translateY(50px); opacity: 0; }
+        }
+        
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.02); }
         }
       `}</style>
     </div>
