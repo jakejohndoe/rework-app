@@ -410,6 +410,48 @@ export function SVGResumePreview({
     return skillsArray;
   };
 
+  // Direct SVG download function
+  const handleSvgDownload = async () => {
+    if (!svgRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      // Get the SVG content as a string
+      const svgElement = svgRef.current;
+      const serializer = new XMLSerializer();
+      let svgString = serializer.serializeToString(svgElement);
+      
+      // Add XML declaration and namespace if missing
+      if (!svgString.startsWith('<?xml')) {
+        svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+      }
+      
+      // Ensure SVG has proper namespace
+      if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+        svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      
+      // Create blob and download
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `resume-${template}-${Date.now()}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log('✅ SVG download complete');
+    } catch (error) {
+      console.error('❌ SVG download failed:', error);
+      alert('Failed to download SVG. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // SVG to PDF conversion function
   const handleSvgToPdfDownload = async () => {
     if (!svgRef.current || !enableSvgToPdf) return;
@@ -1246,7 +1288,7 @@ export function SVGResumePreview({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={enableSvgToPdf ? handleSvgToPdfDownload : onDownload}
+                  onClick={handleSvgDownload}
                   disabled={isDownloading}
                   className="text-white border-white/20 hover:bg-white/10"
                 >
