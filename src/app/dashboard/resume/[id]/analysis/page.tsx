@@ -40,8 +40,7 @@ import {
   FileText,
   Search,
   Database,
-  Settings,
-  CheckCircle
+  Settings
 } from "lucide-react"
 
 // Enhanced analysis result interface
