@@ -452,44 +452,85 @@ export function SVGResumePreview({
     }
   };
 
-  // SVG to PDF via html2canvas
+  // SVG to PDF via manual canvas rendering
   const handleSvgToPdfDownload = async () => {
     if (!svgRef.current) return;
     
     setIsDownloading(true);
     try {
-      console.log('🎨 Converting SVG to PDF via html2canvas...');
+      console.log('🎨 Converting SVG to PDF via manual canvas...');
       
-      // Use html2canvas to capture the SVG element directly
-      const canvas = await html2canvas(svgRef.current as unknown as HTMLElement, {
-        scale: 2, // High resolution for print quality
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        width: 612,
-        height: 792,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 612,
-        windowHeight: 792
+      // Get the SVG content as a string
+      const svgElement = svgRef.current;
+      const serializer = new XMLSerializer();
+      let svgString = serializer.serializeToString(svgElement);
+      
+      // Ensure SVG has proper namespace
+      if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+        svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      
+      // Convert foreignObject HTML to SVG text elements for better compatibility
+      // This is a simplified approach - we'll render what we can
+      console.log('🔧 Processing SVG for PDF compatibility...');
+      
+      // Create a canvas for rendering
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      // Set canvas size (2x for high resolution)
+      const scale = 2;
+      canvas.width = 612 * scale;
+      canvas.height = 792 * scale;
+      ctx.scale(scale, scale);
+      
+      // Fill white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, 612, 792);
+      
+      // Create an image from SVG
+      const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+      const img = new Image();
+      
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('SVG image load timeout'));
+        }, 15000);
+        
+        img.onload = () => {
+          clearTimeout(timeout);
+          try {
+            ctx.drawImage(img, 0, 0, 612, 792);
+            console.log('✅ SVG rendered to canvas successfully');
+            resolve(null);
+          } catch (drawError) {
+            reject(new Error(`Canvas draw failed: ${drawError}`));
+          }
+        };
+        
+        img.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error('Failed to load SVG as image'));
+        };
+        
+        img.src = svgDataUrl;
       });
       
-      console.log('✅ Canvas generated successfully');
-      
-      // Convert canvas to PNG data URL
+      // Convert canvas to PNG
       const imgData = canvas.toDataURL('image/png', 1.0);
       
-      // Create PDF with jsPDF
+      // Create PDF
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
         format: 'letter'
       });
       
-      // Add image to PDF (full page)
+      // Add image to PDF
       pdf.addImage(imgData, 'PNG', 0, 0, 612, 792, '', 'FAST');
       
-      // Download the PDF
+      // Download
       const filename = `resume-${template}-${Date.now()}.pdf`;
       pdf.save(filename);
       
@@ -498,7 +539,12 @@ export function SVGResumePreview({
       console.error('❌ SVG to PDF conversion failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error details:', errorMessage);
-      alert(`Failed to convert SVG to PDF: ${errorMessage}`);
+      
+      // Fallback: suggest SVG download
+      const fallbackMessage = `PDF conversion failed: ${errorMessage}\n\nWould you like to download as SVG instead? (Click OK for SVG, Cancel to try PDF again)`;
+      if (window.confirm(fallbackMessage)) {
+        await handleSvgDownload();
+      }
     } finally {
       setIsDownloading(false);
     }
