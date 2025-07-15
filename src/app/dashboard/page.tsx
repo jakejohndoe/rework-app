@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [resumeToDelete, setResumeToDelete] = useState<{id: string, title: string} | null>(null)
+  const [aiBuilderModalOpen, setAiBuilderModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isMounted, setIsMounted] = useState(false)
@@ -249,7 +250,7 @@ export default function DashboardPage() {
 
   const handleAIBuilder = () => {
     // AI Builder clicked (coming soon)
-    alert('🚀 AI Builder is coming soon! This feature will let you create a resume from scratch using AI.')
+    setAiBuilderModalOpen(true)
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -939,6 +940,48 @@ export default function DashboardPage() {
                       Delete Forever
                     </>
                   )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* AI Builder Coming Soon Modal */}
+          <Dialog open={aiBuilderModalOpen} onOpenChange={setAiBuilderModalOpen}>
+            <DialogContent className="bg-slate-900/95 backdrop-blur-xl border border-purple-500/30 max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-white text-xl font-semibold flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-purple-400" />
+                  </div>
+                  AI Builder
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="py-6">
+                <p className="text-slate-300 text-base leading-relaxed mb-4">
+                  🚀 <span className="text-white font-semibold">AI Builder is coming soon!</span>
+                </p>
+                <p className="text-slate-400 text-sm mb-4">
+                  This feature will let you create a professional resume from scratch using artificial intelligence. Just answer a few questions and let AI build your perfect resume.
+                </p>
+                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/20">
+                  <p className="text-purple-300 text-sm font-medium">✨ Coming Features:</p>
+                  <ul className="text-purple-200 text-sm mt-2 space-y-1">
+                    <li>• AI-powered content generation</li>
+                    <li>• Smart skill recommendations</li>
+                    <li>• Industry-specific templates</li>
+                    <li>• Real-time optimization</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  onClick={() => setAiBuilderModalOpen(false)}
+                  className="bg-purple-500 hover:bg-purple-600 text-white border-0 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Got it!
                 </Button>
               </div>
             </DialogContent>
