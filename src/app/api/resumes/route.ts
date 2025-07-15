@@ -47,6 +47,22 @@ export async function GET() {
     console.log(`📋 Found ${resumes.length} resumes`);
     console.log('🖼️ Thumbnail URLs:', resumes.map(r => ({ id: r.id, hasThumbnail: !!r.thumbnailUrl })));
 
+    // Get user's job applications
+    const jobApplications = await prisma.jobApplication.findMany({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        jobTitle: true,
+        company: true,
+        status: true,
+        createdAt: true,
+        matchScore: true
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    console.log(`📋 Found ${jobApplications.length} job applications`);
+
     // Transform data for frontend
     const transformedResumes = resumes.map(resume => ({
       id: resume.id,
@@ -72,6 +88,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       resumes: transformedResumes,
+      jobApplications: jobApplications,
       total: transformedResumes.length
     })
 

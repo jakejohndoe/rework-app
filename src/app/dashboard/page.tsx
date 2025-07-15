@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [resumes, setResumes] = useState<any[]>([])
+  const [jobApplications, setJobApplications] = useState<any[]>([])
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [resumeToDelete, setResumeToDelete] = useState<{id: string, title: string} | null>(null)
@@ -143,6 +144,7 @@ export default function DashboardPage() {
         
         if (data.success) {
           setResumes(data.resumes)
+          setJobApplications(data.jobApplications || [])
           // Resumes set in state
         } else {
           console.error('❌ DASHBOARD DEBUG: API returned error:', data.error)
@@ -196,6 +198,7 @@ export default function DashboardPage() {
       
       if (data.success) {
         setResumes(data.resumes)
+        setJobApplications(data.jobApplications || [])
         // Resumes refreshed
       } else {
         console.error('❌ DASHBOARD DEBUG: Refresh failed:', data.error)
@@ -380,7 +383,7 @@ export default function DashboardPage() {
               { icon: FileText, label: "active resumes", value: currentResumes, color: "cyan" },
               { icon: Target, label: "total size", value: resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0) > 0 ? `${((resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0)) / 1024 / 1024).toFixed(1)} mb` : '—', color: "purple" },
               { icon: TrendingUp, label: "optimization rate", value: currentResumes > 0 ? `${Math.round((optimizedCount / currentResumes) * 100)}%` : '-', color: "emerald" },
-              { icon: Clock, label: "time saved", value: currentResumes > 0 ? `${(currentResumes * 3.2).toFixed(1)}h` : '-', color: "amber" }
+              { icon: Clock, label: "applications created", value: jobApplications.length || 0, color: "amber" }
             ].map((stat, index) => (
               <Card 
                 key={index}
@@ -658,11 +661,11 @@ export default function DashboardPage() {
                     <div className="mt-4 p-3 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-all backdrop-blur-sm">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-200 font-medium">total time saved</p>
-                          <p className="text-xs text-slate-400">based on industry averages</p>
+                          <p className="text-sm text-slate-200 font-medium">total applications</p>
+                          <p className="text-xs text-slate-400">ai optimizations created</p>
                         </div>
                         <p className="text-xl font-bold text-cyan-300">
-                          {(currentResumes * 3.2).toFixed(1)}h
+                          {jobApplications.length}
                         </p>
                       </div>
                     </div>
