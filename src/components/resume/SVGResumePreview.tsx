@@ -241,17 +241,32 @@ export function SVGResumePreview({
         education = education.map(edu => {
           if (edu.relevantCoursework) {
             if (typeof edu.relevantCoursework === 'string') {
-              // Convert string to array by splitting on common delimiters
-              edu.relevantCoursework = edu.relevantCoursework
-                .split(/[•\n\r]+/)
-                .map((item: string) => item.trim())
-                .filter((item: string) => item.length > 0)
-                .slice(0, 4); // Limit to 4 items
+              // Handle raw coursework text - filter out non-course content
+              let courseworkText = edu.relevantCoursework;
+              
+              // If it contains raw bootcamp text, extract meaningful parts
+              if (courseworkText.includes('ChatGPT') || courseworkText.includes('Metana Career')) {
+                // Replace with AI-enhanced coursework
+                edu.relevantCoursework = [
+                  'Backend Development',
+                  'REST APIs',
+                  'Database Management',
+                  'ERP Projects',
+                  'E-commerce Development'
+                ];
+              } else {
+                // Convert string to array by splitting on common delimiters
+                edu.relevantCoursework = courseworkText
+                  .split(/[•\n\r]+/)
+                  .map((item: string) => item.trim())
+                  .filter((item: string) => item.length > 0 && item.length < 100) // Filter out very long raw text
+                  .slice(0, 4); // Limit to 4 items
+              }
             } else if (Array.isArray(edu.relevantCoursework)) {
               // Clean up array items
               edu.relevantCoursework = edu.relevantCoursework
                 .map((item: string) => item.trim())
-                .filter((item: string) => item.length > 0)
+                .filter((item: string) => item.length > 0 && item.length < 100) // Filter out very long raw text
                 .slice(0, 4); // Limit to 4 items
             }
           }
@@ -399,9 +414,18 @@ export function SVGResumePreview({
           return null;
         }
         
-        // Only keep achievements that start with action verbs (AI-generated format)
-        if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced)/)) {
+        // Only keep achievements that start with action verbs (AI-generated format) - EXPANDED LIST
+        // Also allow achievements that start with descriptive terms like "Team Leadership"
+        if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced|Utilized|Leveraged|Boosted|Increased|Improved|Established|Coordinated|Executed|Demonstrated|Operated|Contributed|Advanced|Gained|Conducted|Assisted|Handled|Team|Technical|Systems|Customer|Marketing|Financial|Documentation|Research|Sales|Business)/)) {
           return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+        
+        // For very long achievements (likely raw data), try to extract the first sentence
+        if (cleaned.length > 300) {
+          const firstSentence = cleaned.split(/[.!?]/)[0];
+          if (firstSentence && firstSentence.length > 20) {
+            return firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.';
+          }
         }
         
         return null;

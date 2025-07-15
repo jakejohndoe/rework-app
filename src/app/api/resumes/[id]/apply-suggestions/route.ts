@@ -360,11 +360,18 @@ function applySkillsSuggestion(
   // Parse skills from the suggestion text
   let skillsToAdd: string[] = [];
   
-  // Handle instruction-style suggestions like "Add Go, WCF, SSIS to align with..."
+  // Handle instruction-style suggestions like "Add Go, SQL, and AWS integration to your skills list"
   if (suggestion.suggested.toLowerCase().includes('add ')) {
-    const addMatch = suggestion.suggested.match(/add\s+([^.]+?)(?:\s+to\s+|\s+and\s+|\s+for\s+|$)/i);
+    // More flexible pattern to capture skills after "Add"
+    const addMatch = suggestion.suggested.match(/add\s+([^.]*?)(?:\s+to\s+|\s+and\s+ensure|\s+\.\s+|\s+for\s+|$)/i);
     if (addMatch) {
-      skillsToAdd = addMatch[1].split(/[,\s]+/).map(skill => skill.trim()).filter(skill => skill.length > 1);
+      let skillsText = addMatch[1].trim();
+      // Handle "Go, SQL, and AWS integration" format
+      skillsText = skillsText.replace(/\s+and\s+/g, ', '); // Replace "and" with comma
+      skillsToAdd = skillsText.split(/[,]+/)
+        .map(skill => skill.trim())
+        .filter(skill => skill.length > 1 && !skill.match(/^(to|your|skills|list|these|are)$/i));
+      console.log('🔧 Parsed skills from Add instruction:', skillsToAdd);
     }
   } else {
     // Regular skill parsing
