@@ -210,10 +210,10 @@ export default function HomePage() {
         <header className="border-b border-white/10 backdrop-blur-xl bg-slate-900/30 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 group">
+              <Link href="/" className="flex items-center space-x-2 group">
                 <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
-              </div>
+              </Link>
               <div className="flex items-center space-x-4">
                 {status === "loading" ? (
                   <div className="flex items-center space-x-2">
@@ -508,7 +508,7 @@ export default function HomePage() {
                 </Card>
 
                 {/* Resumes Created */}
-                <Card className="bg-slate-800/30 backdrop-blur-sm border-green-400/20 hover:border-green-400/40 transition-all duration-500 hover:scale-105 cursor-pointer group relative overflow-hidden">
+                <Card className="bg-slate-800/30 backdrop-blur-sm border-green-400/20 hover:border-green-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
