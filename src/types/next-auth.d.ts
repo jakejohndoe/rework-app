@@ -9,6 +9,9 @@ declare module "next-auth" {
       image?: string | null
       plan: 'FREE' | 'PREMIUM'
       resumesCreated: number
+      createdAt: Date
+      lastActiveAt: Date
+      resumesOptimized: number
     }
   }
 
@@ -16,5 +19,8 @@ declare module "next-auth" {
     id: string
     plan: 'FREE' | 'PREMIUM'
     resumesCreated: number
+    createdAt: Date
+    lastActiveAt: Date
+    resumesOptimized: number
   }
 }

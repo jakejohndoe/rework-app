@@ -20,6 +20,7 @@ import {
   Zap
 } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
+import { formatMemberSince, formatLastActive } from "@/lib/date-utils"
 
 export default function HomePage() {
   const { data: session, status } = useSession()
@@ -492,51 +493,46 @@ export default function HomePage() {
           {session && (
             <div className="mb-24">
               <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                {/* Downloads This Month */}
+                {/* Member Since */}
                 <Card className="bg-slate-800/30 backdrop-blur-sm border-blue-400/20 hover:border-blue-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-300">
-                        {(session.user as any)?.downloadsThisMonth || 0}
+                      <div className="text-lg font-semibold text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                        {formatMemberSince(new Date(session.user.createdAt))}
                       </div>
                       <div className="text-sm text-slate-300 group-hover:text-white transition-colors duration-300">
-                        downloads this month
+                        account created
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Resumes Created */}
+                {/* Last Active */}
                 <Card className="bg-slate-800/30 backdrop-blur-sm border-green-400/20 hover:border-green-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-green-400 mb-2 group-hover:scale-110 transition-transform duration-300">
-                        {session.user?.resumesCreated || 0} / 3
+                      <div className="text-lg font-semibold text-green-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                        {formatLastActive(new Date(session.user.lastActiveAt))}
                       </div>
-                      <div className="text-sm text-slate-300 mb-3 group-hover:text-white transition-colors duration-300">
-                        resumes created this month
+                      <div className="text-sm text-slate-300 group-hover:text-white transition-colors duration-300">
+                        last activity
                       </div>
-                      {(session.user?.resumesCreated || 0) >= 3 && session.user?.plan !== 'PREMIUM' && (
-                        <Button size="sm" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-105 transition-all duration-300 text-white border-0">
-                          upgrade to premium
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Templates Used */}
+                {/* Resumes Optimized */}
                 <Card className="bg-slate-800/30 backdrop-blur-sm border-purple-400/20 hover:border-purple-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
                       <div className="text-3xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform duration-300">
-                        {(session.user as any)?.templatesUsed || 0}
+                        {session.user?.resumesOptimized || 0}
                       </div>
                       <div className="text-sm text-slate-300 group-hover:text-white transition-colors duration-300">
-                        templates explored
+                        resumes optimized
                       </div>
                     </div>
                   </CardContent>
