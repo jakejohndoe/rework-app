@@ -331,7 +331,7 @@ export function SVGResumePreview({
       const content = job.description || job.responsibilities || job.summary || job.duties || '';
       if (content) {
         // Split by sentences and take the best ones
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+        const sentences = content.split(/[.!?]+/).filter((s: string) => s.trim().length > 20);
         bullets = sentences.slice(0, 3).map(sentence => {
           const cleaned = sentence.replace(/^\s*[•\-\*]\s*/, '').trim();
           return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
