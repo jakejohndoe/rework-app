@@ -3,14 +3,15 @@ import { cn } from '@/lib/utils'
 
 interface LogoProps {
   variant?: 'detailed' | 'simple'
-  size?: 'small' | 'medium' | 'large'
+  size?: 'xs' | 'small' | 'medium' | 'large'
   className?: string
 }
 
 const sizeClasses = {
-  small: 'w-10 h-10',  // was w-5 h-5
-  medium: 'w-16 h-16', // was w-8 h-8
-  large: 'w-20 h-20'   // was w-10 h-10
+  xs: 'w-20 h-20',     // Good for navbar (80x80)
+  small: 'w-40 h-40',  // 4x from w-10 h-10
+  medium: 'w-64 h-64', // 4x from w-16 h-16
+  large: 'w-80 h-80'   // 4x from w-20 h-20
 }
 
 export function Logo({ 
@@ -23,9 +24,10 @@ export function Logo({
     : '/rework-logo-simple.png'
   
   const dimensions = {
-    small: { width: 64, height: 64 },    // was 32x32
-    medium: { width: 96, height: 96 },   // was 48x48
-    large: { width: 160, height: 160 }   // was 80x80
+    xs: { width: 128, height: 128 },       // For navbar
+    small: { width: 256, height: 256 },    // 4x from 64x64
+    medium: { width: 384, height: 384 },   // 4x from 96x96
+    large: { width: 640, height: 640 }     // 4x from 160x160
   }
   
   return (
