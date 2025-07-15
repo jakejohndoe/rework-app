@@ -427,18 +427,22 @@ function applyEducationSuggestion(
           if (courseMatches) {
             courseMatches.forEach(match => {
               const course = match.replace(/'/g, '');
+              if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
               eduItem.relevantCoursework.push(course);
             });
           }
           
           // Extract specific technologies/skills mentioned
           if (suggestion.suggested.toLowerCase().includes('backend')) {
+            if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
             eduItem.relevantCoursework.push('Backend Development');
           }
           if (suggestion.suggested.toLowerCase().includes('rest api')) {
+            if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
             eduItem.relevantCoursework.push('REST APIs');
           }
           if (suggestion.suggested.toLowerCase().includes('database')) {
+            if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
             eduItem.relevantCoursework.push('Database Management');
           }
         }
@@ -448,17 +452,21 @@ function applyEducationSuggestion(
           const projectMatch = suggestion.suggested.match(/projects?\s+related\s+to\s+([^,]+)/i)
           if (projectMatch) {
             const projectArea = projectMatch[1].trim()
+            if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
             eduItem.relevantCoursework.push(`Hands-on projects in ${projectArea}`)
           } else {
+            if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
             eduItem.relevantCoursework.push('Hands-on project development')
           }
         }
         
         // Extract specific skills/technologies mentioned
         if (suggestion.suggested.toLowerCase().includes('erp')) {
+          if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
           eduItem.relevantCoursework.push('ERP system integration projects')
         }
         if (suggestion.suggested.toLowerCase().includes('ecommerce')) {
+          if (!eduItem.relevantCoursework) eduItem.relevantCoursework = [];
           eduItem.relevantCoursework.push('E-commerce platform development')
         }
         
