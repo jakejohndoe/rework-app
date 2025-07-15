@@ -23,8 +23,16 @@ export function PDFPreviewFrame({
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [renderMethod, setRenderMethod] = useState<'canvas' | 'svg' | 'iframe'>('canvas');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use callback ref to know exactly when canvas mounts
+  const canvasRef = useCallback((node: HTMLCanvasElement | null) => {
+    if (node) {
+      console.log('✅ Canvas mounted in PDFPreviewFrame');
+      setCanvas(node);
+    }
+  }, []);
 
   // Unique ID for this component instance to avoid canvas conflicts
   const instanceId = useRef(`pdf-preview-${Math.random().toString(36).substr(2, 9)}`);
@@ -102,18 +110,10 @@ export function PDFPreviewFrame({
           // Use higher scale for better quality
           const viewport = page.getViewport({ scale: 1.0 });
 
-          // Wait a bit for canvas to mount if needed
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          let canvas = canvasRef.current;
+          // Use the mounted canvas
           if (!canvas) {
-            console.warn('Canvas not found, retrying in 500ms...');
-            // Retry once after a delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-            canvas = canvasRef.current;
-            if (!canvas) {
-              throw new Error('Canvas not found after retry');
-            }
+            console.error('Canvas not mounted yet');
+            throw new Error('Canvas not mounted');
           }
 
           // Clear any existing content
@@ -203,7 +203,6 @@ export function PDFPreviewFrame({
 
     // Show canvas if PDF was rendered successfully
     if (renderMethod === 'canvas') {
-      const canvas = canvasRef.current;
       if (canvas && canvas.width > 0) {
         return (
           <div className="flex items-center justify-center h-full bg-white rounded-lg overflow-hidden">
@@ -288,8 +287,15 @@ export function PDFPreviewFrame({
 
       {/* Preview Container */}
       <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg p-4 h-[400px] relative overflow-hidden">
-        {/* Hidden canvas for PDF rendering */}
-        <canvas ref={canvasRef} style={{ display: 'none' }} />
+        {/* Canvas for PDF rendering - initially visible to ensure proper mounting */}
+        <canvas 
+          ref={canvasRef} 
+          style={{ 
+            display: renderMethod === 'canvas' && !isLoading && !error ? 'none' : 'none',
+            position: 'absolute',
+            pointerEvents: 'none'
+          }} 
+        />
         
         {/* Content display */}
         {renderContent()}

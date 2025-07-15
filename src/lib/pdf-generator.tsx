@@ -278,7 +278,7 @@ const optimizeJobDescription = (description: string | any, achievements?: string
   }
   
   // Keep work experience substantial - just slightly shorter than original
-  const maxLength = 600; // Allow most content, just trim the longest descriptions
+  const maxLength = 750; // Increased from 600 to allow more detailed descriptions while maintaining one-page layout
   
   if (content.length <= maxLength) return content;
   

@@ -1,5 +1,5 @@
 // SSR-safe PDF thumbnail component
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 // Custom hook to dynamically load PDF.js only on client side
 const usePdfJs = () => {
@@ -36,40 +36,31 @@ interface PDFThumbnailProps {
 }
 
 export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const { pdfjsLib, isLoading: pdfLibLoading } = usePdfJs();
+
+  // Use callback ref to know exactly when canvas mounts
+  const canvasRef = useCallback((node: HTMLCanvasElement | null) => {
+    if (node) {
+      console.log('✅ Canvas mounted in PDFThumbnail');
+      setCanvas(node);
+    }
+  }, []);
 
   // PDFThumbnail component rendering
 
   useEffect(() => {
-    // Don't start rendering until PDF.js is loaded
-    if (pdfLibLoading || !pdfjsLib || !resumeId) {
+    // Don't start rendering until PDF.js is loaded AND canvas is mounted
+    if (pdfLibLoading || !pdfjsLib || !resumeId || !canvas) {
       return;
     }
 
     // useEffect triggered for PDF rendering
     
     const renderPdf = async () => {
-      // Starting PDF rendering immediately...
-      
-      // Wait a bit for canvas to mount if needed
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        console.warn('Canvas not found, retrying in 500ms...');
-        // Retry once after a delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const retryCanvas = canvasRef.current;
-        if (!retryCanvas) {
-          console.error('Canvas still not found after retry');
-          setStatus('error');
-          return;
-        }
-        // Use the retry canvas
-        return renderToCanvas(retryCanvas);
-      }
+      // Starting PDF rendering with mounted canvas...
+      console.log('🎨 Starting PDF render with mounted canvas');
       
       return renderToCanvas(canvas);
     };
@@ -129,7 +120,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
       };
 
     renderPdf();
-  }, [resumeId, pdfjsLib, pdfLibLoading]);
+  }, [resumeId, pdfjsLib, pdfLibLoading, canvas]);
 
   // Rendering with status
 

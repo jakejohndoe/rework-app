@@ -493,7 +493,10 @@ export default function RedesignedAnalysisPage() {
       for (let i = 0; i < analysisSteps.length; i++) {
         setCurrentStep(i)
         await typewriterEffect(analysisSteps[i].text, 30) // Typewriter effect
-        await new Promise(resolve => setTimeout(resolve, 1200)) // Pause after completion
+        
+        // Longer pause for steps 1-6, shorter for final step
+        const pauseDuration = i < analysisSteps.length - 1 ? 1800 : 600
+        await new Promise(resolve => setTimeout(resolve, pauseDuration))
       }
       
       // Wait for API to complete
