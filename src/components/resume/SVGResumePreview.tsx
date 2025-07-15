@@ -74,7 +74,7 @@ const enhanceProfessionalSummary = (summaryData: any): string => {
   let mainSummary = summaryData.summary || summaryData.optimized || '';
   
   // If the summary already has 3+ sentences, don't modify it (it's likely AI-enhanced)
-  const sentences = mainSummary.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const sentences = mainSummary.split(/[.!?]+/).filter((s: string) => s.trim().length > 10);
   if (sentences.length >= 3) {
     return mainSummary;
   }
