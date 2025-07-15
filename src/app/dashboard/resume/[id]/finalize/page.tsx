@@ -590,6 +590,7 @@ export default function EnhancedFinalizePage() {
                   showDownload={true}
                   onDownload={() => handleDownload('optimized')}
                   onCelebration={triggerConfetti}
+                  onSuccess={() => setShowSuccessCard(true)}
                   colors={selectedColors}
                   enableSvgToPdf={true}
                 />
