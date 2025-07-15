@@ -127,7 +127,6 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
           setStatus('error');
         }
       };
-    };
 
     renderPdf();
   }, [resumeId, pdfjsLib, pdfLibLoading]);
