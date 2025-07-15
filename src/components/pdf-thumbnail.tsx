@@ -38,21 +38,31 @@ interface PDFThumbnailProps {
 export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const { pdfjsLib, isLoading: pdfLibLoading } = usePdfJs();
 
   // Use callback ref to know exactly when canvas mounts
   const canvasRef = useCallback((node: HTMLCanvasElement | null) => {
     if (node) {
-      console.log('✅ Canvas mounted in PDFThumbnail');
+      console.log('✅ Canvas mounted in PDFThumbnail for resumeId:', resumeId);
       setCanvas(node);
+    } else {
+      console.log('❌ Canvas unmounted in PDFThumbnail for resumeId:', resumeId);
+      setCanvas(null);
     }
-  }, []);
+  }, [resumeId]);
 
   // PDFThumbnail component rendering
 
   useEffect(() => {
     // Don't start rendering until PDF.js is loaded AND canvas is mounted
     if (pdfLibLoading || !pdfjsLib || !resumeId || !canvas) {
+      console.log('⏳ PDF render waiting for:', {
+        pdfLibLoading, 
+        hasPdfjsLib: !!pdfjsLib, 
+        hasResumeId: !!resumeId, 
+        hasCanvas: !!canvas
+      });
       return;
     }
 
@@ -60,7 +70,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
     
     const renderPdf = async () => {
       // Starting PDF rendering with mounted canvas...
-      console.log('🎨 Starting PDF render with mounted canvas');
+      console.log('🎨 Starting PDF render with mounted canvas for resumeId:', resumeId);
       
       return renderToCanvas(canvas);
     };
@@ -114,7 +124,8 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
           setStatus('success');
           
         } catch (err) {
-          console.error('❌ PDF rendering failed:', err);
+          console.error('❌ PDF rendering failed for resumeId:', resumeId, err);
+          setErrorMessage(err instanceof Error ? err.message : 'Unknown error');
           setStatus('error');
         }
       };
@@ -183,7 +194,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
             📄 PDF Preview
           </div>
           <div className="text-red-300/60 text-xs mt-1 text-center">
-            Canvas not found
+            {errorMessage || 'Rendering failed'}
           </div>
         </div>
       )}

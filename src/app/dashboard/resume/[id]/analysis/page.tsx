@@ -494,8 +494,8 @@ export default function RedesignedAnalysisPage() {
         setCurrentStep(i)
         await typewriterEffect(analysisSteps[i].text, 30) // Typewriter effect
         
-        // Longer pause for steps 1-6, shorter for final step
-        const pauseDuration = i < analysisSteps.length - 1 ? 1800 : 600
+        // Adjusted timing: longer for steps 1-6, much shorter for final step
+        const pauseDuration = i < analysisSteps.length - 1 ? 1600 : 300
         await new Promise(resolve => setTimeout(resolve, pauseDuration))
       }
       
