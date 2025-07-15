@@ -255,26 +255,8 @@ function applyProfessionalSummarySuggestion(
   }
 
   if (suggestion.type === 'improve' || suggestion.type === 'add') {
-    // Enhance the summary to be 3-4 sentences
-    let enhancedSummary = suggestion.suggested;
-    
-    // If the suggestion is short (less than 3 sentences), enhance it
-    const sentences = enhancedSummary.split(/[.!?]+/).filter(s => s.trim().length > 10);
-    if (sentences.length < 3) {
-      // Add more context to make it comprehensive
-      const additionalContext = ' I excel at translating complex technical requirements into practical solutions that drive business value.';
-      enhancedSummary = enhancedSummary.endsWith('.') ? 
-        `${enhancedSummary}${additionalContext}` : 
-        `${enhancedSummary}.${additionalContext}`;
-        
-      // Add another sentence if still short
-      if (enhancedSummary.split(/[.!?]+/).filter(s => s.trim().length > 10).length < 3) {
-        const finalSentence = ' My approach combines strategic thinking with hands-on execution to deliver measurable results.';
-        enhancedSummary += finalSentence;
-      }
-    }
-    
-    summary.summary = enhancedSummary;
+    // Use the AI suggestion as-is - it's already well-crafted
+    summary.summary = suggestion.suggested;
     
     // Try to extract key strengths from the suggestion
     const strengthKeywords = [
@@ -376,16 +358,37 @@ function applySkillsSuggestion(
   }
 
   // Parse skills from the suggestion text
-  const extractedSkills = parseSkillsFromText(suggestion.suggested)
-
-  // Add extracted skills to appropriate categories
-  skills.technical = [...new Set([...skills.technical, ...extractedSkills.technical])]
-  skills.frameworks = [...new Set([...skills.frameworks, ...extractedSkills.frameworks])]
-  skills.tools = [...new Set([...skills.tools, ...extractedSkills.tools])]
-  skills.cloud = [...new Set([...skills.cloud, ...extractedSkills.cloud])]
-  skills.databases = [...new Set([...skills.databases, ...extractedSkills.databases])]
-  skills.soft = [...new Set([...skills.soft, ...extractedSkills.soft])]
-  skills.certifications = [...new Set([...skills.certifications, ...extractedSkills.certifications])]
+  let skillsToAdd: string[] = [];
+  
+  // Handle instruction-style suggestions like "Add Go, WCF, SSIS to align with..."
+  if (suggestion.suggested.toLowerCase().includes('add ')) {
+    const addMatch = suggestion.suggested.match(/add\s+([^.]+?)(?:\s+to\s+|\s+and\s+|\s+for\s+|$)/i);
+    if (addMatch) {
+      skillsToAdd = addMatch[1].split(/[,\s]+/).map(skill => skill.trim()).filter(skill => skill.length > 1);
+    }
+  } else {
+    // Regular skill parsing
+    const extractedSkills = parseSkillsFromText(suggestion.suggested);
+    skillsToAdd = [
+      ...extractedSkills.technical,
+      ...extractedSkills.frameworks, 
+      ...extractedSkills.tools,
+      ...extractedSkills.cloud,
+      ...extractedSkills.databases
+    ];
+  }
+  
+  // Add the extracted skills to technical skills (primary category)
+  skills.technical = [...new Set([...skills.technical, ...skillsToAdd])];
+  
+  // Also parse and categorize any additional skills
+  const extractedSkills = parseSkillsFromText(suggestion.suggested);
+  skills.frameworks = [...new Set([...skills.frameworks, ...extractedSkills.frameworks])];
+  skills.tools = [...new Set([...skills.tools, ...extractedSkills.tools])];
+  skills.cloud = [...new Set([...skills.cloud, ...extractedSkills.cloud])];
+  skills.databases = [...new Set([...skills.databases, ...extractedSkills.databases])];
+  skills.soft = [...new Set([...skills.soft, ...extractedSkills.soft])];
+  skills.certifications = [...new Set([...skills.certifications, ...extractedSkills.certifications])];
 
   return skills
 }
@@ -417,6 +420,29 @@ function applyEducationSuggestion(
           eduItem.relevantCoursework = []
         }
         
+        // Parse instruction-style suggestions like "Highlight backend-focused courses like 'REST APIs' and 'Database Management'..."
+        if (suggestion.suggested.toLowerCase().includes('highlight') || suggestion.suggested.toLowerCase().includes('courses')) {
+          // Extract courses mentioned in quotes
+          const courseMatches = suggestion.suggested.match(/'([^']+)'/g);
+          if (courseMatches) {
+            courseMatches.forEach(match => {
+              const course = match.replace(/'/g, '');
+              eduItem.relevantCoursework.push(course);
+            });
+          }
+          
+          // Extract specific technologies/skills mentioned
+          if (suggestion.suggested.toLowerCase().includes('backend')) {
+            eduItem.relevantCoursework.push('Backend Development');
+          }
+          if (suggestion.suggested.toLowerCase().includes('rest api')) {
+            eduItem.relevantCoursework.push('REST APIs');
+          }
+          if (suggestion.suggested.toLowerCase().includes('database')) {
+            eduItem.relevantCoursework.push('Database Management');
+          }
+        }
+        
         // Extract relevant project work from the suggestion
         if (suggestion.suggested.toLowerCase().includes('project')) {
           const projectMatch = suggestion.suggested.match(/projects?\s+related\s+to\s+([^,]+)/i)
@@ -434,14 +460,6 @@ function applyEducationSuggestion(
         }
         if (suggestion.suggested.toLowerCase().includes('ecommerce')) {
           eduItem.relevantCoursework.push('E-commerce platform development')
-        }
-        if (suggestion.suggested.toLowerCase().includes('database')) {
-          eduItem.relevantCoursework.push('Database design and optimization')
-        }
-        
-        // Add the full suggestion as relevant coursework if not already added
-        if (!eduItem.relevantCoursework.includes(suggestion.suggested)) {
-          eduItem.relevantCoursework.push(suggestion.suggested)
         }
         
         // Enhance the degree description if it's generic

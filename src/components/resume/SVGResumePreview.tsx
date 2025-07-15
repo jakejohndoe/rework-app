@@ -80,7 +80,7 @@ const enhanceProfessionalSummary = (summaryData: any): string => {
   }
   
   // Only enhance if it's too short and doesn't appear to be AI-generated
-  if (sentences.length < 3 && !mainSummary.includes('AI-driven') && !mainSummary.includes('efficiency gains')) {
+  if (sentences.length < 2 && !mainSummary.includes('AI-driven') && !mainSummary.includes('efficiency gains') && !mainSummary.includes('proven track record')) {
     // Add career level context if available and summary is still short
     if (summaryData.careerLevel) {
       const careerContext = summaryData.careerLevel === 'senior' ? 'senior-level' : 
@@ -236,6 +236,27 @@ export function SVGResumePreview({
         if (!Array.isArray(education)) {
           education = [];
         }
+        
+        // Clean up education data - ensure relevantCoursework is an array
+        education = education.map(edu => {
+          if (edu.relevantCoursework) {
+            if (typeof edu.relevantCoursework === 'string') {
+              // Convert string to array by splitting on common delimiters
+              edu.relevantCoursework = edu.relevantCoursework
+                .split(/[•\n\r]+/)
+                .map(item => item.trim())
+                .filter(item => item.length > 0)
+                .slice(0, 4); // Limit to 4 items
+            } else if (Array.isArray(edu.relevantCoursework)) {
+              // Clean up array items
+              edu.relevantCoursework = edu.relevantCoursework
+                .map(item => item.trim())
+                .filter(item => item.length > 0)
+                .slice(0, 4); // Limit to 4 items
+            }
+          }
+          return edu;
+        });
       }
 
       // FIXED: Parse skills - handle the structured object format from apply-suggestions
@@ -342,7 +363,12 @@ export function SVGResumePreview({
       educationCount: extractedData.education.length,
       skillsCount: extractedData.skills.length,
       firstWorkEntry: extractedData.workExperience[0]?.jobTitle || extractedData.workExperience[0]?.title || 'none',
-      customColors: colors ? `${colors.primary} / ${colors.accent}` : 'default'
+      customColors: colors ? `${colors.primary} / ${colors.accent}` : 'default',
+      educationData: extractedData.education.map(edu => ({
+        degree: edu.degree,
+        institution: edu.institution,
+        relevantCoursework: edu.relevantCoursework
+      }))
     });
 
     return extractedData;
@@ -365,10 +391,23 @@ export function SVGResumePreview({
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
       bullets = job.achievements.slice(0, 3).map((achievement: any) => {
         // Clean and format each achievement
-        const cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
-        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-      });
-      console.log('✅ Using AI achievements:', bullets);
+        let cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
+        
+        // Filter out mixed content - only keep AI-generated achievements
+        if (cleaned.includes('Rework (Application)') || cleaned.includes('AI powered application that optimizes')) {
+          // Skip this mixed content, it's not a clean AI achievement
+          return null;
+        }
+        
+        // Only keep achievements that start with action verbs (AI-generated format)
+        if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced)/)) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+        
+        return null;
+      }).filter(Boolean); // Remove null values
+      
+      console.log('✅ Using AI achievements (filtered):', bullets);
     } 
     // PRIORITY 2: Only use if NO achievements exist AND no AI optimization has been applied
     else if (!job.achievements && (job.description || job.responsibilities || job.summary || job.duties)) {
