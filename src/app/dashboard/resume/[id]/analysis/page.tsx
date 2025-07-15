@@ -175,8 +175,13 @@ export default function RedesignedAnalysisPage() {
     },
     {
       icon: Briefcase,
-      text: "Analyzing job requirements and matching keywords...",
+      text: "Analyzing job requirements and identifying key criteria...",
       color: "text-indigo-400"
+    },
+    {
+      icon: Target,
+      text: "Mapping your experience to target role requirements...",
+      color: "text-violet-400"
     },
     {
       icon: Database,
@@ -189,9 +194,19 @@ export default function RedesignedAnalysisPage() {
       color: "text-pink-400"
     },
     {
+      icon: Zap,
+      text: "Identifying keyword gaps and enhancement opportunities...",
+      color: "text-amber-400"
+    },
+    {
       icon: BarChart3,
       text: "Calculating ATS compatibility and match scores...",
       color: "text-emerald-400"
+    },
+    {
+      icon: TrendingUp,
+      text: "Benchmarking against industry standards and best practices...",
+      color: "text-green-400"
     },
     {
       icon: Sparkles,
@@ -494,8 +509,9 @@ export default function RedesignedAnalysisPage() {
         setCurrentStep(i)
         await typewriterEffect(analysisSteps[i].text, 30) // Typewriter effect
         
-        // Adjusted timing: longer for steps 1-6, much shorter for final step
-        const pauseDuration = i < analysisSteps.length - 1 ? 1600 : 300
+        // Even timing distribution across 10 steps - ~4 seconds each step
+        // Total animation time: ~40 seconds to match API call duration
+        const pauseDuration = i < analysisSteps.length - 1 ? 3800 : 1000 // Last step shorter
         await new Promise(resolve => setTimeout(resolve, pauseDuration))
       }
       
