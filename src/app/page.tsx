@@ -622,9 +622,9 @@ export default function HomePage() {
               <CardContent className="relative z-10">
                 <div className="space-y-4 text-base text-slate-300">
                   {[
-                    { text: "upload your current resume", time: "30 seconds", color: "green" },
-                    { text: "ai analyzes and optimizes content", time: "1 minute", color: "blue" },
-                    { text: "customize colors and template", time: "30 seconds", color: "purple" },
+                    { text: "upload your current resume", time: "1 minute", color: "green" },
+                    { text: "ai analyzes and optimizes content", time: "2-3 minutes", color: "blue" },
+                    { text: "customize colors and template", time: "2 minutes", color: "purple" },
                     { text: "download professional pdf", time: "instant", color: "teal" }
                   ].map((step, index) => (
                     <div key={index} className="flex justify-between items-center hover:bg-slate-800/30 p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] group/item">
