@@ -130,6 +130,39 @@
   .hover-scale-lg:hover {
     transform: scale(1.05) translate3d(0, 0, 0);
   }
+  
+  /* GENTLE SIGN-IN CELEBRATION ANIMATIONS */
+  .welcome-glow-target {
+    transition: all 0.5s ease-in-out;
+  }
+  
+  .welcome-glow-active {
+    box-shadow: 
+      0 0 20px rgba(251, 191, 36, 0.3),
+      0 0 40px rgba(251, 191, 36, 0.1),
+      0 0 80px rgba(251, 191, 36, 0.05);
+    border-color: rgba(251, 191, 36, 0.3);
+    transform: scale(1.01) translate3d(0, 0, 0);
+  }
+  
+  @keyframes floatSparkle {
+    0% {
+      opacity: 0;
+      transform: translateY(0) scale(0.5);
+    }
+    20% {
+      opacity: 1;
+      transform: translateY(-20px) scale(1);
+    }
+    80% {
+      opacity: 1;
+      transform: translateY(-80px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-120px) scale(0.5);
+    }
+  }
 }
 
 /* OPTIMIZED KEYFRAMES - Use transform3d for GPU acceleration */

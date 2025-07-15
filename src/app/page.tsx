@@ -78,58 +78,69 @@ export default function HomePage() {
   }, [session, status, isMounted])
 
   const triggerSignInCelebration = () => {
-    // 1. Confetti Burst - Multi-wave celebration
-    const colors = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
-    
-    // Initial burst
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: colors
-    })
+    // 1. Gentle Welcome Glow Effect
+    // Create a subtle glow that emanates from the welcome area
+    const welcomeElement = document.querySelector('.welcome-glow-target')
+    if (welcomeElement) {
+      welcomeElement.classList.add('welcome-glow-active')
+      setTimeout(() => {
+        welcomeElement.classList.remove('welcome-glow-active')
+      }, 3000)
+    }
 
-    // Side bursts
-    setTimeout(() => {
-      confetti({
-        particleCount: 50,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      })
-      confetti({
-        particleCount: 50,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      })
-    }, 200)
+    // 2. Gentle Floating Sparkles
+    // Create subtle sparkles around the welcome area
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        createFloatingSparkle()
+      }, i * 200)
+    }
 
-    // Final celebration burst
-    setTimeout(() => {
-      confetti({
-        particleCount: 30,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: colors
-      })
-    }, 400)
-
-    // 2. Welcome Badge Animation
+    // 3. Welcome Badge Animation
     setTimeout(() => {
       setShowWelcomeBadge(true)
       // Hide badge after 4 seconds
       setTimeout(() => setShowWelcomeBadge(false), 4000)
     }, 500)
 
-    // 3. Sparkle Animation on Welcome Card
+    // 4. Enhanced Sparkle Animation on Welcome Card
     setTimeout(() => {
       setShowSparkles(true)
-      // Turn off sparkles after 10 seconds
-      setTimeout(() => setShowSparkles(false), 10000)
-    }, 2000)
+      // Turn off sparkles after 8 seconds (reduced from 10)
+      setTimeout(() => setShowSparkles(false), 8000)
+    }, 1000)
+  }
+
+  // Create gentle floating sparkles
+  const createFloatingSparkle = () => {
+    const sparkle = document.createElement('div')
+    sparkle.className = 'floating-sparkle'
+    sparkle.innerHTML = '✨'
+    
+    // Random position around the viewport center
+    const x = Math.random() * window.innerWidth
+    const y = window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.4
+    
+    sparkle.style.cssText = `
+      position: fixed;
+      left: ${x}px;
+      top: ${y}px;
+      font-size: 16px;
+      z-index: 1000;
+      pointer-events: none;
+      animation: floatSparkle 3s ease-out forwards;
+      color: #fbbf24;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+    `
+    
+    document.body.appendChild(sparkle)
+    
+    // Remove sparkle after animation
+    setTimeout(() => {
+      if (sparkle.parentNode) {
+        sparkle.parentNode.removeChild(sparkle)
+      }
+    }, 3000)
   }
 
   // Magnetic button effect
@@ -374,7 +385,7 @@ export default function HomePage() {
           {/* Welcome Back Card for Signed-In Users */}
           {session && (
             <div className="mb-16">
-              <Card ref={welcomeCardRef} className="bg-gradient-to-br from-slate-800/50 via-purple-900/20 to-cyan-900/20 backdrop-blur-lg border border-white/20 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] relative overflow-hidden group max-w-4xl mx-auto">
+              <Card ref={welcomeCardRef} className="welcome-glow-target bg-gradient-to-br from-slate-800/50 via-purple-900/20 to-cyan-900/20 backdrop-blur-lg border border-white/20 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] relative overflow-hidden group max-w-4xl mx-auto">
                 {/* Animated Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400"></div>
