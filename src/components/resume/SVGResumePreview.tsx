@@ -321,7 +321,7 @@ export function SVGResumePreview({
     
     // First, try to get achievements as separate bullet points
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
-      bullets = job.achievements.slice(0, 3).map(achievement => {
+      bullets = job.achievements.slice(0, 3).map((achievement: any) => {
         // Clean and format each achievement
         const cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
