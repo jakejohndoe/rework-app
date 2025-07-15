@@ -244,14 +244,14 @@ export function SVGResumePreview({
               // Convert string to array by splitting on common delimiters
               edu.relevantCoursework = edu.relevantCoursework
                 .split(/[•\n\r]+/)
-                .map(item => item.trim())
-                .filter(item => item.length > 0)
+                .map((item: string) => item.trim())
+                .filter((item: string) => item.length > 0)
                 .slice(0, 4); // Limit to 4 items
             } else if (Array.isArray(edu.relevantCoursework)) {
               // Clean up array items
               edu.relevantCoursework = edu.relevantCoursework
-                .map(item => item.trim())
-                .filter(item => item.length > 0)
+                .map((item: string) => item.trim())
+                .filter((item: string) => item.length > 0)
                 .slice(0, 4); // Limit to 4 items
             }
           }
