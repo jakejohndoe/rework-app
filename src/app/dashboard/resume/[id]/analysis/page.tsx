@@ -21,7 +21,6 @@ import {
   Sparkles,
   Target,
   AlertTriangle,
-  Brain,
   Edit,
   RefreshCw,
   User,
@@ -43,6 +42,7 @@ import {
   Database,
   Settings
 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 // Enhanced analysis result interface
 interface EnhancedAnalysisResult {
@@ -189,7 +189,7 @@ export default function RedesignedAnalysisPage() {
       color: "text-purple-400"
     },
     {
-      icon: Brain,
+      icon: () => <Logo size="small" className="w-5 h-5" />,
       text: "AI is generating personalized optimization suggestions...",
       color: "text-pink-400"
     },
@@ -681,7 +681,7 @@ export default function RedesignedAnalysisPage() {
               <div className="flex items-center space-x-4">
                 <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Brain className="w-5 h-5 text-white" />
+                    <Logo size="small" className="w-5 h-5" />
                   </div>
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
@@ -709,7 +709,7 @@ export default function RedesignedAnalysisPage() {
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center animate-pulse">
-                      <Brain className="w-4 h-4 text-white" />
+                      <Logo size="small" className="w-4 h-4" />
                     </div>
                     <span className="text-white font-medium gradient-text">ai analysis</span>
                   </div>
@@ -814,9 +814,12 @@ export default function RedesignedAnalysisPage() {
                          style={{
                            animation: currentStep === 4 ? 'brainPulse 1s ease-in-out infinite' : 'iconFloat 2s ease-in-out infinite'
                          }}>
-                      {React.createElement(analysisSteps[currentStep]?.icon || Brain, { 
-                        className: `w-6 h-6 text-white ${analysisSteps[currentStep]?.color || 'text-white'}` 
-                      })}
+                      {analysisSteps[currentStep]?.icon ? 
+                        React.createElement(analysisSteps[currentStep].icon, { 
+                          className: `w-6 h-6 text-white ${analysisSteps[currentStep]?.color || 'text-white'}` 
+                        }) : 
+                        <Logo size="small" className="w-6 h-6" />
+                      }
                     </div>
 
                     {/* AI Sparkles */}
@@ -859,9 +862,12 @@ export default function RedesignedAnalysisPage() {
                     </h2>
                     <div className="h-12 flex items-center justify-center mt-2">
                       <div className="flex items-center gap-3">
-                        {React.createElement(analysisSteps[currentStep]?.icon || Brain, { 
-                          className: `w-5 h-5 ${analysisSteps[currentStep]?.color || 'text-cyan-400'}` 
-                        })}
+                        {analysisSteps[currentStep]?.icon ? 
+                          React.createElement(analysisSteps[currentStep].icon, { 
+                            className: `w-5 h-5 ${analysisSteps[currentStep]?.color || 'text-cyan-400'}` 
+                          }) : 
+                          <Logo size="small" className="w-5 h-5" />
+                        }
                         <p className="text-slate-400 text-sm font-mono">
                           {typewriterText}
                           {!isTypewriterComplete && <span className="animate-pulse">|</span>}

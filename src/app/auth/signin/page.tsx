@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
-import { Brain } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 function SignInContent() {
   const searchParams = useSearchParams()
@@ -26,7 +26,7 @@ function SignInContent() {
         <Card className="glass-card border-white/10 w-full max-w-md">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-gradient-primary rounded-xl mx-auto mb-4 animate-glow flex items-center justify-center">
-              <Brain className="w-8 h-8 text-white" />
+              <Logo size="medium" className="w-10 h-10" />
             </div>
             <CardTitle className="text-2xl gradient-text">Welcome to ReWork</CardTitle>
             <CardDescription className="text-slate-300">

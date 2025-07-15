@@ -31,13 +31,13 @@ import {
   Trash2,
   Download,
   Eye,
-  Brain,
   TrendingUp,
   CheckCircle,
   Grid3x3,
   List,
   Star
 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -319,7 +319,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center space-x-2 group">
                 <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                  <Brain className="w-5 h-5 text-white" />
+                  <Logo size="small" className="w-5 h-5" />
                 </div>
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
               </Link>

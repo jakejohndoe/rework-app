@@ -13,7 +13,8 @@ import { Separator } from '@/components/ui/separator'
 // ✅ ADDED: Import the minimum loading hook
 import { useFinalizeLoading } from '@/hooks/useMinimumLoading'
 import ResumeLoader from '@/components/resume-loader'
-import { ArrowLeft, CheckCircle, Download, Sparkles, ArrowRight, Brain, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Download, Sparkles, ArrowRight, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
+import { Logo } from '@/components/ui/logo'
 import { toast } from 'sonner'
 import { SVGResumePreview } from '@/components/resume/SVGResumePreview'
 import confetti from 'canvas-confetti'
@@ -373,7 +374,7 @@ export default function EnhancedFinalizePage() {
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                    <Brain className="w-5 h-5 text-white" />
+                    <Logo size="small" className="w-5 h-5" />
                   </div>
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>

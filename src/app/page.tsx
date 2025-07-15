@@ -8,7 +8,7 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import confetti from "canvas-confetti"
 import { 
-  Brain, 
+ 
   FileText, 
   Download,
   Sparkles,
@@ -19,6 +19,7 @@ import {
   Upload,
   Zap
 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 export default function HomePage() {
   const { data: session, status } = useSession()
@@ -211,7 +212,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 group">
                 <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                  <Brain className="w-5 h-5 text-white" />
+                  <Logo size="small" className="w-5 h-5" />
                 </div>
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
               </div>
@@ -549,7 +550,7 @@ export default function HomePage() {
           {/* 3D Tilt Feature Cards */}
           <div className="grid md:grid-cols-3 gap-8 mb-24">
             {[
-              { icon: Brain, title: "ai optimization", desc: "smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
+              { icon: () => <Logo size="small" className="w-6 h-6" />, title: "ai optimization", desc: "smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
               { icon: FileText, title: "professional templates", desc: "ats-friendly templates with real-time color customization and perfect formatting", color: "from-teal-400 to-blue-500", hoverColor: "secondary" },
               { icon: Download, title: "instant export", desc: "download polished, job-specific pdfs ready for immediate application", color: "from-green-400 to-teal-500", hoverColor: "green" }
             ].map((feature, index) => (

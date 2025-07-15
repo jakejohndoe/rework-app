@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: 'ReWork App - Smart Tech, For Smarter Jobs',
   description: 'AI-powered resume optimization for job-specific applications. Upload, optimize, and download tailored resumes in seconds.',
   keywords: 'resume, AI, job application, optimization, career, employment',
+  icons: {
+    icon: '/rework-logo-simple.png',
+    shortcut: '/rework-logo-simple.png',
+    apple: '/rework-logo-simple.png',
+  },
 }
 
 export default function RootLayout({

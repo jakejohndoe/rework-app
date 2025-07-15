@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { FileText, User, Briefcase, GraduationCap, Star, CheckCircle, Brain } from 'lucide-react'
+import { FileText, User, Briefcase, GraduationCap, Star, CheckCircle } from 'lucide-react'
+import { Logo } from '@/components/ui/logo'
 
 export default function DashboardLoading() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -91,7 +92,7 @@ export default function DashboardLoading() {
         {/* Premium Header */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
-            <Brain className="w-10 h-10 text-white" />
+            <Logo size="large" className="w-12 h-12" />
           </div>
           <h1 className="text-4xl font-bold mb-4">
             <span className="gradient-text">taking you to your dashboard</span>

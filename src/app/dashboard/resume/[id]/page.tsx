@@ -37,9 +37,9 @@ import {
   Download,
   ArrowRight,
   CheckCircle2,
-  Brain,
   Sparkles
 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 // Simple Resume Preview Component
 function SimpleResumePreview({ resumeData, className = "" }: { resumeData: any, className?: string }) {
@@ -852,7 +852,7 @@ export default function ResumeEditorPage() {
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                    <Brain className="w-5 h-5 text-white" />
+                    <Logo size="small" className="w-5 h-5" />
                   </div>
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
