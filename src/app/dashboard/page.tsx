@@ -1018,10 +1018,11 @@ export default function DashboardPage() {
                 <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-500/20">
                   <p className="text-cyan-300 text-sm font-medium">👑 Coming Premium Features:</p>
                   <ul className="text-cyan-200 text-sm mt-2 space-y-1">
+                    <li>• Automated cover letters</li>
                     <li>• Unlimited resume creation</li>
                     <li>• Premium templates & designs</li>
-                    <li>• Priority customer support</li>
                     <li>• Advanced AI optimizations</li>
+                    <li>• Priority customer support</li>
                     <li>• Export to multiple formats</li>
                   </ul>
                 </div>
