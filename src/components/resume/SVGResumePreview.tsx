@@ -32,6 +32,8 @@ interface ResumeData {
   phone: string;
   location: string;
   linkedin: string;
+  website: string;
+  githubUrl: string;
   professionalSummary: string;
   workExperience: any[];
   education: any[];
@@ -57,6 +59,40 @@ const extractPhoneFromContent = (content: string): string | null => {
 const extractSummaryFromContent = (content: string): string | null => {
   const summaryMatch = content.match(/(?:summary|objective|profile)[:\s]+([^.]+(?:\.[^.]+){0,3}\.)/i);
   return summaryMatch ? summaryMatch[1] : null;
+};
+
+// Enhanced professional summary function to create 3-4 sentence summaries
+const enhanceProfessionalSummary = (summaryData: any): string => {
+  if (!summaryData) return '';
+  
+  // If it's already a string, return it
+  if (typeof summaryData === 'string') {
+    return summaryData;
+  }
+  
+  // Extract the main summary
+  let mainSummary = summaryData.summary || summaryData.optimized || '';
+  
+  // If we have key strengths, incorporate them to make it longer
+  if (summaryData.keyStrengths && Array.isArray(summaryData.keyStrengths) && summaryData.keyStrengths.length > 0) {
+    const strengths = summaryData.keyStrengths.slice(0, 3).join(', ');
+    
+    // Add a sentence about key strengths if main summary is short
+    if (mainSummary.split('. ').length < 3) {
+      const strengthSentence = `Skilled in ${strengths} with a proven track record of delivering results.`;
+      mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${strengthSentence}` : `${mainSummary}. ${strengthSentence}`;
+    }
+  }
+  
+  // Add career level context if available and summary is still short
+  if (summaryData.careerLevel && mainSummary.split('. ').length < 3) {
+    const careerContext = summaryData.careerLevel === 'senior' ? 'senior-level' : 
+                         summaryData.careerLevel === 'mid' ? 'experienced' : 'emerging';
+    const contextSentence = `As an ${careerContext} professional, I bring strategic thinking and hands-on execution to every project.`;
+    mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${contextSentence}` : `${mainSummary}. ${contextSentence}`;
+  }
+  
+  return mainSummary;
 };
 
 export function SVGResumePreview({ 
@@ -170,15 +206,13 @@ export function SVGResumePreview({
         if (typeof data.professionalSummary === 'string') {
           try {
             const parsed = JSON.parse(data.professionalSummary);
-            professionalSummary = parsed.summary || parsed.optimized || parsed;
+            professionalSummary = enhanceProfessionalSummary(parsed);
           } catch (e) {
             professionalSummary = data.professionalSummary;
           }
         } else {
-          // It's an object - extract the summary field
-          professionalSummary = data.professionalSummary.summary || 
-                               data.professionalSummary.optimized || 
-                               data.professionalSummary;
+          // It's an object - extract and enhance the summary
+          professionalSummary = enhanceProfessionalSummary(data.professionalSummary);
         }
       }
 
@@ -294,6 +328,8 @@ export function SVGResumePreview({
       phone: contactInfo?.phone || '',
       location: contactInfo?.location || '',
       linkedin: contactInfo?.linkedin || '',
+      website: contactInfo?.website || '',
+      githubUrl: contactInfo?.githubUrl || '',
       professionalSummary: professionalSummary || 'Professional Network Engineer with expertise in infrastructure design and implementation.',
       workExperience: Array.isArray(workExperience) ? workExperience : [],
       education: Array.isArray(education) ? education : [],
@@ -315,19 +351,20 @@ export function SVGResumePreview({
   };
 
   // Enhanced work experience content extraction with bullet points
-  const extractWorkExperienceContent = (job: any, maxLength: number = 500) => {
+  const extractWorkExperienceContent = (job: any, maxLength: number = 400) => {
     // Extract and format as bullet points
     let bullets: string[] = [];
     
-    // First, try to get achievements as separate bullet points
+    // PRIORITY 1: Use AI-enhanced achievements if available
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
       bullets = job.achievements.slice(0, 3).map((achievement: any) => {
         // Clean and format each achievement
         const cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
       });
-    } else {
-      // If no achievements, try to split description into bullet points
+    } 
+    // PRIORITY 2: Only use description if NO achievements exist
+    else if (job.description || job.responsibilities || job.summary || job.duties) {
       const content = job.description || job.responsibilities || job.summary || job.duties || '';
       if (content) {
         // Split by sentences and take the best ones
@@ -339,7 +376,7 @@ export function SVGResumePreview({
       }
     }
     
-    // Fallback if no content
+    // PRIORITY 3: Fallback only if no content at all
     if (bullets.length === 0) {
       const jobTitle = (job.jobTitle || job.title || 'professional').toLowerCase();
       if (jobTitle.includes('developer') || jobTitle.includes('engineer')) {
