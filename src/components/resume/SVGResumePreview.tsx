@@ -166,6 +166,9 @@ export function SVGResumePreview({
 
   const extractResumeData = (data: any, version: string): ResumeData => {
     console.log('🔍 SVG Extracting resume data:', { version, hasContactInfo: !!data.contactInfo, hasSummary: !!data.professionalSummary, hasWorkExp: !!data.workExperience });
+    console.log('🔍 Raw professional summary data:', data.professionalSummary);
+    console.log('🔍 Raw skills data:', data.skills);
+    console.log('🔍 Raw work experience data:', data.workExperience?.[0]?.achievements);
     
     let contactInfo: any = {};
     let professionalSummary = '';
@@ -186,17 +189,22 @@ export function SVGResumePreview({
 
       // FIXED: Parse professional summary - handle object structure correctly  
       if (data.professionalSummary) {
+        console.log('🔍 Processing professional summary, type:', typeof data.professionalSummary);
         if (typeof data.professionalSummary === 'string') {
           try {
             const parsed = JSON.parse(data.professionalSummary);
+            console.log('🔍 Parsed summary object:', parsed);
             professionalSummary = enhanceProfessionalSummary(parsed);
           } catch (e) {
+            console.log('🔍 Using summary as string:', data.professionalSummary);
             professionalSummary = data.professionalSummary;
           }
         } else {
           // It's an object - extract and enhance the summary
+          console.log('🔍 Processing summary object:', data.professionalSummary);
           professionalSummary = enhanceProfessionalSummary(data.professionalSummary);
         }
+        console.log('🔍 Final professional summary:', professionalSummary);
       }
 
       // FIXED: Parse work experience - handle the actual structure from apply-suggestions
@@ -261,21 +269,27 @@ export function SVGResumePreview({
 
       // FIXED: Parse skills - handle the structured object format from apply-suggestions
       if (data.skills) {
+        console.log('🔍 Processing skills, type:', typeof data.skills, 'value:', data.skills);
         if (typeof data.skills === 'string') {
           try {
             skills = JSON.parse(data.skills);
+            console.log('🔍 Parsed skills object:', skills);
           } catch (e) {
             // If parsing fails, treat as comma-separated string
             skills = { technical: data.skills.split(',').map((s: string) => s.trim()) };
+            console.log('🔍 Fallback skills parsing:', skills);
           }
         } else {
           skills = data.skills;
+          console.log('🔍 Using skills object directly:', skills);
         }
         
         // Ensure it's an object, not an array
         if (Array.isArray(skills)) {
           skills = { technical: skills };
+          console.log('🔍 Converted array to object:', skills);
         }
+        console.log('🔍 Final skills object:', skills);
       }
 
       // Handle fallback case when no structured data exists
