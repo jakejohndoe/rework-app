@@ -61,7 +61,7 @@ const extractSummaryFromContent = (content: string): string | null => {
   return summaryMatch ? summaryMatch[1] : null;
 };
 
-// Enhanced professional summary function to create 3-4 sentence summaries
+// Professional summary function - use AI suggestions exactly as provided
 const enhanceProfessionalSummary = (summaryData: any): string => {
   if (!summaryData) return '';
   
@@ -70,26 +70,11 @@ const enhanceProfessionalSummary = (summaryData: any): string => {
     return summaryData;
   }
   
-  // Extract the main summary - prioritize AI-enhanced version
+  // Extract the main summary - prioritize AI-enhanced version, use exactly as provided
   let mainSummary = summaryData.summary || summaryData.optimized || '';
   
-  // If the summary already has 3+ sentences, don't modify it (it's likely AI-enhanced)
-  const sentences = mainSummary.split(/[.!?]+/).filter((s: string) => s.trim().length > 10);
-  if (sentences.length >= 3) {
-    return mainSummary;
-  }
-  
-  // Only enhance if it's too short and doesn't appear to be AI-generated
-  if (sentences.length < 2 && !mainSummary.includes('AI-driven') && !mainSummary.includes('efficiency gains') && !mainSummary.includes('proven track record')) {
-    // Add career level context if available and summary is still short
-    if (summaryData.careerLevel) {
-      const careerContext = summaryData.careerLevel === 'senior' ? 'senior-level' : 
-                           summaryData.careerLevel === 'mid' ? 'experienced' : 'emerging';
-      const contextSentence = `As an ${careerContext} professional, I bring strategic thinking and hands-on execution to every project.`;
-      mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${contextSentence}` : `${mainSummary}. ${contextSentence}`;
-    }
-  }
-  
+  // Return the AI-generated summary exactly as provided without any modifications
+  // AI suggestions are already well-crafted and should not be enhanced further
   return mainSummary;
 };
 
