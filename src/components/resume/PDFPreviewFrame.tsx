@@ -102,9 +102,18 @@ export function PDFPreviewFrame({
           // Use higher scale for better quality
           const viewport = page.getViewport({ scale: 1.0 });
 
-          const canvas = canvasRef.current;
+          // Wait a bit for canvas to mount if needed
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          let canvas = canvasRef.current;
           if (!canvas) {
-            throw new Error('Canvas not found');
+            console.warn('Canvas not found, retrying in 500ms...');
+            // Retry once after a delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            canvas = canvasRef.current;
+            if (!canvas) {
+              throw new Error('Canvas not found after retry');
+            }
           }
 
           // Clear any existing content

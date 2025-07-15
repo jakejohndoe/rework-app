@@ -88,11 +88,15 @@ export default function ProfessionalSummarySection({ professionalSummary, onChan
   const validateField = (field: string, value: any): string => {
     switch (field) {
       case 'summary':
-        if (!value?.toString().trim()) {
+        const summaryText = value?.toString().trim() || ''
+        if (!summaryText) {
           return 'Professional summary is required'
         }
-        if (value.toString().trim().length < 20) {
-          return 'Summary should be at least 20 characters'
+        if (summaryText.length < 50) {
+          return 'Summary should be at least 50 characters for professional impact'
+        }
+        if (summaryText.length < 100) {
+          return 'Consider expanding your summary to 100+ characters for better ATS optimization'
         }
         break
       case 'targetRole':

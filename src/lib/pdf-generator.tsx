@@ -196,12 +196,12 @@ const optimizeSummary = (summary: string | any, template: string) => {
   
   if (!summaryStr || summaryStr.length === 0) return '';
   
-  // Keep summaries substantial - just slightly shorter for one-page fit
+  // Conservative summary limits for guaranteed one-page fit
   const limits = {
-    professional: 500,
-    modern: 450,
-    minimal: 480,
-    creative: 470
+    professional: 350, // 500 → 350 (-150)
+    modern: 300,       // 450 → 300 (-150)
+    minimal: 330,      // 480 → 330 (-150)
+    creative: 320      // 470 → 320 (-150)
   };
   
   const limit = limits[template as keyof typeof limits] || 280;
