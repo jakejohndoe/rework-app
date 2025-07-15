@@ -1,7 +1,7 @@
 // src/components/resume/SVGResumePreview.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -388,22 +388,15 @@ export function SVGResumePreview({
     return extractedData;
   };
 
-  // Enhanced work experience content extraction with bullet points
-  const extractWorkExperienceContent = (job: any, maxLength: number = 600) => {
+  // Enhanced work experience content extraction with bullet points - MEMOIZED
+  const extractWorkExperienceContent = useCallback((job: any, maxLength: number = 600) => {
     // Extract and format as bullet points
     let bullets: string[] = [];
     
-    console.log('🔍 Extracting work experience content for job:', {
-      jobTitle: job.jobTitle || job.title,
-      hasAchievements: !!(job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0),
-      achievementsCount: job.achievements?.length || 0,
-      achievements: job.achievements?.slice(0, 3) || [],
-      hasDescription: !!(job.description || job.responsibilities || job.summary || job.duties)
-    });
-    
     // PRIORITY 1: Use AI-enhanced achievements if available - STRICT
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
-      bullets = job.achievements.slice(0, 3).map((achievement: any) => {
+      // Process ALL achievements, not just first 3, to find the best ones
+      const processedAchievements = job.achievements.map((achievement: any) => {
         // Clean and format each achievement
         let cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         
@@ -416,21 +409,33 @@ export function SVGResumePreview({
         // Only keep achievements that start with action verbs (AI-generated format) - EXPANDED LIST
         // Also allow achievements that start with descriptive terms like "Team Leadership"
         if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced|Utilized|Leveraged|Boosted|Increased|Improved|Established|Coordinated|Executed|Demonstrated|Operated|Contributed|Advanced|Gained|Conducted|Assisted|Handled|Team|Technical|Systems|Customer|Marketing|Financial|Documentation|Research|Sales|Business)/)) {
-          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+          return {
+            text: cleaned.charAt(0).toUpperCase() + cleaned.slice(1),
+            priority: cleaned.startsWith('Led') ? 1 : 2  // Prioritize "Led" achievements
+          };
         }
         
         // For very long achievements (likely raw data), try to extract the first sentence
         if (cleaned.length > 300) {
           const firstSentence = cleaned.split(/[.!?]/)[0];
           if (firstSentence && firstSentence.length > 20) {
-            return firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.';
+            return {
+              text: firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.',
+              priority: 3
+            };
           }
         }
         
         return null;
       }).filter(Boolean); // Remove null values
       
-      console.log('✅ Using AI achievements (filtered):', bullets);
+      // Sort by priority (1 = highest) and take the best 3
+      bullets = processedAchievements
+        .sort((a: any, b: any) => a.priority - b.priority)
+        .slice(0, 3)
+        .map((item: any) => item.text);
+      
+      // Reduced logging to prevent console spam
     } 
     // PRIORITY 2: Only use if NO achievements exist AND no AI optimization has been applied
     else if (!job.achievements && (job.description || job.responsibilities || job.summary || job.duties)) {
@@ -476,7 +481,6 @@ export function SVGResumePreview({
           `Maintained high standards of professional excellence`
         ];
       }
-      console.log('🎯 Using intelligent fallback:', bullets);
     }
     
     // Ensure we have at least 2 bullet points, maximum 3
@@ -493,9 +497,8 @@ export function SVGResumePreview({
       return bullet;
     });
     
-    console.log('✅ Final bullets:', finalBullets);
     return finalBullets;
-  };
+  }, []);
 
   // Extract skills/keywords from job content when no technologies array exists
   const extractJobSkills = (job: any) => {
