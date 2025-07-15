@@ -79,28 +79,19 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
       // Canvas found! Starting PDF generation...
       
         try {
-          // Step 1: Get PDF URL
-          // Fetching PDF URL...
-          const urlResponse = await fetch(`/api/resumes/${resumeId}/url`);
-          if (!urlResponse.ok) {
-            throw new Error(`Failed to get PDF URL: ${urlResponse.status}`);
-          }
-          
-          const urlData = await urlResponse.json();
-          // PDF URL fetched successfully
-          
-          // Step 2: Load PDF
-          // Loading PDF with PDF.js...
-          const loadingTask = pdfjsLib.getDocument(urlData.url);
+          // Step 1: Load PDF directly from proxy endpoint (no CORS issues)
+          console.log('📄 Loading PDF from proxy endpoint...');
+          const pdfUrl = `/api/resumes/${resumeId}/pdf`;
+          const loadingTask = pdfjsLib.getDocument(pdfUrl);
           const pdf = await loadingTask.promise;
-          // PDF loaded successfully!
+          console.log('✅ PDF loaded successfully from proxy!');
           
-          // Step 3: Get first page
+          // Step 2: Get first page
           const page = await pdf.getPage(1);
           const viewport = page.getViewport({ scale: 0.3 }); // Smaller scale for faster rendering
-          // Got page and viewport
+          console.log('📑 Got page and viewport');
           
-          // Step 4: Setup canvas
+          // Step 3: Setup canvas
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           
@@ -109,9 +100,9 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
             throw new Error('Could not get canvas context');
           }
           
-          // Starting PDF render to canvas...
+          console.log('🎨 Starting PDF render to canvas...');
           
-          // Step 5: Render PDF to canvas
+          // Step 4: Render PDF to canvas
           const renderContext = {
             canvasContext: context,
             viewport: viewport
@@ -120,7 +111,7 @@ export function PDFThumbnail({ resumeId, className = '' }: PDFThumbnailProps) {
           const renderTask = (page as any).render(renderContext);
           await renderTask.promise;
           
-          // PDF thumbnail rendered successfully!
+          console.log('✅ PDF thumbnail rendered successfully!');
           setStatus('success');
           
         } catch (err) {
