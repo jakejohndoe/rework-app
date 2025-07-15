@@ -498,7 +498,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                      <div className="text-2xl font-bold text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-300">
                         {formatMemberSince(new Date(session.user.createdAt))}
                       </div>
                       <div className="text-sm text-slate-300 group-hover:text-white transition-colors duration-300">
@@ -513,7 +513,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-green-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                      <div className="text-2xl font-bold text-green-400 mb-2 group-hover:scale-110 transition-transform duration-300">
                         {formatLastActive(new Date(session.user.lastActiveAt))}
                       </div>
                       <div className="text-sm text-slate-300 group-hover:text-white transition-colors duration-300">

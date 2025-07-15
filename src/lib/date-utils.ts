@@ -1,8 +1,8 @@
 export function formatMemberSince(date: Date): string {
-  return `Member since ${date.toLocaleDateString('en-US', { 
+  return date.toLocaleDateString('en-US', { 
     month: 'short', 
     year: 'numeric' 
-  })}`
+  })
 }
 
 export function formatLastActive(date: Date): string {
@@ -13,17 +13,17 @@ export function formatLastActive(date: Date): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   
   if (diffMinutes < 1) {
-    return 'Active now'
+    return 'now'
   } else if (diffMinutes < 60) {
-    return `Active ${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`
+    return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`
   } else if (diffHours < 24) {
-    return `Active ${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
   } else if (diffDays < 7) {
-    return `Active ${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
   } else {
-    return `Last active ${date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric' 
-    })}`
+    })
   }
 }
