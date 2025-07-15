@@ -18,6 +18,7 @@ interface SVGResumePreviewProps {
   showDownload?: boolean;
   onDownload?: () => void;
   enableSvgToPdf?: boolean;
+  onCelebration?: () => void;
   colors?: {
     primary: string;
     accent: string;
@@ -67,6 +68,7 @@ export function SVGResumePreview({
   showDownload = false,
   onDownload,
   enableSvgToPdf = false,
+  onCelebration,
   colors
 }: SVGResumePreviewProps) {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -535,6 +537,11 @@ export function SVGResumePreview({
       pdf.save(filename);
       
       console.log('✅ SVG to PDF conversion complete');
+      
+      // Trigger celebration if callback provided
+      if (onCelebration) {
+        onCelebration();
+      }
     } catch (error) {
       console.error('❌ SVG to PDF conversion failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
