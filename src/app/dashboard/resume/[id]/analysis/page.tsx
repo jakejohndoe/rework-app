@@ -189,7 +189,7 @@ export default function RedesignedAnalysisPage() {
       color: "text-purple-400"
     },
     {
-      icon: () => <Logo size="small" className="w-5 h-5" />,
+      icon: Sparkles, // Using Sparkles instead of Logo for consistency
       text: "AI is generating personalized optimization suggestions...",
       color: "text-pink-400"
     },
@@ -814,12 +814,9 @@ export default function RedesignedAnalysisPage() {
                          style={{
                            animation: currentStep === 4 ? 'brainPulse 1s ease-in-out infinite' : 'iconFloat 2s ease-in-out infinite'
                          }}>
-                      {analysisSteps[currentStep]?.icon ? 
-                        React.createElement(analysisSteps[currentStep].icon, { 
-                          className: `w-6 h-6 text-white ${analysisSteps[currentStep]?.color || 'text-white'}` 
-                        }) : 
-                        <Logo size="small" className="w-6 h-6" />
-                      }
+                      {React.createElement(analysisSteps[currentStep]?.icon || Sparkles, { 
+                        className: `w-6 h-6 text-white ${analysisSteps[currentStep]?.color || 'text-white'}` 
+                      })}
                     </div>
 
                     {/* AI Sparkles */}
@@ -862,12 +859,9 @@ export default function RedesignedAnalysisPage() {
                     </h2>
                     <div className="h-12 flex items-center justify-center mt-2">
                       <div className="flex items-center gap-3">
-                        {analysisSteps[currentStep]?.icon ? 
-                          React.createElement(analysisSteps[currentStep].icon, { 
-                            className: `w-5 h-5 ${analysisSteps[currentStep]?.color || 'text-cyan-400'}` 
-                          }) : 
-                          <Logo size="small" className="w-5 h-5" />
-                        }
+                        {React.createElement(analysisSteps[currentStep]?.icon || Sparkles, { 
+                          className: `w-5 h-5 ${analysisSteps[currentStep]?.color || 'text-cyan-400'}` 
+                        })}
                         <p className="text-slate-400 text-sm font-mono">
                           {typewriterText}
                           {!isTypewriterComplete && <span className="animate-pulse">|</span>}

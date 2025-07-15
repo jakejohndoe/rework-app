@@ -550,7 +550,7 @@ export default function HomePage() {
           {/* 3D Tilt Feature Cards */}
           <div className="grid md:grid-cols-3 gap-8 mb-24">
             {[
-              { icon: () => <Logo size="small" className="w-6 h-6" />, title: "ai optimization", desc: "smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
+              { icon: Sparkles, title: "ai optimization", desc: "smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
               { icon: FileText, title: "professional templates", desc: "ats-friendly templates with real-time color customization and perfect formatting", color: "from-teal-400 to-blue-500", hoverColor: "secondary" },
               { icon: Download, title: "instant export", desc: "download polished, job-specific pdfs ready for immediate application", color: "from-green-400 to-teal-500", hoverColor: "green" }
             ].map((feature, index) => (
