@@ -314,46 +314,64 @@ export function SVGResumePreview({
     return extractedData;
   };
 
-  // Unified work experience content extraction with keywords
-  const extractWorkExperienceContent = (job: any, maxLength: number = 180) => {
-    // Extract base content
-    let content = '';
-    if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
-      content = job.achievements.join('. ') + '.';
-    } else {
-      content = job.description || job.responsibilities || job.summary || job.duties || '';
-    }
+  // Enhanced work experience content extraction with bullet points
+  const extractWorkExperienceContent = (job: any, maxLength: number = 500) => {
+    // Extract and format as bullet points
+    let bullets: string[] = [];
     
-    // Debug logging removed to prevent console spam
+    // First, try to get achievements as separate bullet points
+    if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
+      bullets = job.achievements.slice(0, 3).map(achievement => {
+        // Clean and format each achievement
+        const cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      });
+    } else {
+      // If no achievements, try to split description into bullet points
+      const content = job.description || job.responsibilities || job.summary || job.duties || '';
+      if (content) {
+        // Split by sentences and take the best ones
+        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+        bullets = sentences.slice(0, 3).map(sentence => {
+          const cleaned = sentence.replace(/^\s*[•\-\*]\s*/, '').trim();
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        });
+      }
+    }
     
     // Fallback if no content
-    if (!content || content.trim().length < 10) {
-      return 'Responsible for key projects and strategic initiatives in technology and development.';
+    if (bullets.length === 0) {
+      const jobTitle = (job.jobTitle || job.title || 'professional').toLowerCase();
+      if (jobTitle.includes('developer') || jobTitle.includes('engineer')) {
+        bullets = [
+          'Developed and maintained scalable software solutions using modern technologies',
+          'Collaborated with cross-functional teams to deliver high-quality products',
+          'Implemented best practices for code quality, testing, and deployment'
+        ];
+      } else if (jobTitle.includes('manager') || jobTitle.includes('lead')) {
+        bullets = [
+          'Led team of professionals to achieve key business objectives',
+          'Managed multiple projects simultaneously while maintaining quality standards',
+          'Developed and implemented strategic initiatives to improve efficiency'
+        ];
+      } else {
+        bullets = [
+          'Executed key responsibilities with focus on quality and efficiency',
+          'Contributed to team success through collaborative problem-solving',
+          'Maintained high standards of professional excellence'
+        ];
+      }
     }
     
-    // Clean up the content first - remove extra whitespace and newlines
-    const cleanContent = content.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    // Ensure we have 2-3 bullet points and they fit within length constraints
+    const finalBullets = bullets.slice(0, 3).map(bullet => {
+      if (bullet.length > maxLength / 3) {
+        return bullet.substring(0, maxLength / 3 - 3) + '...';
+      }
+      return bullet;
+    });
     
-    // If content fits, return it (increased threshold)
-    if (cleanContent.length <= maxLength) return cleanContent;
-    
-    // Smart truncation at sentence boundaries
-    const sentences = cleanContent.split('. ');
-    let result = '';
-    for (const sentence of sentences) {
-      if (!sentence.trim()) continue;
-      const testSentence = sentence.trim();
-      const withSentence = result + (result ? '. ' : '') + testSentence;
-      if (withSentence.length > maxLength) break;
-      result = withSentence;
-    }
-    
-    // Ensure proper ending
-    if (result && !result.endsWith('.')) {
-      result += '.';
-    }
-    
-    return result || cleanContent.substring(0, maxLength - 3) + '...';
+    return finalBullets;
   };
 
   // Extract skills/keywords from job content when no technologies array exists
@@ -486,12 +504,12 @@ export function SVGResumePreview({
       // Set canvas size (2x for high resolution)
       const scale = 2;
       canvas.width = 612 * scale;
-      canvas.height = 792 * scale;
+      canvas.height = 900 * scale;
       ctx.scale(scale, scale);
       
       // Fill white background
       ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, 612, 792);
+      ctx.fillRect(0, 0, 612, 900);
       
       // Create an image from SVG
       const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
@@ -564,7 +582,7 @@ export function SVGResumePreview({
 
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 900" className="w-full h-full">
       <defs>
         <linearGradient id="profGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -573,7 +591,7 @@ export function SVGResumePreview({
       </defs>
 
       {/* White background */}
-      <rect width="612" height="792" fill="white"/>
+      <rect width="612" height="900" fill="white"/>
       
       {/* Header */}
       <rect x="0" y="0" width="612" height="120" fill="url(#profGradient)"/>
@@ -617,75 +635,95 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="290" x2="180" y2="290" stroke={config.accentColor} strokeWidth="2"/>
 
-      {data.workExperience.slice(0, 2).map((job, index) => (
-        <g key={index}>
-          <rect x="40" y={310 + index * 140} width="532" height="125" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
-          <rect x="40" y={310 + index * 140} width="4" height="125" fill={config.accentColor} rx="2"/>
-          
-          <text x="55" y={335 + index * 140} fontSize="13" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+      {data.workExperience.slice(0, 2).map((job, index) => {
+        const bullets = extractWorkExperienceContent(job, 500);
+        return (
+          <g key={index}>
+            <rect x="40" y={310 + index * 180} width="532" height="170" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
+            <rect x="40" y={310 + index * 180} width="4" height="170" fill={config.accentColor} rx="2"/>
+            
+            <text x="55" y={335 + index * 180} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
-          </text>
-          
-          <text x="450" y={335 + index * 140} fontSize="10" fill="#6b7280" fontFamily="sans-serif">
-            {job.startDate || '2022'} — {job.endDate || 'Present'}
-          </text>
-          
-          <text x="55" y={350 + index * 140} fontSize="11" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
-            {job.company || 'Technology Company'}
-          </text>
+            </text>
+            
+            <text x="450" y={335 + index * 180} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
+              {job.startDate || '2022'} — {job.endDate || 'Present'}
+            </text>
+            
+            <text x="55" y={350 + index * 180} fontSize="12" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
+              {job.company || 'Technology Company'}
+            </text>
 
-          <foreignObject x="55" y={360 + index * 140} width="500" height="30">
-            <div className="serif" style={{ 
-              fontSize: '10px', 
-              lineHeight: '1.4', 
-              color: '#374151'
-            }}>
-{extractWorkExperienceContent(job, 200)}
-            </div>
-          </foreignObject>
+            {/* Render bullet points */}
+            <foreignObject x="55" y={365 + index * 180} width="500" height="80">
+              <div className="serif" style={{ 
+                fontSize: '11px', 
+                lineHeight: '1.5', 
+                color: '#374151'
+              }}>
+                {Array.isArray(bullets) ? bullets.map((bullet, bulletIndex) => (
+                  <div key={bulletIndex} style={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start', 
+                    marginBottom: '4px'
+                  }}>
+                    <span style={{ 
+                      marginRight: '8px', 
+                      color: config.accentColor, 
+                      fontWeight: '600',
+                      fontSize: '12px'
+                    }}>•</span>
+                    <span>{bullet}</span>
+                  </div>
+                )) : (
+                  <span>{bullets}</span>
+                )}
+              </div>
+            </foreignObject>
 
-          {/* Job-specific skills/technologies */}
-          {(() => {
-            const jobSkills = extractJobSkills(job);
-            return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="55" y={395 + index * 140} width="500" height="35">
-                <div className="serif" style={{ 
-                  fontSize: '9px', 
-                  lineHeight: '1.4', 
-                  color: '#6b7280',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  marginTop: '4px'
-                }}>
-                  {jobSkills.slice(0, 8).map((tech: string, techIndex: number) => (
-                    <span key={techIndex} style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '2px'
-                    }}>
-                      <span style={{color: config.accentColor}}>•</span>
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </foreignObject>
-            );
-          })()}
-        </g>
-      ))}
+            {/* Job-specific skills/technologies */}
+            {(() => {
+              const jobSkills = extractJobSkills(job);
+              return jobSkills && jobSkills.length > 0 && (
+                <foreignObject x="55" y={450 + index * 180} width="500" height="25">
+                  <div className="serif" style={{ 
+                    fontSize: '10px', 
+                    lineHeight: '1.4', 
+                    color: '#6b7280',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginTop: '4px'
+                  }}>
+                    {jobSkills.slice(0, 8).map((tech: string, techIndex: number) => (
+                      <span key={techIndex} style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px'
+                      }}>
+                        <span style={{color: config.accentColor}}>•</span>
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </foreignObject>
+              );
+            })()}
+          </g>
+        );
+      })}
 
       {/* Skills & Education */}
       <g>
-        <text x="40" y={630} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+        <text x="40" y={710} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
           Core Skills
         </text>
-        <line x1="40" y1="640" x2="100" y2="640" stroke={config.accentColor} strokeWidth="2"/>
+        <line x1="40" y1="720" x2="100" y2="720" stroke={config.accentColor} strokeWidth="2"/>
         
         {data.skills.length > 0 && (
-          <foreignObject x="40" y="650" width="260" height="80">
+          <foreignObject x="40" y="730" width="260" height="80">
             <div className="serif" style={{ 
-              fontSize: '10px', 
+              fontSize: '11px', 
               lineHeight: '1.6', 
               color: '#374151',
               columnCount: 2,
@@ -701,17 +739,17 @@ export function SVGResumePreview({
           </foreignObject>
         )}
 
-        <text x="320" y={630} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+        <text x="320" y={710} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
           Education
         </text>
-        <line x1="320" y1="640" x2="370" y2="640" stroke={config.accentColor} strokeWidth="2"/>
+        <line x1="320" y1="720" x2="370" y2="720" stroke={config.accentColor} strokeWidth="2"/>
         
         {data.education.slice(0, 2).map((edu, index) => (
           <g key={index}>
-            <text x="320" y={665 + index * 35} fontSize="11" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
+            <text x="320" y={745 + index * 35} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
             </text>
-            <text x="320" y={680 + index * 35} fontSize="10" fill="#6b7280">
+            <text x="320" y={760 + index * 35} fontSize="11" fill="#6b7280">
 {edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
             </text>
           </g>
@@ -729,7 +767,7 @@ export function SVGResumePreview({
 
   // 🎨 MODERN TEMPLATE
   const renderModernTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 900" className="w-full h-full">
       <defs>
         <linearGradient id="modernBg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor: '#f8fafc'}} />
@@ -791,55 +829,74 @@ export function SVGResumePreview({
         Experience
       </text>
 
-      {data.workExperience.slice(0, 2).map((job, index) => (
-        <g key={index}>
-          <rect x="40" y={375 + index * 170} width="350" height="155" 
-                fill="white" 
-                rx="12" 
-                stroke="#e2e8f0" 
-                strokeWidth="1"/>
-          
-          <rect x="40" y={375 + index * 170} width="4" height="155" fill={config.accentColor} rx="2"/>
-          
-          <text x="60" y={400 + index * 170} fontSize="13" fontWeight="600" fill={config.primaryColor}>
+      {data.workExperience.slice(0, 2).map((job, index) => {
+        const bullets = extractWorkExperienceContent(job, 500);
+        return (
+          <g key={index}>
+            <rect x="40" y={375 + index * 200} width="350" height="185" 
+                  fill="white" 
+                  rx="12" 
+                  stroke="#e2e8f0" 
+                  strokeWidth="1"/>
+            
+            <rect x="40" y={375 + index * 200} width="4" height="185" fill={config.accentColor} rx="2"/>
+            
+            <text x="60" y={400 + index * 200} fontSize="14" fontWeight="600" fill={config.primaryColor}>
 {job.jobTitle || job.title || job.position || 'Network Engineer'}
-          </text>
-          
-          <text x="60" y={415 + index * 170} fontSize="11" fontWeight="500" fill={config.accentColor}>
-            {job.company || 'Technology Company'}
-          </text>
-          
-          <text x="310" y={415 + index * 170} fontSize="10" fill="#6b7280">
-            {job.startDate || '2022'} — {job.endDate || 'Present'}
-          </text>
+            </text>
+            
+            <text x="60" y={415 + index * 200} fontSize="12" fontWeight="500" fill={config.accentColor}>
+              {job.company || 'Technology Company'}
+            </text>
+            
+            <text x="310" y={415 + index * 200} fontSize="11" fill="#6b7280">
+              {job.startDate || '2022'} — {job.endDate || 'Present'}
+            </text>
 
-          <foreignObject x="60" y={425 + index * 170} width="310" height="50">
-            <div className="sans-serif" style={{ 
-              fontSize: '10px', 
-              lineHeight: '1.5', 
-              color: '#374151'
-            }}>
-{extractWorkExperienceContent(job, 160)}
-            </div>
-          </foreignObject>
+            {/* Render bullet points */}
+            <foreignObject x="60" y={430 + index * 200} width="310" height="80">
+              <div className="sans-serif" style={{ 
+                fontSize: '11px', 
+                lineHeight: '1.5', 
+                color: '#374151'
+              }}>
+                {Array.isArray(bullets) ? bullets.map((bullet, bulletIndex) => (
+                  <div key={bulletIndex} style={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start', 
+                    marginBottom: '4px'
+                  }}>
+                    <span style={{ 
+                      marginRight: '8px', 
+                      color: config.accentColor, 
+                      fontWeight: '600',
+                      fontSize: '12px'
+                    }}>•</span>
+                    <span>{bullet}</span>
+                  </div>
+                )) : (
+                  <span>{bullets}</span>
+                )}
+              </div>
+            </foreignObject>
 
-          {/* Job-specific skills/technologies */}
-          {(() => {
-            const jobSkills = extractJobSkills(job);
-            return jobSkills && jobSkills.length > 0 && (
-              <foreignObject x="60" y={480 + index * 170} width="310" height="40">
-                <div className="sans-serif" style={{ 
-                  fontSize: '9px', 
-                  lineHeight: '1.4', 
-                  color: '#6b7280',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  marginTop: '2px'
-                }}>
-                  {jobSkills.slice(0, 6).map((tech: string, techIndex: number) => (
-                    <span key={techIndex} style={{
-                      display: 'inline-flex',
+            {/* Job-specific skills/technologies */}
+            {(() => {
+              const jobSkills = extractJobSkills(job);
+              return jobSkills && jobSkills.length > 0 && (
+                <foreignObject x="60" y={515 + index * 200} width="310" height="35">
+                  <div className="sans-serif" style={{ 
+                    fontSize: '10px', 
+                    lineHeight: '1.4', 
+                    color: '#6b7280',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginTop: '2px'
+                  }}>
+                    {jobSkills.slice(0, 6).map((tech: string, techIndex: number) => (
+                      <span key={techIndex} style={{
+                        display: 'inline-flex',
                       alignItems: 'center',
                       gap: '2px'
                     }}>
@@ -847,15 +904,16 @@ export function SVGResumePreview({
                       {tech}
                     </span>
                   ))}
-                </div>
-              </foreignObject>
-            );
-          })()}
-        </g>
-      ))}
+                  </div>
+                </foreignObject>
+              );
+            })()}
+          </g>
+        );
+      })}
 
       {/* Skills sidebar */}
-      <rect x="410" y="375" width="162" height="270" 
+      <rect x="410" y="375" width="162" height="470" 
             fill="white" 
             rx="12" 
             stroke="#e2e8f0" 
@@ -898,9 +956,9 @@ export function SVGResumePreview({
 
   // 🎨 MINIMAL TEMPLATE
   const renderMinimalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 900" className="w-full h-full">
       {/* Clean white background */}
-      <rect width="612" height="792" fill="white"/>
+      <rect width="612" height="900" fill="white"/>
       
       {/* Name */}
       <text x="50" y="60" fontFamily="sans-serif" fontSize="28" fontWeight="300" fill={config.primaryColor} letterSpacing="1px">
@@ -1042,7 +1100,7 @@ export function SVGResumePreview({
 
   // 🎨 CREATIVE TEMPLATE
   const renderCreativeTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 792" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 900" className="w-full h-full">
       <defs>
         <linearGradient id="creativeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -1051,7 +1109,7 @@ export function SVGResumePreview({
       </defs>
 
       {/* Clean background */}
-      <rect width="612" height="792" fill="white"/>
+      <rect width="612" height="900" fill="white"/>
       
       {/* Bold header */}
       <rect x="0" y="0" width="612" height="160" fill="url(#creativeGradient)"/>
