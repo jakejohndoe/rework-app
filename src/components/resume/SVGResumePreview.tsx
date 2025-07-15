@@ -65,31 +65,29 @@ const extractSummaryFromContent = (content: string): string | null => {
 const enhanceProfessionalSummary = (summaryData: any): string => {
   if (!summaryData) return '';
   
-  // If it's already a string, return it
+  // If it's already a string, return it as-is (AI suggestions are already enhanced)
   if (typeof summaryData === 'string') {
     return summaryData;
   }
   
-  // Extract the main summary
+  // Extract the main summary - prioritize AI-enhanced version
   let mainSummary = summaryData.summary || summaryData.optimized || '';
   
-  // If we have key strengths, incorporate them to make it longer
-  if (summaryData.keyStrengths && Array.isArray(summaryData.keyStrengths) && summaryData.keyStrengths.length > 0) {
-    const strengths = summaryData.keyStrengths.slice(0, 3).join(', ');
-    
-    // Add a sentence about key strengths if main summary is short
-    if (mainSummary.split('. ').length < 3) {
-      const strengthSentence = `Skilled in ${strengths} with a proven track record of delivering results.`;
-      mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${strengthSentence}` : `${mainSummary}. ${strengthSentence}`;
-    }
+  // If the summary already has 3+ sentences, don't modify it (it's likely AI-enhanced)
+  const sentences = mainSummary.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  if (sentences.length >= 3) {
+    return mainSummary;
   }
   
-  // Add career level context if available and summary is still short
-  if (summaryData.careerLevel && mainSummary.split('. ').length < 3) {
-    const careerContext = summaryData.careerLevel === 'senior' ? 'senior-level' : 
-                         summaryData.careerLevel === 'mid' ? 'experienced' : 'emerging';
-    const contextSentence = `As an ${careerContext} professional, I bring strategic thinking and hands-on execution to every project.`;
-    mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${contextSentence}` : `${mainSummary}. ${contextSentence}`;
+  // Only enhance if it's too short and doesn't appear to be AI-generated
+  if (sentences.length < 3 && !mainSummary.includes('AI-driven') && !mainSummary.includes('efficiency gains')) {
+    // Add career level context if available and summary is still short
+    if (summaryData.careerLevel) {
+      const careerContext = summaryData.careerLevel === 'senior' ? 'senior-level' : 
+                           summaryData.careerLevel === 'mid' ? 'experienced' : 'emerging';
+      const contextSentence = `As an ${careerContext} professional, I bring strategic thinking and hands-on execution to every project.`;
+      mainSummary = mainSummary.endsWith('.') ? `${mainSummary} ${contextSentence}` : `${mainSummary}. ${contextSentence}`;
+    }
   }
   
   return mainSummary;
@@ -351,20 +349,29 @@ export function SVGResumePreview({
   };
 
   // Enhanced work experience content extraction with bullet points
-  const extractWorkExperienceContent = (job: any, maxLength: number = 400) => {
+  const extractWorkExperienceContent = (job: any, maxLength: number = 600) => {
     // Extract and format as bullet points
     let bullets: string[] = [];
     
-    // PRIORITY 1: Use AI-enhanced achievements if available
+    console.log('🔍 Extracting work experience content for job:', {
+      jobTitle: job.jobTitle || job.title,
+      hasAchievements: !!(job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0),
+      achievementsCount: job.achievements?.length || 0,
+      achievements: job.achievements?.slice(0, 3) || [],
+      hasDescription: !!(job.description || job.responsibilities || job.summary || job.duties)
+    });
+    
+    // PRIORITY 1: Use AI-enhanced achievements if available - STRICT
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
       bullets = job.achievements.slice(0, 3).map((achievement: any) => {
         // Clean and format each achievement
         const cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
       });
+      console.log('✅ Using AI achievements:', bullets);
     } 
-    // PRIORITY 2: Only use description if NO achievements exist
-    else if (job.description || job.responsibilities || job.summary || job.duties) {
+    // PRIORITY 2: Only use if NO achievements exist AND no AI optimization has been applied
+    else if (!job.achievements && (job.description || job.responsibilities || job.summary || job.duties)) {
       const content = job.description || job.responsibilities || job.summary || job.duties || '';
       if (content) {
         // Split by sentences and take the best ones
@@ -373,41 +380,58 @@ export function SVGResumePreview({
           const cleaned = sentence.replace(/^\s*[•\-\*]\s*/, '').trim();
           return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
         });
+        console.log('⚠️ Using fallback description (no achievements found):', bullets);
       }
     }
     
-    // PRIORITY 3: Fallback only if no content at all
+    // PRIORITY 3: Create intelligent fallback based on job title
     if (bullets.length === 0) {
       const jobTitle = (job.jobTitle || job.title || 'professional').toLowerCase();
-      if (jobTitle.includes('developer') || jobTitle.includes('engineer')) {
+      const company = job.company || 'the company';
+      
+      if (jobTitle.includes('founder') || jobTitle.includes('developer')) {
         bullets = [
-          'Developed and maintained scalable software solutions using modern technologies',
-          'Collaborated with cross-functional teams to deliver high-quality products',
-          'Implemented best practices for code quality, testing, and deployment'
+          `Led development of innovative solutions at ${company}, achieving significant technical milestones`,
+          `Designed and implemented scalable systems using modern technologies and best practices`,
+          `Collaborated with stakeholders to deliver high-quality products that exceeded expectations`
         ];
       } else if (jobTitle.includes('manager') || jobTitle.includes('lead')) {
         bullets = [
-          'Led team of professionals to achieve key business objectives',
-          'Managed multiple projects simultaneously while maintaining quality standards',
-          'Developed and implemented strategic initiatives to improve efficiency'
+          `Managed team operations and strategic initiatives at ${company}`,
+          `Implemented process improvements that enhanced efficiency and quality`,
+          `Coordinated cross-functional projects delivering measurable business value`
+        ];
+      } else if (jobTitle.includes('agent') || jobTitle.includes('service')) {
+        bullets = [
+          `Delivered exceptional customer service and support at ${company}`,
+          `Managed client relationships and resolved complex issues efficiently`,
+          `Contributed to team success through collaborative problem-solving`
         ];
       } else {
         bullets = [
-          'Executed key responsibilities with focus on quality and efficiency',
-          'Contributed to team success through collaborative problem-solving',
-          'Maintained high standards of professional excellence'
+          `Executed key responsibilities with focus on quality and efficiency at ${company}`,
+          `Contributed to team success through collaborative problem-solving`,
+          `Maintained high standards of professional excellence`
         ];
       }
+      console.log('🎯 Using intelligent fallback:', bullets);
     }
     
-    // Ensure we have 2-3 bullet points and they fit within length constraints
+    // Ensure we have at least 2 bullet points, maximum 3
+    if (bullets.length < 2) {
+      const company = job.company || 'the organization';
+      bullets.push(`Demonstrated strong performance and reliability in all assigned tasks at ${company}`);
+    }
+    
+    // Ensure proper length without truncation (increased maxLength)
     const finalBullets = bullets.slice(0, 3).map(bullet => {
-      if (bullet.length > maxLength / 3) {
-        return bullet.substring(0, maxLength / 3 - 3) + '...';
+      if (bullet.length > maxLength / 2) {
+        return bullet.substring(0, maxLength / 2 - 10) + '...';
       }
       return bullet;
     });
     
+    console.log('✅ Final bullets:', finalBullets);
     return finalBullets;
   };
 
@@ -783,12 +807,19 @@ export function SVGResumePreview({
         
         {data.education.slice(0, 2).map((edu, index) => (
           <g key={index}>
-            <text x="320" y={745 + index * 35} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
+            <text x="320" y={745 + index * 45} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
             </text>
-            <text x="320" y={760 + index * 35} fontSize="11" fill="#6b7280">
+            <text x="320" y={760 + index * 45} fontSize="11" fill="#6b7280">
 {edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
             </text>
+            
+            {/* AI-enhanced relevant coursework */}
+            {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
+              <text x="320" y={775 + index * 45} fontSize="10" fill="#6b7280" fontFamily="serif">
+                {edu.relevantCoursework.slice(0, 2).join(' • ')}
+              </text>
+            )}
           </g>
         ))}
       </g>
@@ -1116,12 +1147,19 @@ export function SVGResumePreview({
 
         {data.education.slice(0, 2).map((edu, index) => (
           <g key={index}>
-            <text x="320" y={595 + index * 35} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill={config.primaryColor}>
+            <text x="320" y={595 + index * 45} fontFamily="sans-serif" fontSize="11" fontWeight="500" fill={config.primaryColor}>
 {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
             </text>
-            <text x="320" y={610 + index * 35} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
+            <text x="320" y={610 + index * 45} fontFamily="sans-serif" fontSize="10" fill="#6b7280">
 {edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
             </text>
+            
+            {/* AI-enhanced relevant coursework */}
+            {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
+              <text x="320" y={625 + index * 45} fontFamily="sans-serif" fontSize="9" fill="#6b7280">
+                {edu.relevantCoursework.slice(0, 2).join(' • ')}
+              </text>
+            )}
           </g>
         ))}
       </g>
@@ -1303,6 +1341,13 @@ export function SVGResumePreview({
           <text x="60" y="750" fontFamily="sans-serif" fontSize="10" fill="white" opacity="0.8">
             {edu.institution || edu.school || 'University'} • {edu.year || edu.endDate || '2020'}
           </text>
+          
+          {/* AI-enhanced relevant coursework */}
+          {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
+            <text x="60" y="765" fontFamily="sans-serif" fontSize="9" fill="white" opacity="0.7">
+              {edu.relevantCoursework.slice(0, 2).join(' • ')}
+            </text>
+          )}
         </g>
       ))}
 
