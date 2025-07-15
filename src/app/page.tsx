@@ -269,7 +269,7 @@ export default function HomePage() {
           <div ref={heroRef} className="text-center mb-20 relative">
             {/* Ultra-Premium AI Badge */}
             <div className={`mb-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              <Badge className="bg-gradient-to-r from-purple-500/30 to-cyan-500/30 text-cyan-200 border border-cyan-400/40 px-6 py-3 hover:from-purple-500/40 hover:to-cyan-500/40 hover:border-cyan-400/60 hover:scale-105 transition-all duration-300 cursor-pointer backdrop-blur-sm relative overflow-hidden group">
+              <Badge className="bg-gradient-to-r from-purple-500/30 to-cyan-500/30 text-cyan-200 border border-cyan-400/40 px-6 py-3 hover:from-purple-500/40 hover:to-cyan-500/40 hover:border-cyan-400/60 hover:scale-105 transition-all duration-300 backdrop-blur-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-cyan-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <span className="relative z-10 flex items-center gap-2 font-medium">
                   <span className="text-cyan-300 animate-pulse">✦</span>
@@ -285,7 +285,7 @@ export default function HomePage() {
                 className={`transition-all duration-1000 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               >
                 <span 
-                  className="hover:scale-105 transition-transform duration-300 inline-block cursor-pointer"
+                  className="hover:scale-105 transition-transform duration-300 inline-block"
                   style={isMounted ? {
                     backgroundImage: `linear-gradient(45deg, 
                       hsl(${180 + mousePosition.x * 0.1}, 70%, 60%) 0%,
@@ -306,9 +306,9 @@ export default function HomePage() {
                   smart tech,
                 </span>
                 <br />
-                <span className="text-slate-300 hover:text-slate-100 hover:scale-105 transition-all duration-300 inline-block mr-3 cursor-pointer">for</span>
+                <span className="text-slate-300 hover:text-slate-100 hover:scale-105 transition-all duration-300 inline-block mr-3">for</span>
                 <span 
-                  className="hover:scale-105 transition-transform duration-300 inline-block cursor-pointer"
+                  className="hover:scale-105 transition-transform duration-300 inline-block"
                   style={isMounted ? {
                     backgroundImage: `linear-gradient(45deg, 
                       hsl(${280 + mousePosition.x * 0.1}, 70%, 65%) 0%,
@@ -493,7 +493,7 @@ export default function HomePage() {
             <div className="mb-24">
               <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {/* Downloads This Month */}
-                <Card className="bg-slate-800/30 backdrop-blur-sm border-blue-400/20 hover:border-blue-400/40 transition-all duration-500 hover:scale-105 cursor-pointer group relative overflow-hidden">
+                <Card className="bg-slate-800/30 backdrop-blur-sm border-blue-400/20 hover:border-blue-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
@@ -528,7 +528,7 @@ export default function HomePage() {
                 </Card>
 
                 {/* Templates Used */}
-                <Card className="bg-slate-800/30 backdrop-blur-sm border-purple-400/20 hover:border-purple-400/40 transition-all duration-500 hover:scale-105 cursor-pointer group relative overflow-hidden">
+                <Card className="bg-slate-800/30 backdrop-blur-sm border-purple-400/20 hover:border-purple-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardContent className="pt-6 relative z-10">
                     <div className="text-center">
@@ -554,7 +554,7 @@ export default function HomePage() {
             ].map((feature, index) => (
               <Card 
                 key={index}
-                className="bg-slate-800/40 backdrop-blur-sm border-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105 group cursor-pointer relative overflow-hidden"
+                className="bg-slate-800/40 backdrop-blur-sm border-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105 group relative overflow-hidden"
                 style={{
                   transform: 'perspective(1000px)',
                   transition: 'all 0.3s ease-out'
@@ -589,7 +589,7 @@ export default function HomePage() {
 
           {/* Enhanced Social Proof / Value Props */}
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            <Card className="bg-slate-800/40 backdrop-blur-sm border-primary-400/20 hover:border-primary-400/40 transition-all duration-500 hover:scale-105 group cursor-pointer relative overflow-hidden">
+            <Card className="bg-slate-800/40 backdrop-blur-sm border-primary-400/20 hover:border-primary-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardHeader className="relative z-10">
                 <CardTitle className="text-primary-400 flex items-center gap-3 text-xl group-hover:text-primary-300 transition-colors duration-300">
@@ -614,7 +614,7 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/40 backdrop-blur-sm border-secondary-400/20 hover:border-secondary-400/40 transition-all duration-500 hover:scale-105 group cursor-pointer relative overflow-hidden">
+            <Card className="bg-slate-800/40 backdrop-blur-sm border-secondary-400/20 hover:border-secondary-400/40 transition-all duration-500 hover:scale-105 group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardHeader className="relative z-10">
                 <CardTitle className="text-secondary-400 flex items-center gap-3 text-xl group-hover:text-secondary-300 transition-colors duration-300">
