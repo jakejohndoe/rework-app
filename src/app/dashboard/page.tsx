@@ -394,7 +394,7 @@ export default function DashboardPage() {
             ].map((stat, index) => (
               <Card 
                 key={index}
-                className="bg-slate-800/40 backdrop-blur-sm border-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105 group cursor-pointer relative overflow-hidden"
+                className="bg-slate-800/40 backdrop-blur-sm border-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105 group relative overflow-hidden"
                 style={{
                   transform: 'perspective(1000px)',
                   transition: 'all 0.3s ease-out'
@@ -777,27 +777,31 @@ export default function DashboardPage() {
                   <div className="space-y-3 text-sm">
                     {resumes.length > 0 ? (
                       <>
-                        <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
-                          <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-slate-100">resume optimized</p>
-                            <p className="text-slate-400 text-xs">2 hours ago</p>
+                        {/* Show real recent activity based on actual data */}
+                        {resumes.slice(0, 3).map((resume, index) => (
+                          <div key={resume.id} className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-all backdrop-blur-sm">
+                            <div className={`w-2 h-2 ${resume.lastOptimized ? 'bg-green-400' : 'bg-blue-400'} rounded-full flex-shrink-0`}></div>
+                            <div className="flex-1">
+                              <p className="text-slate-100">
+                                {resume.lastOptimized ? 'resume optimized' : 'resume created'}
+                              </p>
+                              <p className="text-slate-400 text-xs">
+                                {formatTimeAgo(resume.lastOptimized || resume.createdAt)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-slate-100">new resume created</p>
-                            <p className="text-slate-400 text-xs">1 day ago</p>
+                        ))}
+                        {jobApplications.slice(0, 1).map((application, index) => (
+                          <div key={application.id} className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-all backdrop-blur-sm">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
+                            <div className="flex-1">
+                              <p className="text-slate-100">application created</p>
+                              <p className="text-slate-400 text-xs">
+                                {formatTimeAgo(application.createdAt)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
-                          <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-slate-100">application submitted</p>
-                            <p className="text-slate-400 text-xs">3 days ago</p>
-                          </div>
-                        </div>
+                        ))}
                       </>
                     ) : (
                       <div className="text-center py-4">
