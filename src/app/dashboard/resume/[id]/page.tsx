@@ -851,9 +851,7 @@ export default function ResumeEditorPage() {
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                    <Logo size="small" className="w-5 h-5" />
-                  </div>
+                  <Logo size="medium" className="w-8 h-8 group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
                 

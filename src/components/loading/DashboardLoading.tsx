@@ -91,8 +91,8 @@ export default function DashboardLoading() {
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-12">
         {/* Premium Header */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center animate-glow">
-            <Logo size="large" className="w-12 h-12" />
+          <div className="mx-auto mb-6 animate-glow">
+            <Logo size="large" className="w-20 h-20 mx-auto" />
           </div>
           <h1 className="text-4xl font-bold mb-4">
             <span className="gradient-text">taking you to your dashboard</span>

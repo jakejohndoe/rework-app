@@ -22,14 +22,21 @@ export function Logo({
     ? '/rework-logo-detailed.png' 
     : '/rework-logo-simple.png'
   
+  const dimensions = {
+    small: { width: 32, height: 32 },
+    medium: { width: 48, height: 48 },
+    large: { width: 80, height: 80 }
+  }
+  
   return (
     <Image
       src={src}
       alt="ReWork Logo"
-      width={40}
-      height={40}
-      className={cn(sizeClasses[size], className)}
+      width={dimensions[size].width}
+      height={dimensions[size].height}
+      className={cn(sizeClasses[size], 'object-contain', className)}
       priority
+      unoptimized // For transparent PNGs
     />
   )
 }

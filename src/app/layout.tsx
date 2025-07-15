@@ -11,9 +11,16 @@ export const metadata: Metadata = {
   description: 'AI-powered resume optimization for job-specific applications. Upload, optimize, and download tailored resumes in seconds.',
   keywords: 'resume, AI, job application, optimization, career, employment',
   icons: {
-    icon: '/rework-logo-simple.png',
+    icon: [
+      { url: '/rework-logo-simple.png', sizes: '32x32', type: 'image/png' },
+      { url: '/rework-logo-simple.png', sizes: '16x16', type: 'image/png' },
+    ],
     shortcut: '/rework-logo-simple.png',
     apple: '/rework-logo-simple.png',
+    other: {
+      rel: 'apple-touch-icon-precomposed',
+      url: '/rework-logo-simple.png',
+    },
   },
 }
 
