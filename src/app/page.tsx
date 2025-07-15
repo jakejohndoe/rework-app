@@ -596,10 +596,11 @@ export default function HomePage() {
               <CardContent className="relative z-10">
                 <div className="space-y-4 text-base text-slate-300">
                   {[
-                    "real-time color customization that competitors don't offer",
-                    "perfect preview-to-pdf consistency every time",
                     "ai optimization that actually improves your chances",
-                    "professional results in seconds, not hours"
+                    "job-specific keyword optimization for better matching",
+                    "ats-friendly formatting that gets past screening systems",
+                    "professional results in seconds, not hours",
+                    "perfect preview-to-pdf consistency every time"
                   ].map((feature, index) => (
                     <div key={index} className="flex items-start gap-3 hover:bg-slate-800/30 p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] group/item">
                       <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0 group-hover/item:animate-pulse"></div>
