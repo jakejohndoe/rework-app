@@ -20,8 +20,8 @@ export function Logo({
   className 
 }: LogoProps) {
   const src = variant === 'detailed' 
-    ? '/rework-logo-detailed.png' 
-    : '/rework-logo-simple.png'
+    ? '/rework-logo-detailed-cropped2.png' 
+    : '/rework-logo-simple-cropped.png'
   
   const dimensions = {
     xs: { width: 128, height: 128 },       // For navbar

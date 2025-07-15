@@ -12,19 +12,19 @@ export const metadata: Metadata = {
   keywords: 'resume, AI, job application, optimization, career, employment',
   icons: {
     icon: [
-      { url: '/rework-logo-simple.png', sizes: '64x64', type: 'image/png' },
-      { url: '/rework-logo-simple.png', sizes: '32x32', type: 'image/png' },
-      { url: '/rework-logo-simple.png', sizes: '16x16', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '64x64', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '32x32', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '16x16', type: 'image/png' },
     ],
-    shortcut: '/rework-logo-simple.png',
+    shortcut: '/rework-logo-simple-cropped.png',
     apple: [
-      { url: '/rework-logo-simple.png', sizes: '180x180', type: 'image/png' },
-      { url: '/rework-logo-simple.png', sizes: '152x152', type: 'image/png' },
-      { url: '/rework-logo-simple.png', sizes: '120x120', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '180x180', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '152x152', type: 'image/png' },
+      { url: '/rework-logo-simple-cropped.png', sizes: '120x120', type: 'image/png' },
     ],
     other: {
       rel: 'apple-touch-icon-precomposed',
-      url: '/rework-logo-simple.png',
+      url: '/rework-logo-simple-cropped.png',
     },
   },
 }
