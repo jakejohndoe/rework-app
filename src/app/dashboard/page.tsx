@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [resumeToDelete, setResumeToDelete] = useState<{id: string, title: string} | null>(null)
   const [aiBuilderModalOpen, setAiBuilderModalOpen] = useState(false)
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isMounted, setIsMounted] = useState(false)
@@ -251,6 +252,11 @@ export default function DashboardPage() {
   const handleAIBuilder = () => {
     // AI Builder clicked (coming soon)
     setAiBuilderModalOpen(true)
+  }
+
+  const handlePremiumUpgrade = () => {
+    // Premium upgrade clicked (coming soon)
+    setPremiumModalOpen(true)
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -741,7 +747,10 @@ export default function DashboardPage() {
                           </li>
                         </ul>
                       </div>
-                      <button className="w-full bg-gradient-to-r from-purple-500 to-cyan-600 hover:from-purple-400 hover:to-cyan-500 text-white py-2 px-4 rounded-lg font-medium group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25">
+                      <button 
+                        onClick={handlePremiumUpgrade}
+                        className="w-full bg-gradient-to-r from-purple-500 to-cyan-600 hover:from-purple-400 hover:to-cyan-500 text-white py-2 px-4 rounded-lg font-medium group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25"
+                      >
                         <Crown className="w-4 h-4 mr-2 inline group-hover:animate-bounce" />
                         upgrade to premium
                       </button>
@@ -982,6 +991,54 @@ export default function DashboardPage() {
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Got it!
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Premium Upgrade Coming Soon Modal */}
+          <Dialog open={premiumModalOpen} onOpenChange={setPremiumModalOpen}>
+            <DialogContent className="bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-white text-xl font-semibold flex items-center gap-3">
+                  <div className="w-10 h-10 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  Premium Plan
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="py-6">
+                <p className="text-slate-300 text-base leading-relaxed mb-4">
+                  🚀 <span className="text-white font-semibold">Premium features are coming soon!</span>
+                </p>
+                <p className="text-slate-400 text-sm mb-4">
+                  We're still in beta and working hard to bring you amazing premium features. Stay tuned for updates on unlimited resumes, priority support, and exclusive templates!
+                </p>
+                <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-500/20">
+                  <p className="text-cyan-300 text-sm font-medium">👑 Coming Premium Features:</p>
+                  <ul className="text-cyan-200 text-sm mt-2 space-y-1">
+                    <li>• Unlimited resume creation</li>
+                    <li>• Premium templates & designs</li>
+                    <li>• Priority customer support</li>
+                    <li>• Advanced AI optimizations</li>
+                    <li>• Export to multiple formats</li>
+                  </ul>
+                </div>
+                <div className="mt-3 p-2 bg-amber-900/20 rounded border border-amber-500/20">
+                  <p className="text-amber-300 text-xs">
+                    🔥 Beta users will get early access and special pricing!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  onClick={() => setPremiumModalOpen(false)}
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white border-0 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Awesome!
                 </Button>
               </div>
             </DialogContent>
