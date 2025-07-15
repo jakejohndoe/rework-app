@@ -680,7 +680,7 @@ export default function RedesignedAnalysisPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="xs" className="group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
 
@@ -707,7 +707,7 @@ export default function RedesignedAnalysisPage() {
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center animate-pulse">
-                      <Logo size="xs" className="w-4 h-4" />
+                      <Logo size="xs" variant="simple" className="w-4 h-4" />
                     </div>
                     <span className="text-white font-medium gradient-text">ai analysis</span>
                   </div>

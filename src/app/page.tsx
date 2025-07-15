@@ -211,7 +211,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 group">
-                <Logo size="xs" className="group-hover:scale-110 transition-all duration-300" />
+                <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
               </div>
               <div className="flex items-center space-x-4">

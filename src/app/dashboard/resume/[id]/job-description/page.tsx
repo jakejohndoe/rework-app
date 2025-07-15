@@ -235,7 +235,7 @@ export default function JobDescriptionPage() {
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="xs" className="group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
 
@@ -534,7 +534,7 @@ export default function JobDescriptionPage() {
                   <div>
                     <h3 className="text-white font-medium mb-1 flex items-center gap-2">
                       <span className="gradient-text">ready for ai analysis?</span>
-                      {isJobComplete() && <Logo size="xs" className="w-5 h-5 text-cyan-400 animate-pulse" />}
+                      {isJobComplete() && <Logo size="xs" variant="simple" className="w-5 h-5 text-cyan-400 animate-pulse" />}
                     </h3>
                     <p className="text-slate-400 text-sm">
                       {isJobComplete() 
