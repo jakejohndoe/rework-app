@@ -20,8 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { resumes: { where: { isActive: true } } }
+      where: { email: session.user.email }
     })
 
     if (!user) {
@@ -29,10 +28,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    console.log('👤 User found:', user.id, 'Active resumes:', user.resumes.length);
+    console.log('👤 User found:', user.id, 'Total resumes created:', user.resumesCreated);
 
-    // Check plan limits
-    if (user.plan === 'FREE' && user.resumes.length >= 3) {
+    // Check plan limits - now using total resumes created
+    if (user.plan === 'FREE' && user.resumesCreated >= 3) {
       console.log('❌ Plan limit reached');
       return NextResponse.json({ 
         success: false, 
@@ -113,8 +112,9 @@ export async function POST(request: NextRequest) {
 
     console.log('💾 Creating resume record in database...');
 
-    // Create resume record
-    const resume = await prisma.resume.create({
+    // Create resume record and increment total count
+    const [resume] = await prisma.$transaction([
+      prisma.resume.create({
       data: {
         title,
         userId: user.id,
@@ -155,7 +155,12 @@ export async function POST(request: NextRequest) {
         },
         wordCount: 0,
       }
+    }),
+    prisma.user.update({
+      where: { id: user.id },
+      data: { resumesCreated: { increment: 1 } }
     })
+  ])
 
     console.log('✅ Resume created successfully:', resume.id)
 

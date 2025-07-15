@@ -266,7 +266,8 @@ export default function DashboardPage() {
   const isPremium = session?.user?.plan === "PREMIUM"
   const resumeLimit = isPremium ? "Unlimited" : "3"
   const currentResumes = resumes.length || 0
-  const usagePercentage = isPremium ? 0 : Math.min((currentResumes / 3) * 100, 100)
+  const totalResumesCreated = session?.user?.resumesCreated || 0
+  const usagePercentage = isPremium ? 0 : Math.min((totalResumesCreated / 3) * 100, 100)
 
   const optimizedCount = resumes.filter(r => r.lastOptimized).length
   const totalWords = resumes.reduce((total, resume) => total + (resume.wordCount || 0), 0)
@@ -696,7 +697,7 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-slate-300">resume usage</span>
-                      <span className="text-white font-medium">{currentResumes} / {resumeLimit}</span>
+                      <span className="text-white font-medium">{totalResumesCreated} / {resumeLimit}</span>
                     </div>
                     {!isPremium && (
                       <div className="space-y-2">
@@ -705,9 +706,9 @@ export default function DashboardPage() {
                           {usagePercentage >= 100 ? (
                             <span className="text-red-400 animate-pulse">⚠️ limit reached - upgrade to continue</span>
                           ) : usagePercentage >= 80 ? (
-                            <span className="text-amber-400">⚡ {3 - currentResumes} resume{3 - currentResumes !== 1 ? 's' : ''} remaining</span>
+                            <span className="text-amber-400">⚡ {3 - totalResumesCreated} resume{3 - totalResumesCreated !== 1 ? 's' : ''} remaining</span>
                           ) : (
-                            `${3 - currentResumes} resume${3 - currentResumes !== 1 ? 's' : ''} remaining this month`
+                            `${3 - totalResumesCreated} resume${3 - totalResumesCreated !== 1 ? 's' : ''} remaining`
                           )}
                         </p>
                       </div>
