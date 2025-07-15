@@ -8,7 +8,7 @@ interface LogoProps {
 }
 
 const sizeClasses = {
-  xs: 'w-20 h-20',     // Good for navbar (80x80)
+  xs: 'w-12 h-12',     // Perfect for navbar with cropped images
   small: 'w-40 h-40',  // 4x from w-10 h-10
   medium: 'w-64 h-64', // 4x from w-16 h-16
   large: 'w-80 h-80'   // 4x from w-20 h-20
@@ -24,7 +24,7 @@ export function Logo({
     : '/rework-logo-simple-cropped.png'
   
   const dimensions = {
-    xs: { width: 128, height: 128 },       // For navbar
+    xs: { width: 80, height: 80 },         // Perfect for navbar with cropped images
     small: { width: 256, height: 256 },    // 4x from 64x64
     medium: { width: 384, height: 384 },   // 4x from 96x96
     large: { width: 640, height: 640 }     // 4x from 160x160
