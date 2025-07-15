@@ -437,8 +437,8 @@ export default function HomePage() {
                 <CardContent className="relative z-10">
                   <div className="grid md:grid-cols-3 gap-6 mb-8">
                     {/* Quick Action Cards */}
-                    <Link href="/dashboard" className="group/action">
-                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-cyan-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <div className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-cyan-400/40 transition-all duration-300 hover:scale-105">
                         <div className="text-center">
                           <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
                             <Upload className="w-6 h-6 text-white" />
@@ -447,10 +447,10 @@ export default function HomePage() {
                           <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Upload & optimize</p>
                         </div>
                       </div>
-                    </Link>
+                    </div>
 
-                    <Link href="/dashboard" className="group/action">
-                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-purple-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <div className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-purple-400/40 transition-all duration-300 hover:scale-105">
                         <div className="text-center">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
                             <Zap className="w-6 h-6 text-white" />
@@ -459,10 +459,10 @@ export default function HomePage() {
                           <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Smart enhancement</p>
                         </div>
                       </div>
-                    </Link>
+                    </div>
 
-                    <Link href="/templates" className="group/action">
-                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-green-400/40 transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <div className="group/action">
+                      <div className="bg-slate-800/30 rounded-xl p-6 border border-white/10 hover:border-green-400/40 transition-all duration-300 hover:scale-105">
                         <div className="text-center">
                           <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mx-auto mb-3 flex items-center justify-center group-hover/action:scale-110 transition-transform duration-300">
                             <FileText className="w-6 h-6 text-white" />
@@ -471,7 +471,7 @@ export default function HomePage() {
                           <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Professional designs</p>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   </div>
 
                   {/* Action Button */}
