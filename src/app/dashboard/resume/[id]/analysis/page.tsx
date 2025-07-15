@@ -680,7 +680,7 @@ export default function RedesignedAnalysisPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="medium" className="w-8 h-8 group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="small" className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
                 </Link>
 

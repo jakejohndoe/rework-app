@@ -8,9 +8,9 @@ interface LogoProps {
 }
 
 const sizeClasses = {
-  small: 'w-5 h-5',
-  medium: 'w-8 h-8', 
-  large: 'w-10 h-10'
+  small: 'w-10 h-10',  // was w-5 h-5
+  medium: 'w-16 h-16', // was w-8 h-8
+  large: 'w-20 h-20'   // was w-10 h-10
 }
 
 export function Logo({ 
@@ -23,9 +23,9 @@ export function Logo({
     : '/rework-logo-simple.png'
   
   const dimensions = {
-    small: { width: 32, height: 32 },
-    medium: { width: 48, height: 48 },
-    large: { width: 80, height: 80 }
+    small: { width: 64, height: 64 },    // was 32x32
+    medium: { width: 96, height: 96 },   // was 48x48
+    large: { width: 160, height: 160 }   // was 80x80
   }
   
   return (
