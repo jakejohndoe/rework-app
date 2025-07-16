@@ -866,7 +866,7 @@ export function SVGResumePreview({
 
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 750 920" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 750 925" className="w-full h-full">
       <defs>
         <linearGradient id="profGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -875,7 +875,7 @@ export function SVGResumePreview({
       </defs>
 
       {/* White background */}
-      <rect width="750" height="920" fill="white"/>
+      <rect width="750" height="925" fill="white"/>
       
       {/* Header */}
       <rect x="0" y="0" width="750" height="120" fill="url(#profGradient)"/>
@@ -1114,7 +1114,7 @@ export function SVGResumePreview({
         contentEndY += skillsEducationHeight;
         
         // Position badge at absolute bottom of the page
-        const badgeY = 910; // Near the bottom of 920px viewBox
+        const badgeY = 915; // Moved down to give more space to Core Skills
         
         return (
           <text x="375" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
