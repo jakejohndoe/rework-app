@@ -1637,13 +1637,13 @@ export function SVGResumePreview({
       </text>
 
       {/* About section */}
-      <rect x="40" y="140" width="670" height="75" fill="white" rx="12" stroke={config.primaryColor} strokeWidth="2"/>
+      <rect x="40" y="140" width="670" height="95" fill="white" rx="12" stroke={config.primaryColor} strokeWidth="2"/>
       
       <text x="60" y="160" fontFamily="sans-serif" fontSize="16" fontWeight="700" fill={config.primaryColor}>
         About Me
       </text>
 
-      <foreignObject x="60" y="170" width="640" height="60">
+      <foreignObject x="60" y="170" width="640" height="75">
         <div className="sans-serif" style={{
           fontFamily: 'sans-serif',
           fontSize: '12px',
@@ -1656,13 +1656,13 @@ export function SVGResumePreview({
       </foreignObject>
 
       {/* Experience section */}
-      <text x="40" y="230" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
+      <text x="40" y="250" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
         Experience
       </text>
 
 {(() => {
         // Calculate dynamic heights and positions for each job
-        let currentY = 250; // Starting Y position after header
+        let currentY = 270; // Starting Y position after header
         
         return data.workExperience.slice(0, 2).map((job, index) => {
           const bullets = extractWorkExperienceContent(job, 800);
@@ -1778,7 +1778,7 @@ export function SVGResumePreview({
       {/* Skills & Education - Dynamic Positioning */}
       {(() => {
         // Calculate where work experience section ends
-        let workExperienceEndY = 250; // Starting position
+        let workExperienceEndY = 270; // Starting position
         data.workExperience.slice(0, 2).forEach((job) => {
           const bullets = extractWorkExperienceContent(job, 800);
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
