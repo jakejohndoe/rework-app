@@ -934,7 +934,8 @@ export function SVGResumePreview({
           
           // Calculate content height needed
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 50, 110); // Reduced padding for tighter layout
+          const skillsHeight = 22; // Height reserved for skills tags
+          const containerHeight = Math.max(contentHeight + skillsHeight + 35, 100); // Content + skills + padding (reduced)
           
           const jobElement = (
             <g key={index}>
@@ -954,7 +955,7 @@ export function SVGResumePreview({
               </text>
 
               {/* Dynamic content area */}
-              <foreignObject x="55" y={currentY + 50} width="640" height={contentHeight + 10}>
+              <foreignObject x="55" y={currentY + 50} width="640" height={contentHeight + 5}>
                 <div className="serif" style={{ 
                   fontSize: `${fontSize}px`, 
                   lineHeight: '1.4', 
@@ -985,7 +986,7 @@ export function SVGResumePreview({
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={currentY + 50 + contentHeight + 5} width="640" height="20">
+                <foreignObject x="55" y={currentY + containerHeight - 22} width="640" height="20">
                   <div className="serif" style={{ 
                     fontSize: '9px', 
                     lineHeight: '1.4', 
@@ -1029,11 +1030,11 @@ export function SVGResumePreview({
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 50, 110);
+          const containerHeight = Math.max(contentHeight + 22 + 35, 100);
           workExperienceEndY += containerHeight + 15;
         });
         
-        const skillsY = workExperienceEndY + 15; // Reduced gap after work experience
+        const skillsY = workExperienceEndY + 10; // Further reduced gap after work experience
         
         return (
           <g>
@@ -1043,7 +1044,7 @@ export function SVGResumePreview({
             <line x1="40" y1={skillsY + 10} x2="100" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.skills.length > 0 && (
-              <foreignObject x="40" y={skillsY + 20} width="350" height="100">
+              <foreignObject x="40" y={skillsY + 20} width="350" height="80">
                 <div className="serif" style={{ 
                   fontSize: '10px', 
                   lineHeight: '1.4', 
@@ -1067,7 +1068,7 @@ export function SVGResumePreview({
             <line x1="420" y1={skillsY + 10} x2="470" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.education.slice(0, 2).map((edu, index) => (
-              <foreignObject key={index} x="420" y={skillsY + 20 + index * 50} width="290" height="45">
+              <foreignObject key={index} x="420" y={skillsY + 20 + index * 40} width="290" height="35">
                 <div className="serif" style={{ 
                   fontSize: '11px', 
                   lineHeight: '1.4', 
@@ -1103,12 +1104,12 @@ export function SVGResumePreview({
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 50, 110);
+          const containerHeight = Math.max(contentHeight + 22 + 35, 100);
           contentEndY += containerHeight + 15;
         });
         
         // Add height of skills & education section
-        const skillsEducationHeight = 130; // Adjusted for better spacing
+        const skillsEducationHeight = 110; // Reduced for more compact layout
         contentEndY += skillsEducationHeight;
         
         // Position badge at absolute bottom of the page
