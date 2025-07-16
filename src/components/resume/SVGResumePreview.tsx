@@ -933,10 +933,10 @@ export function SVGResumePreview({
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           
           // Calculate content height needed
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.3, 640);
           const skillsHeight = 22; // Height reserved for skills tags
           const headerHeight = 50; // Height for job title, company, etc.
-          const containerHeight = Math.max(headerHeight + contentHeight + skillsHeight + 5, 100); // Header + content + skills + reduced padding
+          const containerHeight = Math.max(headerHeight + contentHeight + skillsHeight - 2, 90); // Header + content + skills + aggressive reduction
           
           const jobElement = (
             <g key={index}>
@@ -956,10 +956,10 @@ export function SVGResumePreview({
               </text>
 
               {/* Dynamic content area */}
-              <foreignObject x="55" y={currentY + 50} width="640" height={contentHeight + 5}>
+              <foreignObject x="55" y={currentY + 50} width="640" height={contentHeight}>
                 <div className="serif" style={{ 
                   fontSize: `${fontSize}px`, 
-                  lineHeight: '1.4', 
+                  lineHeight: '1.3', 
                   color: '#374151',
                   wordWrap: 'break-word',
                   hyphens: 'auto'
@@ -968,7 +968,7 @@ export function SVGResumePreview({
                     <div key={bulletIndex} style={{ 
                       display: 'flex', 
                       alignItems: 'flex-start', 
-                      marginBottom: '3px'
+                      marginBottom: bulletIndex === bulletsArray.length - 1 ? '0px' : '2px'
                     }}>
                       <span style={{ 
                         marginRight: '8px', 
@@ -987,7 +987,7 @@ export function SVGResumePreview({
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={currentY + headerHeight + contentHeight + 3} width="640" height="20">
+                <foreignObject x="55" y={currentY + headerHeight + contentHeight - 2} width="640" height="20">
                   <div className="serif" style={{ 
                     fontSize: '9px', 
                     lineHeight: '1.4', 
@@ -995,7 +995,7 @@ export function SVGResumePreview({
                     display: 'flex',
                     flexWrap: 'wrap',
                     gap: '8px',
-                    marginTop: '4px'
+                    marginTop: '0px'
                   }}>
                     {jobSkills.slice(0, 8).map((tech: string, techIndex: number) => (
                       <span key={techIndex} style={{
@@ -1030,8 +1030,8 @@ export function SVGResumePreview({
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(50 + contentHeight + 22 + 5, 100);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.3, 640);
+          const containerHeight = Math.max(50 + contentHeight + 22 - 2, 90);
           workExperienceEndY += containerHeight + 15;
         });
         
@@ -1104,8 +1104,8 @@ export function SVGResumePreview({
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(50 + contentHeight + 22 + 5, 100);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.3, 640);
+          const containerHeight = Math.max(50 + contentHeight + 22 - 2, 90);
           contentEndY += containerHeight + 15;
         });
         
