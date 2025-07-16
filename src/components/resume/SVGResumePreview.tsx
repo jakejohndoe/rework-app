@@ -42,6 +42,45 @@ interface ResumeData {
   skills: string[];
 }
 
+// Helper functions for dynamic layout calculations
+const calculateTextHeight = (text: string, fontSize: number, lineHeight: number = 1.5, maxWidth: number = 500): number => {
+  // Estimate characters per line based on font size and width
+  const avgCharWidth = fontSize * 0.6; // Approximation for average character width
+  const charsPerLine = Math.floor(maxWidth / avgCharWidth);
+  const lines = Math.ceil(text.length / charsPerLine);
+  return lines * fontSize * lineHeight;
+};
+
+const calculateContentHeight = (bullets: string[], fontSize: number = 11, lineHeight: number = 1.5, maxWidth: number = 500): number => {
+  if (!bullets || bullets.length === 0) return 30; // Minimum height
+  
+  let totalHeight = 0;
+  bullets.forEach(bullet => {
+    const bulletHeight = calculateTextHeight(bullet, fontSize, lineHeight, maxWidth - 20); // Account for bullet point
+    totalHeight += Math.max(bulletHeight, fontSize * lineHeight); // Minimum one line per bullet
+    totalHeight += 4; // Margin between bullets
+  });
+  
+  return Math.max(totalHeight, 50); // Ensure minimum readable height
+};
+
+const getResponsiveFontSize = (contentLength: number, baseSize: number = 11): number => {
+  if (contentLength > 800) return Math.max(baseSize - 2, 8); // Very dense content
+  if (contentLength > 500) return Math.max(baseSize - 1, 9); // Dense content
+  return baseSize; // Normal content
+};
+
+const calculateJobContainerHeight = (job: any, extractContentFn: (job: any, maxLength: number) => any, baseHeight: number = 80): number => {
+  const bullets = extractContentFn(job, 800); // Extract content using provided function
+  const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
+  
+  // Calculate content height
+  const contentHeight = calculateContentHeight(bulletsArray);
+  
+  // Total height = header (40px) + content + padding (20px)
+  return baseHeight + contentHeight;
+};
+
 // Helper functions for text extraction
 const extractNameFromContent = (content: string): string | null => {
   const nameMatch = content.match(/^([A-Z][a-z]+\s+[A-Z][a-z]+)/);
@@ -772,59 +811,74 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="290" x2="180" y2="290" stroke={config.accentColor} strokeWidth="2"/>
 
-      {data.workExperience.slice(0, 2).map((job, index) => {
-        const bullets = extractWorkExperienceContent(job, 500);
-        return (
-          <g key={index}>
-            <rect x="40" y={310 + index * 180} width="532" height="170" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
-            <rect x="40" y={310 + index * 180} width="4" height="170" fill={config.accentColor} rx="2"/>
-            
-            <text x="55" y={335 + index * 180} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
-{job.jobTitle || job.title || job.position || 'Network Engineer'}
-            </text>
-            
-            <text x="450" y={335 + index * 180} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
-              {job.startDate || '2022'} — {job.endDate || 'Present'}
-            </text>
-            
-            <text x="55" y={350 + index * 180} fontSize="12" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
-              {job.company || 'Technology Company'}
-            </text>
+{(() => {
+        // Calculate dynamic heights and positions for each job
+        let currentY = 310; // Starting Y position after header
+        
+        return data.workExperience.slice(0, 2).map((job, index) => {
+          const bullets = extractWorkExperienceContent(job, 800); // Allow more content
+          const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
+          
+          // Calculate responsive font size based on content
+          const totalContentLength = bulletsArray.join(' ').length;
+          const fontSize = getResponsiveFontSize(totalContentLength, 11);
+          
+          // Calculate content height needed
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const containerHeight = Math.max(contentHeight + 60, 120); // Header + content + padding, minimum 120px
+          
+          const jobElement = (
+            <g key={index}>
+              <rect x="40" y={currentY} width="532" height={containerHeight} fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
+              <rect x="40" y={currentY} width="4" height={containerHeight} fill={config.accentColor} rx="2"/>
+              
+              <text x="55" y={currentY + 25} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+                {job.jobTitle || job.title || job.position || 'Network Engineer'}
+              </text>
+              
+              <text x="450" y={currentY + 25} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
+                {job.startDate || '2022'} — {job.endDate || 'Present'}
+              </text>
+              
+              <text x="55" y={currentY + 40} fontSize="12" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
+                {job.company || 'Technology Company'}
+              </text>
 
-            {/* Render bullet points */}
-            <foreignObject x="55" y={365 + index * 180} width="500" height="120">
-              <div className="serif" style={{ 
-                fontSize: '11px', 
-                lineHeight: '1.5', 
-                color: '#374151'
-              }}>
-                {Array.isArray(bullets) ? bullets.map((bullet, bulletIndex) => (
-                  <div key={bulletIndex} style={{ 
-                    display: 'flex', 
-                    alignItems: 'flex-start', 
-                    marginBottom: '4px'
-                  }}>
-                    <span style={{ 
-                      marginRight: '8px', 
-                      color: config.accentColor, 
-                      fontWeight: '600',
-                      fontSize: '12px'
-                    }}>•</span>
-                    <span>{bullet}</span>
-                  </div>
-                )) : (
-                  <span>{bullets}</span>
-                )}
-              </div>
-            </foreignObject>
+              {/* Dynamic content area */}
+              <foreignObject x="55" y={currentY + 50} width="500" height={contentHeight + 10}>
+                <div className="serif" style={{ 
+                  fontSize: `${fontSize}px`, 
+                  lineHeight: '1.4', 
+                  color: '#374151',
+                  wordWrap: 'break-word',
+                  hyphens: 'auto'
+                }}>
+                  {bulletsArray.map((bullet, bulletIndex) => (
+                    <div key={bulletIndex} style={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      marginBottom: '3px'
+                    }}>
+                      <span style={{ 
+                        marginRight: '8px', 
+                        color: config.accentColor, 
+                        fontWeight: '600',
+                        fontSize: `${fontSize + 1}px`,
+                        flexShrink: 0
+                      }}>•</span>
+                      <span style={{ flex: 1 }}>{bullet}</span>
+                    </div>
+                  ))}
+                </div>
+              </foreignObject>
 
             {/* Job-specific skills/technologies */}
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={450 + index * 180} width="500" height="25">
+                <foreignObject x="55" y={currentY + containerHeight - 25} width="500" height="20">
                   <div className="serif" style={{ 
-                    fontSize: '10px', 
+                    fontSize: '9px', 
                     lineHeight: '1.4', 
                     color: '#6b7280',
                     display: 'flex',
@@ -848,57 +902,81 @@ export function SVGResumePreview({
             })()}
           </g>
         );
-      })}
-
-      {/* Skills & Education */}
-      <g>
-        <text x="40" y={710} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
-          Core Skills
-        </text>
-        <line x1="40" y1="720" x2="100" y2="720" stroke={config.accentColor} strokeWidth="2"/>
         
-        {data.skills.length > 0 && (
-          <foreignObject x="40" y="730" width="260" height="80">
-            <div className="serif" style={{ 
-              fontSize: '11px', 
-              lineHeight: '1.6', 
-              color: '#374151',
-              columnCount: 2,
-              columnGap: '20px'
-            }}>
-              {data.skills.slice(0, 12).map((skill, index) => (
-                <div key={index} style={{marginBottom: '4px', display: 'flex', alignItems: 'center'}}>
-                  <span style={{color: config.accentColor, marginRight: '4px'}}>•</span>
-                  {skill}
+        // Update Y position for next job
+        currentY += containerHeight + 15; // Add gap between jobs
+        
+        return jobElement;
+        });
+      })()}
+
+      {/* Skills & Education - Dynamic Positioning */}
+      {(() => {
+        // Calculate where work experience section ends
+        let workExperienceEndY = 310; // Starting position
+        data.workExperience.slice(0, 2).forEach((job) => {
+          const bullets = extractWorkExperienceContent(job, 800);
+          const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
+          const totalContentLength = bulletsArray.join(' ').length;
+          const fontSize = getResponsiveFontSize(totalContentLength, 11);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const containerHeight = Math.max(contentHeight + 60, 120);
+          workExperienceEndY += containerHeight + 15;
+        });
+        
+        const skillsY = workExperienceEndY + 20; // Add gap after work experience
+        
+        return (
+          <g>
+            <text x="40" y={skillsY} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+              Core Skills
+            </text>
+            <line x1="40" y1={skillsY + 10} x2="100" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
+        
+            {data.skills.length > 0 && (
+              <foreignObject x="40" y={skillsY + 20} width="260" height="100">
+                <div className="serif" style={{ 
+                  fontSize: '10px', 
+                  lineHeight: '1.5', 
+                  color: '#374151',
+                  columnCount: 2,
+                  columnGap: '20px'
+                }}>
+                  {data.skills.slice(0, 16).map((skill, index) => (
+                    <div key={index} style={{marginBottom: '3px', display: 'flex', alignItems: 'center'}}>
+                      <span style={{color: config.accentColor, marginRight: '4px'}}>•</span>
+                      {skill}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </foreignObject>
-        )}
-
-        <text x="320" y={710} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
-          Education
-        </text>
-        <line x1="320" y1="720" x2="370" y2="720" stroke={config.accentColor} strokeWidth="2"/>
-        
-        {data.education.slice(0, 2).map((edu, index) => (
-          <g key={index}>
-            <text x="320" y={745 + index * 45} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
-{edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
-            </text>
-            <text x="320" y={760 + index * 45} fontSize="11" fill="#6b7280">
-{edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
-            </text>
-            
-            {/* AI-enhanced relevant coursework */}
-            {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
-              <text x="320" y={775 + index * 45} fontSize="10" fill="#6b7280" fontFamily="serif">
-                {edu.relevantCoursework.slice(0, 2).join(' • ')}
-              </text>
+              </foreignObject>
             )}
+
+            <text x="320" y={skillsY} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+              Education
+            </text>
+            <line x1="320" y1={skillsY + 10} x2="370" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
+        
+            {data.education.slice(0, 2).map((edu, index) => (
+              <g key={index}>
+                <text x="320" y={skillsY + 35 + index * 40} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
+                  {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+                </text>
+                <text x="320" y={skillsY + 50 + index * 40} fontSize="10" fill="#6b7280">
+                  {edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
+                </text>
+                
+                {/* AI-enhanced relevant coursework */}
+                {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
+                  <text x="320" y={skillsY + 65 + index * 40} fontSize="9" fill="#6b7280" fontFamily="serif">
+                    {edu.relevantCoursework.slice(0, 2).join(' • ')}
+                  </text>
+                )}
+              </g>
+            ))}
           </g>
-        ))}
-      </g>
+        );
+      })()}
 
       {/* ReWork badge */}
       {version === 'optimized' && (
