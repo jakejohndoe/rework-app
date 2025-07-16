@@ -1063,7 +1063,7 @@ export function SVGResumePreview({
                       <span style={{color: config.accentColor, marginRight: '4px', fontSize: '9px', flexShrink: 0}}>•</span>
                       <span style={{flex: 1}}>{skill}</span>
                     </div>
-                  )})
+                  )})}
                 </div>
               </foreignObject>
             )}
