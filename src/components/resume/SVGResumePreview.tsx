@@ -81,6 +81,50 @@ const calculateJobContainerHeight = (job: any, extractContentFn: (job: any, maxL
   return baseHeight + contentHeight;
 };
 
+const toTitleCase = (str: string): string => {
+  if (!str) return '';
+  
+  return str.replace(/\w\S*/g, (word) => {
+    // Handle special cases for technical terms
+    const lowerWord = word.toLowerCase();
+    const specialCases: Record<string, string> = {
+      'javascript': 'JavaScript',
+      'typescript': 'TypeScript',
+      'react': 'React',
+      'nodejs': 'Node.js',
+      'node.js': 'Node.js',
+      'aws': 'AWS',
+      'api': 'API',
+      'apis': 'APIs',
+      'ui': 'UI',
+      'ux': 'UX',
+      'css': 'CSS',
+      'html': 'HTML',
+      'sql': 'SQL',
+      'ai': 'AI',
+      'ml': 'ML',
+      'gcp': 'GCP',
+      'ios': 'iOS',
+      'android': 'Android',
+      'github': 'GitHub',
+      'linkedin': 'LinkedIn',
+      'fullstack': 'Full-Stack',
+      'full-stack': 'Full-Stack',
+      'frontend': 'Front-End',
+      'front-end': 'Front-End',
+      'backend': 'Back-End',
+      'back-end': 'Back-End'
+    };
+    
+    if (specialCases[lowerWord]) {
+      return specialCases[lowerWord];
+    }
+    
+    // Standard title case
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+};
+
 // Helper functions for text extraction
 const extractNameFromContent = (content: string): string | null => {
   const nameMatch = content.match(/^([A-Z][a-z]+\s+[A-Z][a-z]+)/);
@@ -833,7 +877,7 @@ export function SVGResumePreview({
               <rect x="40" y={currentY} width="4" height={containerHeight} fill={config.accentColor} rx="2"/>
               
               <text x="55" y={currentY + 25} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
-                {job.jobTitle || job.title || job.position || 'Network Engineer'}
+                {toTitleCase(job.jobTitle || job.title || job.position || 'Network Engineer')}
               </text>
               
               <text x="450" y={currentY + 25} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
@@ -841,7 +885,7 @@ export function SVGResumePreview({
               </text>
               
               <text x="55" y={currentY + 40} fontSize="12" fontWeight="500" fill={config.accentColor} fontFamily="sans-serif">
-                {job.company || 'Technology Company'}
+                {toTitleCase(job.company || 'Technology Company')}
               </text>
 
               {/* Dynamic content area */}
@@ -960,16 +1004,16 @@ export function SVGResumePreview({
             {data.education.slice(0, 2).map((edu, index) => (
               <g key={index}>
                 <text x="320" y={skillsY + 35 + index * 40} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
-                  {edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}
+                  {toTitleCase(edu.degree || 'Degree')} {edu.field ? `in ${toTitleCase(edu.field)}` : ''}
                 </text>
                 <text x="320" y={skillsY + 50 + index * 40} fontSize="10" fill="#6b7280">
-                  {edu.institution || edu.school || 'University'} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
+                  {toTitleCase(edu.institution || edu.school || 'University')} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
                 </text>
                 
-                {/* AI-enhanced relevant coursework */}
+                {/* AI-enhanced relevant coursework with proper capitalization */}
                 {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
                   <text x="320" y={skillsY + 65 + index * 40} fontSize="9" fill="#6b7280" fontFamily="serif">
-                    {edu.relevantCoursework.slice(0, 2).join(' • ')}
+                    {edu.relevantCoursework.slice(0, 2).map((course: string) => toTitleCase(course)).join(' • ')}
                   </text>
                 )}
               </g>
@@ -978,12 +1022,35 @@ export function SVGResumePreview({
         );
       })()}
 
-      {/* ReWork badge */}
-      {version === 'optimized' && (
-        <text x="306" y="840" textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
-          ✨ reWorked with ReWork
-        </text>
-      )}
+      {/* ReWork badge - Dynamic positioning at absolute bottom */}
+      {version === 'optimized' && (() => {
+        // Calculate where all content actually ends
+        let contentEndY = 310; // Starting position after work experience header
+        
+        // Add height of all work experience containers
+        data.workExperience.slice(0, 2).forEach((job) => {
+          const bullets = extractWorkExperienceContent(job, 800);
+          const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
+          const totalContentLength = bulletsArray.join(' ').length;
+          const fontSize = getResponsiveFontSize(totalContentLength, 11);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const containerHeight = Math.max(contentHeight + 60, 120);
+          contentEndY += containerHeight + 15;
+        });
+        
+        // Add height of skills & education section
+        const skillsEducationHeight = 140; // Approximate height for skills + education
+        contentEndY += skillsEducationHeight;
+        
+        // Position badge at bottom with some padding, but within viewBox limits
+        const badgeY = Math.min(contentEndY + 30, 885); // Stay within 900px viewBox
+        
+        return (
+          <text x="306" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
+            ✨ reWorked with ReWork
+          </text>
+        );
+      })()}
     </svg>
   );
 
