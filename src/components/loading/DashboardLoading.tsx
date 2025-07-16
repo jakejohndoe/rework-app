@@ -92,7 +92,7 @@ export default function DashboardLoading() {
         {/* Premium Header */}
         <div className="text-center mb-12">
           <div className="mx-auto mb-6 animate-glow">
-            <Logo size="small" className="mx-auto" />
+            <Logo size="small" variant="simple" className="mx-auto" />
           </div>
           <h1 className="text-4xl font-bold mb-4">
             <span className="gradient-text">taking you to your dashboard</span>

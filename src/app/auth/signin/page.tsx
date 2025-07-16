@@ -26,7 +26,7 @@ function SignInContent() {
         <Card className="glass-card border-white/10 w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 animate-glow">
-              <Logo size="small" className="mx-auto" />
+              <Logo size="small" variant="simple" className="mx-auto" />
             </div>
             <CardTitle className="text-2xl gradient-text">Welcome to ReWork</CardTitle>
             <CardDescription className="text-slate-300">

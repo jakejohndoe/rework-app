@@ -15,7 +15,7 @@ const sizeClasses = {
 }
 
 export function Logo({ 
-  variant = 'detailed', 
+  variant = 'simple', 
   size = 'medium',
   className 
 }: LogoProps) {
