@@ -484,7 +484,7 @@ export function SVGResumePreview({
       // Process ALL achievements with category-based parsing
       const processedAchievements: string[] = [];
       
-      job.achievements.forEach((achievement: any) => {
+      job.achievements.forEach((achievement: any, index: number) => {
         let cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         
         // Filter out mixed content - only keep AI-generated achievements
@@ -492,50 +492,80 @@ export function SVGResumePreview({
           return; // Skip this mixed content
         }
         
+        // Skip duplicate achievements (when AI sends same content multiple times)
+        const isDuplicate = job.achievements.some((other: any, otherIndex: number) => {
+          return otherIndex < index && other.trim() === achievement.trim();
+        });
+        if (isDuplicate) {
+          console.log('🔍 Skipping duplicate achievement:', cleaned.substring(0, 50) + '...');
+          return;
+        }
+        
         // NEW: Parse category-based format like "Team Leadership & Operations: Description..."
         if (cleaned.includes(':') && cleaned.length > 100) {
-          // Enhanced pattern to capture category-based achievements
-          // Handles patterns like "Team Leadership & Operations: Description" or "Technical & Product Expertise: Details"
-          const categoryPatterns = [
-            // Pattern 1: Category at start with colon
-            /^([A-Z][^:]{10,50}?):\s*([^.]*(?:\.[^.]*)*)/gm,
-            // Pattern 2: Category with & in the middle
-            /([A-Z][^:]*?&[^:]*?):\s*([^.]*(?:\.[^.]*)*)/gm,
-            // Pattern 3: Split on sentence boundaries that start with category patterns
-            /(Team\s+[^:]+|Technical\s+[^:]+|Systems?\s+[^:]+|Customer\s+[^:]+|Financial\s+[^:]+|Marketing\s+[^:]+|Operations?\s+[^:]+|Leadership\s+[^:]+|Project\s+[^:]+|Business\s+[^:]+):\s*([^.]*(?:\.[^.]*)*)/gmi
+          console.log('🔍 Processing category-based achievement:', cleaned.substring(0, 100) + '...');
+          
+          // Split the entire text into category-based segments
+          const categorySegments: Array<{category: string, description: string}> = [];
+          
+          // First, try to split by common category patterns
+          const categoryKeywords = [
+            'Team Leadership & Operations',
+            'Technical & Product Expertise',
+            'Systems & Tools',
+            'Customer Relations & Negotiation',
+            'Financial Oversight',
+            'Marketing & Outreach',
+            'Documentation & Compliance',
+            'Research & Strategy',
+            'Project Management',
+            'Business Development',
+            'Quality Assurance'
           ];
           
-          // Try each pattern
-          categoryPatterns.forEach(pattern => {
-            let match;
-            while ((match = pattern.exec(cleaned)) !== null) {
-              const [, category, description] = match;
-              if (category && description && description.trim().length > 15) {
-                const formattedCategory = category.trim().replace(/^(and\s+|the\s+)/i, '');
-                const formattedDescription = description.trim().replace(/^\s*[•\-\*]\s*/, '');
-                processedAchievements.push(`${formattedCategory}: ${formattedDescription}`);
+          // Find all category positions in the text
+          const categoryMatches: Array<{keyword: string, index: number}> = [];
+          categoryKeywords.forEach(keyword => {
+            let searchIndex = 0;
+            while (searchIndex < cleaned.length) {
+              const index = cleaned.indexOf(keyword + ':', searchIndex);
+              if (index !== -1) {
+                categoryMatches.push({ keyword, index });
+                searchIndex = index + keyword.length;
+              } else {
+                break;
               }
             }
           });
           
-          // If no categories found with patterns, try manual split on common category keywords
-          if (processedAchievements.length === 0) {
-            const categoryKeywords = [
-              'Team Leadership', 'Technical', 'Systems', 'Customer Relations', 
-              'Financial Oversight', 'Marketing', 'Operations', 'Project Management',
-              'Business Development', 'Product Management', 'Quality Assurance'
-            ];
-            
-            categoryKeywords.forEach(keyword => {
-              const regex = new RegExp(`(${keyword}[^:]*?):\\s*([^.]*(?:\\.[^.]*)*)`, 'gmi');
-              let match;
-              while ((match = regex.exec(cleaned)) !== null) {
-                const [, category, description] = match;
-                if (description && description.trim().length > 15) {
-                  processedAchievements.push(`${category.trim()}: ${description.trim()}`);
-                }
+          // Sort by position
+          categoryMatches.sort((a, b) => a.index - b.index);
+          
+          // Extract segments between categories
+          if (categoryMatches.length > 0) {
+            categoryMatches.forEach((match, i) => {
+              const startIndex = match.index + match.keyword.length + 1; // +1 for the colon
+              const endIndex = i < categoryMatches.length - 1 ? categoryMatches[i + 1].index : cleaned.length;
+              const description = cleaned.substring(startIndex, endIndex).trim();
+              
+              if (description.length > 15) {
+                categorySegments.push({
+                  category: match.keyword,
+                  description: description.replace(/\.$/, '') // Remove trailing period to add consistently
+                });
               }
             });
+          }
+          
+          // If we found category segments, add them as separate achievements
+          if (categorySegments.length > 0) {
+            categorySegments.forEach(segment => {
+              processedAchievements.push(`${segment.category}: ${segment.description}`);
+            });
+            console.log(`✅ Parsed ${categorySegments.length} category-based achievements`);
+          } else {
+            // Fallback: treat as single achievement if no categories found
+            processedAchievements.push(cleaned);
           }
         }
         // Standard achievement format
