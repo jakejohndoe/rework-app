@@ -936,7 +936,7 @@ export function SVGResumePreview({
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
           const skillsHeight = 22; // Height reserved for skills tags
           const headerHeight = 50; // Height for job title, company, etc.
-          const containerHeight = Math.max(headerHeight + contentHeight + skillsHeight + 10, 100); // Header + content + skills + minimal padding
+          const containerHeight = Math.max(headerHeight + contentHeight + skillsHeight + 5, 100); // Header + content + skills + reduced padding
           
           const jobElement = (
             <g key={index}>
@@ -987,7 +987,7 @@ export function SVGResumePreview({
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={currentY + headerHeight + contentHeight + 8} width="640" height="20">
+                <foreignObject x="55" y={currentY + headerHeight + contentHeight + 3} width="640" height="20">
                   <div className="serif" style={{ 
                     fontSize: '9px', 
                     lineHeight: '1.4', 
@@ -1031,7 +1031,7 @@ export function SVGResumePreview({
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(50 + contentHeight + 22 + 10, 100);
+          const containerHeight = Math.max(50 + contentHeight + 22 + 5, 100);
           workExperienceEndY += containerHeight + 15;
         });
         
@@ -1105,7 +1105,7 @@ export function SVGResumePreview({
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(50 + contentHeight + 22 + 10, 100);
+          const containerHeight = Math.max(50 + contentHeight + 22 + 5, 100);
           contentEndY += containerHeight + 15;
         });
         
