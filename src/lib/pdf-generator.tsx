@@ -8,6 +8,56 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 
+// AI Content Scoring and Prioritization Functions
+const calculateContentScore = (content: string): number => {
+  let score = 0;
+  
+  // Technical keywords boost score significantly
+  const techKeywords = [
+    'react', 'node', 'javascript', 'python', 'aws', 'api', 'database', 
+    'led', 'managed', 'built', 'created', 'developed', 'improved', 'increased',
+    'typescript', 'sql', 'docker', 'kubernetes', 'microservices', 'ci/cd'
+  ];
+  techKeywords.forEach(keyword => {
+    if (content.toLowerCase().includes(keyword)) score += 3;
+  });
+  
+  // Metrics and quantifiable achievements get highest priority
+  if (/\d+%|\$\d+|[0-9]+ users|[0-9]+k|[0-9]+m|[0-9]+x faster|[0-9]+ million/i.test(content)) score += 5;
+  
+  // Impact and action verbs
+  const impactVerbs = ['achieved', 'delivered', 'exceeded', 'optimized', 'streamlined', 'reduced', 'increased', 'launched'];
+  impactVerbs.forEach(verb => {
+    if (content.toLowerCase().includes(verb)) score += 2;
+  });
+  
+  // Business impact keywords
+  const businessTerms = ['revenue', 'cost', 'efficiency', 'performance', 'scalability', 'user experience'];
+  businessTerms.forEach(term => {
+    if (content.toLowerCase().includes(term)) score += 2;
+  });
+  
+  return score;
+};
+
+const prioritizeAIContent = (content: string[], maxItems: number): string[] => {
+  if (!content || !Array.isArray(content)) return [];
+  
+  return content
+    .map(item => ({
+      text: item,
+      score: calculateContentScore(item),
+      length: item.length
+    }))
+    .sort((a, b) => {
+      // Primary sort by score (impact), secondary by length (prefer concise)
+      if (b.score !== a.score) return b.score - a.score;
+      return a.length - b.length;
+    })
+    .slice(0, maxItems)
+    .map(item => item.text);
+};
+
 // Smart One-Page Optimization Functions
 const optimizeContentForOnePage = (data: any, template: string, enableOptimization: boolean = true) => {
   // If optimization is disabled, return data as-is with proper summary extraction
@@ -92,7 +142,7 @@ const prioritizeWorkExperience = (experiences: any) => {
         const dateB = new Date(b.endDate || b.startDate || '1970');
         return dateB.getTime() - dateA.getTime();
       })
-      .slice(0, 5) // Keep top 5 most recent/relevant (increased from 3)
+      .slice(0, 6) // Keep top 6 most recent/relevant (increased from 5)
       .map((job, index) => {
         console.log(`🔍 DEBUG: Processing job ${index + 1}:`, Object.keys(job));
         console.log(`🔍 DEBUG: Job ${index + 1} ALL FIELDS:`, JSON.stringify(job, null, 2));
@@ -117,7 +167,12 @@ const prioritizeWorkExperience = (experiences: any) => {
         console.log(`🔍 DEBUG: Job ${index + 1} - Original description length:`, originalDesc.length);
         console.log(`🔍 DEBUG: Job ${index + 1} - Original description:`, originalDesc.substring(0, 300) + (originalDesc.length > 300 ? '...' : ''));
         
-        const optimizedDesc = optimizeJobDescription(originalDesc, job.achievements);
+        // Prioritize AI-enhanced achievements
+        const prioritizedAchievements = job.achievements && Array.isArray(job.achievements) 
+          ? prioritizeAIContent(job.achievements, 4) // Keep top 4 achievements
+          : [];
+        
+        const optimizedDesc = optimizeJobDescription(originalDesc, prioritizedAchievements);
         console.log(`🔍 DEBUG: Job ${index + 1} - Optimized description length:`, optimizedDesc.length);
         console.log(`🔍 DEBUG: Job ${index + 1} - Optimized description:`, optimizedDesc);
         
@@ -151,7 +206,7 @@ const prioritizeEducation = (education: any) => {
         const yearB = parseInt(b.year || b.endDate?.split('-')[0] || '1970');
         return yearB - yearA;
       })
-      .slice(0, 3); // Keep top 3 most recent (increased from 2)
+      .slice(0, 4); // Keep top 4 most recent (increased from 3)
   } catch (error) {
     console.error('❌ Error in prioritizeEducation:', error);
     return [];
@@ -176,7 +231,7 @@ const prioritizeSkills = (skills: any) => {
         const skillB = typeof b === 'string' ? b : (b.name || String(b) || '');
         return skillA.length - skillB.length;
       })
-      .slice(0, 15); // Increased skill limit for better representation
+      .slice(0, 20); // Enhanced skill limit for AI-generated skills
   } catch (error) {
     console.error('❌ Error in prioritizeSkills:', error);
     return [];
@@ -196,12 +251,12 @@ const optimizeSummary = (summary: string | any, template: string) => {
   
   if (!summaryStr || summaryStr.length === 0) return '';
   
-  // Conservative summary limits for guaranteed one-page fit
+  // Enhanced summary limits for AI-generated content
   const limits = {
-    professional: 350, // 500 → 350 (-150)
-    modern: 300,       // 450 → 300 (-150)
-    minimal: 330,      // 480 → 330 (-150)
-    creative: 320      // 470 → 320 (-150)
+    professional: 525, // 350 → 525 (+175) - 50% increase for AI content
+    modern: 450,       // 300 → 450 (+150) - 50% increase for AI content
+    minimal: 495,      // 330 → 495 (+165) - 50% increase for AI content
+    creative: 480      // 320 → 480 (+160) - 50% increase for AI content
   };
   
   const limit = limits[template as keyof typeof limits] || 280;
@@ -277,8 +332,8 @@ const optimizeJobDescription = (description: string | any, achievements?: string
     content = `${descriptionStr} ${topAchievements}.`;
   }
   
-  // Keep work experience substantial - just slightly shorter than original
-  const maxLength = 750; // Increased from 600 to allow more detailed descriptions while maintaining one-page layout
+  // Enhanced limits for AI-generated work experience content
+  const maxLength = 1125; // Increased from 750 to 1125 (+50%) for AI suggestions
   
   if (content.length <= maxLength) return content;
   
@@ -1172,7 +1227,7 @@ const ProfessionalTemplate = ({ resumeData, isOptimized, colors, resumeTitle }: 
                 <View>
                   <Text style={styles.content}>
                     {job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0 ? 
-                      job.achievements.slice(0, 3).join(' • ') :
+                      prioritizeAIContent(job.achievements, 4).join(' • ') :
                       job.description || job.responsibilities || 'Responsible for key initiatives and strategic projects.'}
                   </Text>
                   {job.technologies && job.technologies.length > 0 && (

@@ -7,6 +7,7 @@ import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import DynamicResumeTemplate from './DynamicResumeTemplate';
 
 interface SVGResumePreviewProps {
   resumeId: string;
@@ -20,6 +21,7 @@ interface SVGResumePreviewProps {
   enableSvgToPdf?: boolean;
   onCelebration?: () => void;
   onSuccess?: () => void;
+  useDynamicTemplate?: boolean; // New prop for enhanced AI-optimized rendering
   colors?: {
     primary: string;
     accent: string;
@@ -90,6 +92,7 @@ export function SVGResumePreview({
   enableSvgToPdf = false,
   onCelebration,
   onSuccess,
+  useDynamicTemplate = false,
   colors
 }: SVGResumePreviewProps) {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -1469,6 +1472,19 @@ export function SVGResumePreview({
   const renderTemplate = () => {
     if (!resumeData) return null;
 
+    // Use the new DynamicResumeTemplate for AI-optimized content
+    if (useDynamicTemplate) {
+      return (
+        <DynamicResumeTemplate
+          resumeData={resumeData}
+          template={template as 'professional' | 'modern' | 'minimal' | 'creative'}
+          colors={colors}
+          resumeTitle={title}
+        />
+      );
+    }
+
+    // Fallback to original SVG templates
     switch (template) {
       case 'modern':
         return renderModernTemplate(resumeData);

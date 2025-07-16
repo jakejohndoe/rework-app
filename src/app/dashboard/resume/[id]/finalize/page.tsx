@@ -600,6 +600,7 @@ export default function EnhancedFinalizePage() {
                   onSuccess={() => setShowSuccessCard(true)}
                   colors={selectedColors}
                   enableSvgToPdf={true}
+                  useDynamicTemplate={true}
                 />
               </div>
             </div>
