@@ -1381,9 +1381,9 @@ export function SVGResumePreview({
 
   // 🎨 MINIMAL TEMPLATE
   const renderMinimalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 750 925" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 750 940" className="w-full h-full">
       {/* Clean white background */}
-      <rect width="750" height="925" fill="white"/>
+      <rect width="750" height="940" fill="white"/>
       
       {/* Name */}
       <text x="50" y="60" fontFamily="sans-serif" fontSize="28" fontWeight="300" fill={config.primaryColor} letterSpacing="1px">
@@ -1607,7 +1607,7 @@ export function SVGResumePreview({
 
   // 🎨 CREATIVE TEMPLATE
   const renderCreativeTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 750 925" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 750 940" className="w-full h-full">
       <defs>
         <linearGradient id="creativeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -1616,7 +1616,7 @@ export function SVGResumePreview({
       </defs>
 
       {/* Clean background */}
-      <rect width="750" height="925" fill="white"/>
+      <rect width="750" height="940" fill="white"/>
       
       {/* Bold header */}
       <rect x="0" y="0" width="750" height="120" fill="url(#creativeGradient)"/>
