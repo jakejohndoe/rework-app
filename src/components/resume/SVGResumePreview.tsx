@@ -752,11 +752,12 @@ export function SVGResumePreview({
       
       <foreignObject x="40" y="180" width="532" height="85">
         <div className="serif" style={{ 
-          fontSize: '11px', 
+          fontSize: '14px', 
           lineHeight: '1.6', 
           color: '#374151',
           fontFamily: 'serif',
-          textAlign: 'justify'
+          textAlign: 'justify',
+          fontWeight: '500'
         }}>
           {data.professionalSummary}
         </div>
@@ -788,7 +789,7 @@ export function SVGResumePreview({
             </text>
 
             {/* Render bullet points */}
-            <foreignObject x="55" y={365 + index * 180} width="500" height="80">
+            <foreignObject x="55" y={365 + index * 180} width="500" height="120">
               <div className="serif" style={{ 
                 fontSize: '11px', 
                 lineHeight: '1.5', 
@@ -898,7 +899,7 @@ export function SVGResumePreview({
 
       {/* ReWork badge */}
       {version === 'optimized' && (
-        <text x="306" y="770" textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
+        <text x="306" y="840" textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
           ✨ reWorked with ReWork
         </text>
       )}
