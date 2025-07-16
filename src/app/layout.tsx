@@ -7,7 +7,7 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ReWork App - Smart Tech, For Smarter Jobs',
+  title: 'ReWork - Resume App',
   description: 'AI-powered resume optimization for job-specific applications. Upload, optimize, and download tailored resumes in seconds.',
   keywords: 'resume, AI, job application, optimization, career, employment',
   icons: {
