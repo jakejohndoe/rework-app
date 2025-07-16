@@ -901,10 +901,10 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="170" x2="140" y2="170" stroke={config.accentColor} strokeWidth="2"/>
       
-      <foreignObject x="40" y="180" width="670" height="85">
+      <foreignObject x="40" y="180" width="670" height="75">
         <div className="serif" style={{ 
-          fontSize: '14px', 
-          lineHeight: '1.6', 
+          fontSize: '12px', 
+          lineHeight: '1.5', 
           color: '#374151',
           fontFamily: 'serif',
           textAlign: 'justify',
@@ -915,14 +915,14 @@ export function SVGResumePreview({
       </foreignObject>
 
       {/* Professional Experience */}
-      <text x="40" y="280" fontSize="16" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+      <text x="40" y="270" fontSize="16" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
         Professional Experience
       </text>
-      <line x1="40" y1="290" x2="180" y2="290" stroke={config.accentColor} strokeWidth="2"/>
+      <line x1="40" y1="280" x2="180" y2="280" stroke={config.accentColor} strokeWidth="2"/>
 
 {(() => {
         // Calculate dynamic heights and positions for each job
-        let currentY = 310; // Starting Y position after header
+        let currentY = 300; // Starting Y position after header (reduced from 310)
         
         return data.workExperience.slice(0, 2).map((job, index) => {
           const bullets = extractWorkExperienceContent(job, 800); // Allow more content
@@ -934,7 +934,7 @@ export function SVGResumePreview({
           
           // Calculate content height needed
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 60, 120); // Header + content + padding, minimum 120px
+          const containerHeight = Math.max(contentHeight + 50, 110); // Reduced padding for tighter layout
           
           const jobElement = (
             <g key={index}>
@@ -985,7 +985,7 @@ export function SVGResumePreview({
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={currentY + containerHeight - 25} width="640" height="20">
+                <foreignObject x="55" y={currentY + 50 + contentHeight + 5} width="640" height="20">
                   <div className="serif" style={{ 
                     fontSize: '9px', 
                     lineHeight: '1.4', 
@@ -1022,14 +1022,14 @@ export function SVGResumePreview({
       {/* Skills & Education - Dynamic Positioning */}
       {(() => {
         // Calculate where work experience section ends
-        let workExperienceEndY = 310; // Starting position
+        let workExperienceEndY = 300; // Starting position (matches currentY)
         data.workExperience.slice(0, 2).forEach((job) => {
           const bullets = extractWorkExperienceContent(job, 800);
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 60, 120);
+          const containerHeight = Math.max(contentHeight + 50, 110);
           workExperienceEndY += containerHeight + 15;
         });
         
@@ -1094,7 +1094,7 @@ export function SVGResumePreview({
       {/* ReWork badge - Dynamic positioning at absolute bottom */}
       {version === 'optimized' && (() => {
         // Calculate where all content actually ends
-        let contentEndY = 310; // Starting position after work experience header
+        let contentEndY = 300; // Starting position after work experience header
         
         // Add height of all work experience containers
         data.workExperience.slice(0, 2).forEach((job) => {
@@ -1103,7 +1103,7 @@ export function SVGResumePreview({
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
-          const containerHeight = Math.max(contentHeight + 60, 120);
+          const containerHeight = Math.max(contentHeight + 50, 110);
           contentEndY += containerHeight + 15;
         });
         
@@ -1111,8 +1111,8 @@ export function SVGResumePreview({
         const skillsEducationHeight = 130; // Adjusted for better spacing
         contentEndY += skillsEducationHeight;
         
-        // Position badge at bottom with some padding, but within viewBox limits
-        const badgeY = Math.min(contentEndY + 25, 905); // Stay within 920px viewBox
+        // Position badge at absolute bottom of the page
+        const badgeY = 910; // Near the bottom of 920px viewBox
         
         return (
           <text x="375" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
