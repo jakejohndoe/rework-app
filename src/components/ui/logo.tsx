@@ -5,6 +5,7 @@ interface LogoProps {
   variant?: 'detailed' | 'simple'
   size?: 'xs' | 'small' | 'medium' | 'large'
   className?: string
+  badgePosition?: 'side' | 'below'
 }
 
 const sizeClasses = {
@@ -17,7 +18,8 @@ const sizeClasses = {
 export function Logo({ 
   variant = 'simple', 
   size = 'medium',
-  className 
+  className,
+  badgePosition = 'side'
 }: LogoProps) {
   const src = variant === 'detailed' 
     ? '/rework-logo-detailed-cropped2.png' 
@@ -39,7 +41,10 @@ export function Logo({
   }
   
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className={cn(
+      "inline-flex items-center",
+      badgePosition === 'below' ? "flex-col gap-1" : "gap-2"
+    )}>
       <Image
         src={src}
         alt="ReWork Logo"
