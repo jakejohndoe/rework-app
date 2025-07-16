@@ -1053,7 +1053,7 @@ export function SVGResumePreview({
                   columnCount: 2,
                   columnGap: '25px'
                 }}>
-                  {data.skills.slice(0, 7).map((skill, index) => {
+                  {data.skills.slice(0, 6).map((skill, index) => {
                     // Debug: log skills that contain instruction phrases
                     if (skill.toLowerCase().includes('skills like') || skill.toLowerCase().includes('such as')) {
                       console.log('⚠️ Skill contains instruction phrase:', skill);
