@@ -368,17 +368,37 @@ function applySkillsSuggestion(
   
   // Handle instruction-style suggestions like "Add Go, SQL, and AWS integration to your skills list"
   if (suggestion.suggested.toLowerCase().includes('add ')) {
-    // More flexible pattern to capture skills after "Add"
-    const addMatch = suggestion.suggested.match(/add\s+([^.]*?)(?:\s+to\s+|\s+and\s+ensure|\s+\.\s+|\s+for\s+|$)/i);
-    if (addMatch) {
-      let skillsText = addMatch[1].trim();
-      // Handle "Go, SQL, and AWS integration" format
-      skillsText = skillsText.replace(/\s+and\s+/g, ', '); // Replace "and" with comma
-      skillsToAdd = skillsText.split(/[,]+/)
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 1 && !skill.match(/^(to|your|skills|list|these|are)$/i));
-      console.log('🔧 Parsed skills from Add instruction:', skillsToAdd);
+    // Extract skills more carefully to avoid instruction words
+    const patterns = [
+      /add\s+([^.]*?)(?:\s+to\s+)/i,
+      /skills?[^:]*:\s*([^.]+)/i,
+      /'([^']+)'/g  // Extract quoted skills like 'Go', 'SQL', 'AWS Integration'
+    ];
+    
+    for (const pattern of patterns) {
+      const matches = suggestion.suggested.match(pattern);
+      if (matches) {
+        if (pattern.global) {
+          // Handle quoted skills
+          skillsToAdd = matches.map(match => match.replace(/'/g, '').trim());
+        } else {
+          // Handle comma-separated skills
+          let skillsText = matches[1].trim();
+          skillsText = skillsText.replace(/\s+and\s+/g, ', ');
+          skillsToAdd = skillsText.split(/[,]+/)
+            .map(skill => skill.trim().replace(/'/g, ''))
+            .filter(skill => 
+              skill.length > 1 && 
+              // More comprehensive filter for instruction words
+              !skill.match(/^(to|your|skills?|list|these|are|the|with|for|and|or|add|include|like|such|as|align|requirements|highlight|proficiency|integration|key|job)$/i) &&
+              // Must look like a real skill (not random words)
+              skill.match(/^[A-Za-z][A-Za-z0-9\s\-\.+#]*$/)
+            );
+        }
+        if (skillsToAdd.length > 0) break;
+      }
     }
+    console.log('🔧 Parsed skills from Add instruction:', skillsToAdd);
   } else {
     // Regular skill parsing
     const extractedSkills = parseSkillsFromText(suggestion.suggested);
@@ -391,17 +411,17 @@ function applySkillsSuggestion(
     ];
   }
   
-  // Add the extracted skills to technical skills (primary category)
-  skills.technical = [...new Set([...skills.technical, ...skillsToAdd])];
+  // CLEAR accumulated skills mess and use only clean AI suggestions
+  if (skills.technical && skills.technical.length > 20) {
+    // Too many accumulated skills - start fresh with AI suggestions only
+    skills.technical = [...new Set(skillsToAdd)];
+  } else {
+    // Add AI suggestions to existing clean skills
+    skills.technical = [...new Set([...skills.technical, ...skillsToAdd])];
+  }
   
-  // Also parse and categorize any additional skills
-  const extractedSkills = parseSkillsFromText(suggestion.suggested);
-  skills.frameworks = [...new Set([...skills.frameworks, ...extractedSkills.frameworks])];
-  skills.tools = [...new Set([...skills.tools, ...extractedSkills.tools])];
-  skills.cloud = [...new Set([...skills.cloud, ...extractedSkills.cloud])];
-  skills.databases = [...new Set([...skills.databases, ...extractedSkills.databases])];
-  skills.soft = [...new Set([...skills.soft, ...extractedSkills.soft])];
-  skills.certifications = [...new Set([...skills.certifications, ...extractedSkills.certifications])];
+  // Don't parse instruction text as additional skills - only use clean AI suggestions
+  // The parseSkillsFromText function is adding instruction words as skills
 
   return skills
 }
