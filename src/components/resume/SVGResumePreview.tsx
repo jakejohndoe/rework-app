@@ -481,45 +481,78 @@ export function SVGResumePreview({
     
     // PRIORITY 1: Use AI-enhanced achievements if available - STRICT
     if (job.achievements && Array.isArray(job.achievements) && job.achievements.length > 0) {
-      // Process ALL achievements, not just first 3, to find the best ones
-      const processedAchievements = job.achievements.map((achievement: any) => {
-        // Clean and format each achievement
+      // Process ALL achievements with category-based parsing
+      const processedAchievements: string[] = [];
+      
+      job.achievements.forEach((achievement: any) => {
         let cleaned = achievement.replace(/^\s*[•\-\*]\s*/, '').trim();
         
         // Filter out mixed content - only keep AI-generated achievements
         if (cleaned.includes('Rework (Application)') || cleaned.includes('AI powered application that optimizes')) {
-          // Skip this mixed content, it's not a clean AI achievement
-          return null;
+          return; // Skip this mixed content
         }
         
-        // Only keep achievements that start with action verbs (AI-generated format) - EXPANDED LIST
-        // Also allow achievements that start with descriptive terms like "Team Leadership"
-        if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced|Utilized|Leveraged|Boosted|Increased|Improved|Established|Coordinated|Executed|Demonstrated|Operated|Contributed|Advanced|Gained|Conducted|Assisted|Handled|Team|Technical|Systems|Customer|Marketing|Financial|Documentation|Research|Sales|Business)/)) {
-          return {
-            text: cleaned.charAt(0).toUpperCase() + cleaned.slice(1),
-            priority: cleaned.startsWith('Led') ? 1 : 2  // Prioritize "Led" achievements
-          };
-        }
-        
-        // For very long achievements (likely raw data), try to extract the first sentence
-        if (cleaned.length > 300) {
-          const firstSentence = cleaned.split(/[.!?]/)[0];
-          if (firstSentence && firstSentence.length > 20) {
-            return {
-              text: firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.',
-              priority: 3
-            };
+        // NEW: Parse category-based format like "Team Leadership & Operations: Description..."
+        if (cleaned.includes(':') && cleaned.length > 100) {
+          // Enhanced pattern to capture category-based achievements
+          // Handles patterns like "Team Leadership & Operations: Description" or "Technical & Product Expertise: Details"
+          const categoryPatterns = [
+            // Pattern 1: Category at start with colon
+            /^([A-Z][^:]{10,50}?):\s*([^.]*(?:\.[^.]*)*)/gm,
+            // Pattern 2: Category with & in the middle
+            /([A-Z][^:]*?&[^:]*?):\s*([^.]*(?:\.[^.]*)*)/gm,
+            // Pattern 3: Split on sentence boundaries that start with category patterns
+            /(Team\s+[^:]+|Technical\s+[^:]+|Systems?\s+[^:]+|Customer\s+[^:]+|Financial\s+[^:]+|Marketing\s+[^:]+|Operations?\s+[^:]+|Leadership\s+[^:]+|Project\s+[^:]+|Business\s+[^:]+):\s*([^.]*(?:\.[^.]*)*)/gmi
+          ];
+          
+          // Try each pattern
+          categoryPatterns.forEach(pattern => {
+            let match;
+            while ((match = pattern.exec(cleaned)) !== null) {
+              const [, category, description] = match;
+              if (category && description && description.trim().length > 15) {
+                const formattedCategory = category.trim().replace(/^(and\s+|the\s+)/i, '');
+                const formattedDescription = description.trim().replace(/^\s*[•\-\*]\s*/, '');
+                processedAchievements.push(`${formattedCategory}: ${formattedDescription}`);
+              }
+            }
+          });
+          
+          // If no categories found with patterns, try manual split on common category keywords
+          if (processedAchievements.length === 0) {
+            const categoryKeywords = [
+              'Team Leadership', 'Technical', 'Systems', 'Customer Relations', 
+              'Financial Oversight', 'Marketing', 'Operations', 'Project Management',
+              'Business Development', 'Product Management', 'Quality Assurance'
+            ];
+            
+            categoryKeywords.forEach(keyword => {
+              const regex = new RegExp(`(${keyword}[^:]*?):\\s*([^.]*(?:\\.[^.]*)*)`, 'gmi');
+              let match;
+              while ((match = regex.exec(cleaned)) !== null) {
+                const [, category, description] = match;
+                if (description && description.trim().length > 15) {
+                  processedAchievements.push(`${category.trim()}: ${description.trim()}`);
+                }
+              }
+            });
           }
         }
-        
-        return null;
-      }).filter(Boolean); // Remove null values
+        // Standard achievement format
+        else if (cleaned.match(/^(Developed|Engineered|Led|Managed|Implemented|Created|Built|Designed|Achieved|Delivered|Collaborated|Streamlined|Optimized|Enhanced|Utilized|Leveraged|Boosted|Increased|Improved|Established|Coordinated|Executed|Demonstrated|Operated|Contributed|Advanced|Gained|Conducted|Assisted|Handled|Team|Technical|Systems|Customer|Marketing|Financial|Documentation|Research|Sales|Business)/)) {
+          processedAchievements.push(cleaned.charAt(0).toUpperCase() + cleaned.slice(1));
+        }
+        // Handle longer descriptions by extracting meaningful content
+        else if (cleaned.length > 300) {
+          const firstSentence = cleaned.split(/[.!?]/)[0];
+          if (firstSentence && firstSentence.length > 20) {
+            processedAchievements.push(firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.');
+          }
+        }
+      });
       
-      // Sort by priority (1 = highest) and take the best 3
-      bullets = processedAchievements
-        .sort((a: any, b: any) => a.priority - b.priority)
-        .slice(0, 3)
-        .map((item: any) => item.text);
+      // Remove the 3-bullet limit - use all valid achievements since containers are now dynamic
+      bullets = processedAchievements;
       
       // Reduced logging to prevent console spam
     } 
@@ -569,14 +602,16 @@ export function SVGResumePreview({
       }
     }
     
-    // Ensure we have at least 2 bullet points, maximum 3
-    if (bullets.length < 2) {
+    // Since containers are now dynamic, use all valid bullets without artificial limits
+    // Only ensure we have at least 1 bullet point for completeness
+    if (bullets.length === 0) {
       const company = job.company || 'the organization';
       bullets.push(`Demonstrated strong performance and reliability in all assigned tasks at ${company}`);
     }
     
     // Use AI suggestions as-is without aggressive truncation (they're well-crafted)
-    const finalBullets = bullets.slice(0, 2).map(bullet => {
+    // No longer limit to 2 bullets since containers are dynamic
+    const finalBullets = bullets.map(bullet => {
       // Only truncate if extremely long (over 800 chars), AI suggestions should be good as-is
       if (bullet.length > 800) {
         // Find last complete sentence within reasonable length
