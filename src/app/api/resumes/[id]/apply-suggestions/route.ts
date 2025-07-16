@@ -305,13 +305,19 @@ function applyWorkExperienceSuggestion(
 
     experience.push(newExperience)
   } else {
-    // Improve existing experience by adding achievements
+    // CLEAN FIX: Replace accumulated mess with fresh AI suggestions only
     if (experience.length > 0) {
-      // Add to the most recent experience
       const latestExp = experience[0]
-      if (!latestExp.achievements.includes(suggestion.suggested)) {
+      
+      // Check if this is a fresh AI suggestion application
+      if (!latestExp.achievements || latestExp.achievements.length > 5) {
+        // Too many accumulated variations - start completely fresh with AI suggestions
+        latestExp.achievements = [suggestion.suggested]
+      } else if (latestExp.achievements.length < 2) {
+        // Add second AI suggestion (limit to 2 per job)
         latestExp.achievements.push(suggestion.suggested)
       }
+      // If already has 2, don't add more (keep it clean)
     } else {
       // Create first experience entry
       const newExperience: WorkExperience = {

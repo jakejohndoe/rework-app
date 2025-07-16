@@ -489,10 +489,17 @@ export function SVGResumePreview({
       bullets.push(`Demonstrated strong performance and reliability in all assigned tasks at ${company}`);
     }
     
-    // Ensure proper length without truncation (increased maxLength)
-    const finalBullets = bullets.slice(0, 3).map(bullet => {
-      if (bullet.length > maxLength / 2) {
-        return bullet.substring(0, maxLength / 2 - 10) + '...';
+    // Use AI suggestions as-is without aggressive truncation (they're well-crafted)
+    const finalBullets = bullets.slice(0, 2).map(bullet => {
+      // Only truncate if extremely long (over 800 chars), AI suggestions should be good as-is
+      if (bullet.length > 800) {
+        // Find last complete sentence within reasonable length
+        const sentences = bullet.split('. ');
+        let result = sentences[0];
+        for (let i = 1; i < sentences.length && (result + '. ' + sentences[i]).length <= 600; i++) {
+          result += '. ' + sentences[i];
+        }
+        return result.endsWith('.') ? result : result + '.';
       }
       return bullet;
     });
