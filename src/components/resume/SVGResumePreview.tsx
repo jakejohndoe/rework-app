@@ -866,7 +866,7 @@ export function SVGResumePreview({
 
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 900" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 612 920" className="w-full h-full">
       <defs>
         <linearGradient id="profGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -1033,7 +1033,7 @@ export function SVGResumePreview({
           workExperienceEndY += containerHeight + 15;
         });
         
-        const skillsY = workExperienceEndY + 20; // Add gap after work experience
+        const skillsY = workExperienceEndY + 15; // Reduced gap after work experience
         
         return (
           <g>
@@ -1043,17 +1043,17 @@ export function SVGResumePreview({
             <line x1="40" y1={skillsY + 10} x2="100" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.skills.length > 0 && (
-              <foreignObject x="40" y={skillsY + 20} width="260" height="100">
+              <foreignObject x="40" y={skillsY + 20} width="280" height="80">
                 <div className="serif" style={{ 
-                  fontSize: '10px', 
-                  lineHeight: '1.5', 
+                  fontSize: '9px', 
+                  lineHeight: '1.3', 
                   color: '#374151',
-                  columnCount: 2,
-                  columnGap: '20px'
+                  columnCount: 3,
+                  columnGap: '15px'
                 }}>
-                  {data.skills.slice(0, 16).map((skill, index) => (
-                    <div key={index} style={{marginBottom: '3px', display: 'flex', alignItems: 'center'}}>
-                      <span style={{color: config.accentColor, marginRight: '4px'}}>•</span>
+                  {data.skills.slice(0, 18).map((skill, index) => (
+                    <div key={index} style={{marginBottom: '2px', display: 'flex', alignItems: 'center', breakInside: 'avoid'}}>
+                      <span style={{color: config.accentColor, marginRight: '3px', fontSize: '8px'}}>•</span>
                       {skill}
                     </div>
                   ))}
@@ -1068,16 +1068,16 @@ export function SVGResumePreview({
         
             {data.education.slice(0, 2).map((edu, index) => (
               <g key={index}>
-                <text x="320" y={skillsY + 35 + index * 40} fontSize="12" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
+                <text x="320" y={skillsY + 30 + index * 35} fontSize="11" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
                   {toTitleCase(edu.degree || 'Degree')} {edu.field ? `in ${toTitleCase(edu.field)}` : ''}
                 </text>
-                <text x="320" y={skillsY + 50 + index * 40} fontSize="10" fill="#6b7280">
+                <text x="320" y={skillsY + 43 + index * 35} fontSize="9" fill="#6b7280">
                   {toTitleCase(edu.institution || edu.school || 'University')} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
                 </text>
                 
                 {/* AI-enhanced relevant coursework with proper capitalization */}
                 {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
-                  <text x="320" y={skillsY + 65 + index * 40} fontSize="9" fill="#6b7280" fontFamily="serif">
+                  <text x="320" y={skillsY + 55 + index * 35} fontSize="8" fill="#6b7280" fontFamily="serif">
                     {edu.relevantCoursework.slice(0, 2).map((course: string) => toTitleCase(course)).join(' • ')}
                   </text>
                 )}
@@ -1103,12 +1103,12 @@ export function SVGResumePreview({
           contentEndY += containerHeight + 15;
         });
         
-        // Add height of skills & education section
-        const skillsEducationHeight = 140; // Approximate height for skills + education
+        // Add height of skills & education section (more compact now)
+        const skillsEducationHeight = 110; // Reduced height for more compact layout
         contentEndY += skillsEducationHeight;
         
         // Position badge at bottom with some padding, but within viewBox limits
-        const badgeY = Math.min(contentEndY + 30, 885); // Stay within 900px viewBox
+        const badgeY = Math.min(contentEndY + 25, 905); // Stay within 920px viewBox
         
         return (
           <text x="306" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
