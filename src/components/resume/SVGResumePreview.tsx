@@ -866,7 +866,7 @@ export function SVGResumePreview({
 
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
-    <svg ref={svgRef} viewBox="0 0 612 920" className="w-full h-full">
+    <svg ref={svgRef} viewBox="0 0 750 920" className="w-full h-full">
       <defs>
         <linearGradient id="profGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{stopColor: config.primaryColor}} />
@@ -875,23 +875,23 @@ export function SVGResumePreview({
       </defs>
 
       {/* White background */}
-      <rect width="612" height="900" fill="white"/>
+      <rect width="750" height="920" fill="white"/>
       
       {/* Header */}
-      <rect x="0" y="0" width="612" height="120" fill="url(#profGradient)"/>
+      <rect x="0" y="0" width="750" height="120" fill="url(#profGradient)"/>
       
       {/* Name */}
-      <text x="306" y="50" textAnchor="middle" fontSize="28" fontWeight="400" fill="white" fontFamily="serif" letterSpacing="1px">
+      <text x="375" y="50" textAnchor="middle" fontSize="28" fontWeight="400" fill="white" fontFamily="serif" letterSpacing="1px">
         {data.fullName}
       </text>
       
       {/* Contact info */}
-      <text x="306" y="75" textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.9)" fontFamily="sans-serif">
+      <text x="375" y="75" textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.9)" fontFamily="sans-serif">
         {data.email} • {data.phone} • {data.location}
       </text>
       
       {/* Professional tagline */}
-      <text x="306" y="95" textAnchor="middle" fontSize="10" fill="rgba(255,255,255,0.8)" fontFamily="serif" fontStyle="italic">
+      <text x="375" y="95" textAnchor="middle" fontSize="10" fill="rgba(255,255,255,0.8)" fontFamily="serif" fontStyle="italic">
         Network Engineer Professional
       </text>
 
@@ -901,7 +901,7 @@ export function SVGResumePreview({
       </text>
       <line x1="40" y1="170" x2="140" y2="170" stroke={config.accentColor} strokeWidth="2"/>
       
-      <foreignObject x="40" y="180" width="532" height="85">
+      <foreignObject x="40" y="180" width="670" height="85">
         <div className="serif" style={{ 
           fontSize: '14px', 
           lineHeight: '1.6', 
@@ -933,19 +933,19 @@ export function SVGResumePreview({
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
           
           // Calculate content height needed
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
           const containerHeight = Math.max(contentHeight + 60, 120); // Header + content + padding, minimum 120px
           
           const jobElement = (
             <g key={index}>
-              <rect x="40" y={currentY} width="532" height={containerHeight} fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
+              <rect x="40" y={currentY} width="670" height={containerHeight} fill="white" stroke="#e5e7eb" strokeWidth="1" rx="6"/>
               <rect x="40" y={currentY} width="4" height={containerHeight} fill={config.accentColor} rx="2"/>
               
               <text x="55" y={currentY + 25} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
                 {toTitleCase(job.jobTitle || job.title || job.position || 'Network Engineer')}
               </text>
               
-              <text x="450" y={currentY + 25} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
+              <text x="580" y={currentY + 25} fontSize="11" fill="#6b7280" fontFamily="sans-serif">
                 {job.startDate || '2022'} — {job.endDate || 'Present'}
               </text>
               
@@ -954,7 +954,7 @@ export function SVGResumePreview({
               </text>
 
               {/* Dynamic content area */}
-              <foreignObject x="55" y={currentY + 50} width="500" height={contentHeight + 10}>
+              <foreignObject x="55" y={currentY + 50} width="640" height={contentHeight + 10}>
                 <div className="serif" style={{ 
                   fontSize: `${fontSize}px`, 
                   lineHeight: '1.4', 
@@ -985,7 +985,7 @@ export function SVGResumePreview({
             {(() => {
               const jobSkills = extractJobSkills(job);
               return jobSkills && jobSkills.length > 0 && (
-                <foreignObject x="55" y={currentY + containerHeight - 25} width="500" height="20">
+                <foreignObject x="55" y={currentY + containerHeight - 25} width="640" height="20">
                   <div className="serif" style={{ 
                     fontSize: '9px', 
                     lineHeight: '1.4', 
@@ -1028,7 +1028,7 @@ export function SVGResumePreview({
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
           const containerHeight = Math.max(contentHeight + 60, 120);
           workExperienceEndY += containerHeight + 15;
         });
@@ -1043,17 +1043,17 @@ export function SVGResumePreview({
             <line x1="40" y1={skillsY + 10} x2="100" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.skills.length > 0 && (
-              <foreignObject x="40" y={skillsY + 20} width="280" height="80">
+              <foreignObject x="40" y={skillsY + 20} width="350" height="100">
                 <div className="serif" style={{ 
-                  fontSize: '9px', 
-                  lineHeight: '1.3', 
+                  fontSize: '10px', 
+                  lineHeight: '1.4', 
                   color: '#374151',
                   columnCount: 3,
-                  columnGap: '15px'
+                  columnGap: '20px'
                 }}>
-                  {data.skills.slice(0, 18).map((skill, index) => (
-                    <div key={index} style={{marginBottom: '2px', display: 'flex', alignItems: 'center', breakInside: 'avoid'}}>
-                      <span style={{color: config.accentColor, marginRight: '3px', fontSize: '8px'}}>•</span>
+                  {data.skills.slice(0, 21).map((skill, index) => (
+                    <div key={index} style={{marginBottom: '3px', display: 'flex', alignItems: 'center', breakInside: 'avoid'}}>
+                      <span style={{color: config.accentColor, marginRight: '4px', fontSize: '9px'}}>•</span>
                       {skill}
                     </div>
                   ))}
@@ -1061,27 +1061,31 @@ export function SVGResumePreview({
               </foreignObject>
             )}
 
-            <text x="320" y={skillsY} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
+            <text x="420" y={skillsY} fontSize="14" fontWeight="600" fill={config.primaryColor} fontFamily="serif">
               Education
             </text>
-            <line x1="320" y1={skillsY + 10} x2="370" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
+            <line x1="420" y1={skillsY + 10} x2="470" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.education.slice(0, 2).map((edu, index) => (
-              <g key={index}>
-                <text x="320" y={skillsY + 30 + index * 35} fontSize="11" fontWeight="500" fill={config.primaryColor} fontFamily="serif">
-                  {toTitleCase(edu.degree || 'Degree')} {edu.field ? `in ${toTitleCase(edu.field)}` : ''}
-                </text>
-                <text x="320" y={skillsY + 43 + index * 35} fontSize="9" fill="#6b7280">
-                  {toTitleCase(edu.institution || edu.school || 'University')} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
-                </text>
-                
-                {/* AI-enhanced relevant coursework with proper capitalization */}
-                {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
-                  <text x="320" y={skillsY + 55 + index * 35} fontSize="8" fill="#6b7280" fontFamily="serif">
-                    {edu.relevantCoursework.slice(0, 2).map((course: string) => toTitleCase(course)).join(' • ')}
-                  </text>
-                )}
-              </g>
+              <foreignObject key={index} x="420" y={skillsY + 20 + index * 50} width="290" height="45">
+                <div className="serif" style={{ 
+                  fontSize: '11px', 
+                  lineHeight: '1.4', 
+                  color: config.primaryColor
+                }}>
+                  <div style={{fontWeight: '500', marginBottom: '2px'}}>
+                    {toTitleCase(edu.degree || 'Degree')} {edu.field ? `in ${toTitleCase(edu.field)}` : ''}
+                  </div>
+                  <div style={{fontSize: '9px', color: '#6b7280', marginBottom: '2px'}}>
+                    {toTitleCase(edu.institution || edu.school || 'University')} • {edu.graduationYear || edu.year || edu.endDate || '2020'}
+                  </div>
+                  {edu.relevantCoursework && Array.isArray(edu.relevantCoursework) && edu.relevantCoursework.length > 0 && (
+                    <div style={{fontSize: '8px', color: '#6b7280'}}>
+                      {edu.relevantCoursework.slice(0, 3).map((course: string) => toTitleCase(course)).join(' • ')}
+                    </div>
+                  )}
+                </div>
+              </foreignObject>
             ))}
           </g>
         );
@@ -1098,20 +1102,20 @@ export function SVGResumePreview({
           const bulletsArray = Array.isArray(bullets) ? bullets : [bullets];
           const totalContentLength = bulletsArray.join(' ').length;
           const fontSize = getResponsiveFontSize(totalContentLength, 11);
-          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 500);
+          const contentHeight = calculateContentHeight(bulletsArray, fontSize, 1.4, 640);
           const containerHeight = Math.max(contentHeight + 60, 120);
           contentEndY += containerHeight + 15;
         });
         
-        // Add height of skills & education section (more compact now)
-        const skillsEducationHeight = 110; // Reduced height for more compact layout
+        // Add height of skills & education section
+        const skillsEducationHeight = 130; // Adjusted for better spacing
         contentEndY += skillsEducationHeight;
         
         // Position badge at bottom with some padding, but within viewBox limits
         const badgeY = Math.min(contentEndY + 25, 905); // Stay within 920px viewBox
         
         return (
-          <text x="306" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
+          <text x="375" y={badgeY} textAnchor="middle" fontSize="9" fill={config.accentColor} fontFamily="serif" fontStyle="italic">
             ✨ reWorked with ReWork
           </text>
         );
