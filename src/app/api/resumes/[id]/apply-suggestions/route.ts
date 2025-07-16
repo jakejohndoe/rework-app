@@ -280,7 +280,7 @@ function applyProfessionalSummarySuggestion(
 
 function applyWorkExperienceSuggestion(
   currentExperience: WorkExperience[] | undefined,
-  suggestion: { type: 'improve' | 'add', suggested: string }
+  suggestion: { type: 'improve' | 'add', suggested: string, current: string }
 ): WorkExperience[] {
   console.log('🔧 applyWorkExperienceSuggestion called:')
   console.log('  Current experience count:', currentExperience?.length || 0)
@@ -305,21 +305,20 @@ function applyWorkExperienceSuggestion(
 
     experience.push(newExperience)
   } else {
-    // CLEAN FIX: Replace accumulated mess with fresh AI suggestions only
+    // FIXED: For "improve" type, replace the current content with suggested content
     if (experience.length > 0) {
       const latestExp = experience[0]
       
-      // Check if this is a fresh AI suggestion application
-      if (!latestExp.achievements || latestExp.achievements.length > 5) {
-        // Too many accumulated variations - start completely fresh with AI suggestions
-        latestExp.achievements = [suggestion.suggested]
-      } else if (latestExp.achievements.length < 2) {
-        // Add second AI suggestion (limit to 2 per job)
-        latestExp.achievements.push(suggestion.suggested)
-      }
-      // If already has 2, don't add more (keep it clean)
+      // Replace the job description with the AI suggestion
+      // This ensures the suggested content replaces the current content
+      latestExp.description = suggestion.suggested
+      
+      // Clear achievements to avoid duplication - the description now contains the improved content
+      latestExp.achievements = []
+      
+      console.log('✅ Replaced job description with AI suggestion')
     } else {
-      // Create first experience entry
+      // Create first experience entry with the suggested content as description
       const newExperience: WorkExperience = {
         id: `exp-${Date.now()}`,
         jobTitle: 'Position',
@@ -327,7 +326,8 @@ function applyWorkExperienceSuggestion(
         startDate: new Date().getFullYear().toString(),
         endDate: 'present',
         location: '',
-        achievements: [suggestion.suggested],
+        description: suggestion.suggested, // Put AI suggestion as main description
+        achievements: [],
         technologies: [],
         isCurrentRole: true
       }

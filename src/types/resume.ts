@@ -26,6 +26,7 @@ export interface WorkExperience {
   startDate: string // YYYY-MM format
   endDate: string | 'present'
   location: string
+  description?: string // Main job description - can be replaced by AI suggestions
   achievements: string[] // Bullet points of accomplishments
   technologies: string[] // Tech stack used in this role
   isCurrentRole: boolean
