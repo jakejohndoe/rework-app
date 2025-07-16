@@ -1045,18 +1045,18 @@ export function SVGResumePreview({
             <line x1="40" y1={skillsY + 10} x2="100" y2={skillsY + 10} stroke={config.accentColor} strokeWidth="2"/>
         
             {data.skills.length > 0 && (
-              <foreignObject x="40" y={skillsY + 20} width="350" height="80">
+              <foreignObject x="40" y={skillsY + 20} width="380" height="90">
                 <div className="serif" style={{ 
                   fontSize: '10px', 
                   lineHeight: '1.4', 
                   color: '#374151',
-                  columnCount: 3,
-                  columnGap: '20px'
+                  columnCount: 2,
+                  columnGap: '25px'
                 }}>
                   {data.skills.slice(0, 21).map((skill, index) => (
-                    <div key={index} style={{marginBottom: '3px', display: 'flex', alignItems: 'center', breakInside: 'avoid'}}>
-                      <span style={{color: config.accentColor, marginRight: '4px', fontSize: '9px'}}>•</span>
-                      {skill}
+                    <div key={index} style={{marginBottom: '3px', display: 'flex', alignItems: 'flex-start', breakInside: 'avoid', wordBreak: 'normal', overflowWrap: 'anywhere'}}>
+                      <span style={{color: config.accentColor, marginRight: '4px', fontSize: '9px', flexShrink: 0}}>•</span>
+                      <span style={{flex: 1}}>{skill}</span>
                     </div>
                   ))}
                 </div>
