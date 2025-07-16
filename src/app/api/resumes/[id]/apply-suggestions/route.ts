@@ -367,9 +367,11 @@ function applySkillsSuggestion(
   let skillsToAdd: string[] = [];
   
   // Handle instruction-style suggestions like "Add Go, SQL, and AWS integration to your skills list"
-  if (suggestion.suggested.toLowerCase().includes('add ')) {
+  if (suggestion.suggested.toLowerCase().includes('add ') || suggestion.suggested.toLowerCase().includes('skills like')) {
     // Extract skills more carefully to avoid instruction words
     const patterns = [
+      /skills?\s+like\s+([^.]+)/i,  // Handle "skills like API integration"
+      /add\s+skills?\s+like\s+([^.]+)/i,  // Handle "add skills like API integration"
       /add\s+([^.]*?)(?:\s+to\s+)/i,
       /skills?[^:]*:\s*([^.]+)/i,
       /'([^']+)'/g  // Extract quoted skills like 'Go', 'SQL', 'AWS Integration'
@@ -390,9 +392,13 @@ function applySkillsSuggestion(
             .filter(skill => 
               skill.length > 1 && 
               // More comprehensive filter for instruction words
-              !skill.match(/^(to|your|skills?|list|these|are|the|with|for|and|or|add|include|like|such|as|align|requirements|highlight|proficiency|integration|key|job)$/i) &&
+              !skill.match(/^(to|your|skills?|list|these|are|the|with|for|and|or|add|include|like|such|as|align|requirements|highlight|proficiency|key|job|try|adding|consider|also|should|would|could|might|may|will|can|ensure|make|sure|help|improve|enhance|boost|increase|demonstrate|show|display|reflect|indicate|suggest|recommend|advise)$/i) &&
               // Must look like a real skill (not random words)
-              skill.match(/^[A-Za-z][A-Za-z0-9\s\-\.+#]*$/)
+              skill.match(/^[A-Za-z][A-Za-z0-9\s\-\.+#]*$/) &&
+              // Additional cleaning for common instruction phrases
+              !skill.toLowerCase().includes('skills like') &&
+              !skill.toLowerCase().includes('add to') &&
+              !skill.toLowerCase().includes('your resume')
             );
         }
         if (skillsToAdd.length > 0) break;
