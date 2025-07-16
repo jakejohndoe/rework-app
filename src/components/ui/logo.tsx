@@ -30,15 +30,35 @@ export function Logo({
     large: { width: 640, height: 640 }     // 4x from 160x160
   }
   
+  // Beta badge size based on logo size
+  const badgeClasses = {
+    xs: 'text-[9px] px-1.5 py-0.5',
+    small: 'text-xs px-2 py-0.5',
+    medium: 'text-sm px-2.5 py-1',
+    large: 'text-base px-3 py-1.5'
+  }
+  
   return (
-    <Image
-      src={src}
-      alt="ReWork Logo"
-      width={dimensions[size].width}
-      height={dimensions[size].height}
-      className={cn(sizeClasses[size], 'object-contain', className)}
-      priority
-      unoptimized // For transparent PNGs
-    />
+    <div className="inline-flex items-center gap-2">
+      <Image
+        src={src}
+        alt="ReWork Logo"
+        width={dimensions[size].width}
+        height={dimensions[size].height}
+        className={cn(sizeClasses[size], 'object-contain', className)}
+        priority
+        unoptimized // For transparent PNGs
+      />
+      <span 
+        className={cn(
+          "bg-secondary-500/20 text-secondary-600 dark:text-secondary-400",
+          "font-medium tracking-wider uppercase rounded-full",
+          "border border-secondary-500/30",
+          badgeClasses[size]
+        )}
+      >
+        Beta
+      </span>
+    </div>
   )
 }
