@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ import ResumeLoader from '@/components/resume-loader'
 import { ArrowLeft, CheckCircle, Download, Sparkles, ArrowRight, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
 import { Logo } from '@/components/ui/logo'
 import { toast } from 'sonner'
-import { SVGResumePreview } from '@/components/resume/SVGResumePreview'
+import { SVGResumePreview, SVGResumePreviewRef } from '@/components/resume/SVGResumePreview'
 import confetti from 'canvas-confetti'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -96,6 +96,9 @@ export default function EnhancedFinalizePage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [resumeData, setResumeData] = useState<any>(null)
   const [showSuccessCard, setShowSuccessCard] = useState(false)
+  
+  // Ref for SVG resume preview
+  const svgPreviewRef = useRef<SVGResumePreviewRef>(null)
   
   // Premium UI State
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
@@ -236,6 +239,13 @@ export default function EnhancedFinalizePage() {
 
   const handleEditMore = () => {
     router.push(`/dashboard/resume/${resumeId}/analysis`)
+  }
+
+  // Handle PDF download using SVG preview's function
+  const handlePdfDownload = async () => {
+    if (svgPreviewRef.current) {
+      await svgPreviewRef.current.downloadPDF()
+    }
   }
 
   // Handle downloads with the fixed API
@@ -589,6 +599,7 @@ export default function EnhancedFinalizePage() {
 
               <div className="max-w-4xl mx-auto">
                 <SVGResumePreview
+                  ref={svgPreviewRef}
                   resumeId={resumeId}
                   version="optimized"
                   template={selectedTemplate}
@@ -631,7 +642,7 @@ export default function EnhancedFinalizePage() {
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   {/* Primary download button */}
                   <Button
-                    onClick={() => handleDownload('optimized')}
+                    onClick={handlePdfDownload}
                     disabled={isDownloading}
                     className="btn-gradient hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/40 relative overflow-hidden group px-12 py-6 text-xl font-bold min-w-[320px] rounded-2xl"
                   >

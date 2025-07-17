@@ -1,7 +1,7 @@
 // src/components/resume/SVGResumePreview.tsx
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,10 @@ interface SVGResumePreviewProps {
     primary: string;
     accent: string;
   };
+}
+
+export interface SVGResumePreviewRef {
+  downloadPDF: () => Promise<void>;
 }
 
 interface ResumeData {
@@ -163,7 +167,7 @@ const enhanceProfessionalSummary = (summaryData: any): string => {
   return mainSummary;
 };
 
-export function SVGResumePreview({ 
+export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreviewProps>(({ 
   resumeId, 
   version, 
   template, 
@@ -177,7 +181,7 @@ export function SVGResumePreview({
   onSuccess,
   useDynamicTemplate = false,
   colors
-}: SVGResumePreviewProps) {
+}, ref) => {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -863,6 +867,11 @@ export function SVGResumePreview({
       setIsDownloading(false);
     }
   };
+
+  // Expose the download function via ref
+  useImperativeHandle(ref, () => ({
+    downloadPDF: handleSvgToPdfDownload
+  }));
 
   // 🎨 PROFESSIONAL TEMPLATE
   const renderProfessionalTemplate = (data: ResumeData) => (
@@ -2024,4 +2033,6 @@ export function SVGResumePreview({
       </div>
     </div>
   );
-}
+});
+
+SVGResumePreview.displayName = 'SVGResumePreview';
