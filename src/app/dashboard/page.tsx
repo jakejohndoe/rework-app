@@ -329,7 +329,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center space-x-2 group">
                 <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">ReWork</span>
               </Link>
               <div className="flex items-center space-x-4">
                 <Button 
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                   onClick={() => setIsSettingsOpen(true)}
                 >
                   <Settings className="w-4 h-4 mr-2" />
-                  settings
+                  Settings
                 </Button>
                 <Button 
                   onClick={() => signOut()} 
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                   className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-300"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  sign out
+                  Sign Out
                 </Button>
               </div>
             </div>
@@ -360,12 +360,12 @@ export default function DashboardPage() {
               <div>
                 <h1 className="text-4xl font-bold mb-2">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400">
-                    welcome back, {session?.user?.name?.split(' ')[0] || 'there'}!
+                    Welcome back, {session?.user?.name?.split(' ')[0] || 'there'}!
                   </span>
                   <span className="ml-2">👋</span>
                 </h1>
                 <p className="text-slate-300 text-lg">
-                  ready to optimize your resume for your next opportunity?
+                  Ready to optimize your resume for your next opportunity?
                 </p>
               </div>
               <div className="flex gap-3">
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10 flex items-center gap-2">
                     <Plus className="w-5 h-5" />
-                    create new resume
+                    Create New Resume
                   </div>
                   <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                 </button>
@@ -387,10 +387,10 @@ export default function DashboardPage() {
           {/* Premium Stats with 3D Effects */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { icon: FileText, label: "active resumes", value: currentResumes, color: "cyan" },
-              { icon: Target, label: "total size", value: resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0) > 0 ? `${((resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0)) / 1024 / 1024).toFixed(1)} mb` : '—', color: "purple" },
-              { icon: TrendingUp, label: "optimization rate", value: currentResumes > 0 ? `${Math.round((optimizedCount / currentResumes) * 100)}%` : '-', color: "emerald" },
-              { icon: Clock, label: "applications created", value: jobApplications.length || 0, color: "amber" }
+              { icon: FileText, label: "Active Resumes", value: currentResumes, color: "cyan" },
+              { icon: Target, label: "Total Size", value: resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0) > 0 ? `${((resumes.reduce((total, resume) => total + (resume.fileSize || 0), 0)) / 1024 / 1024).toFixed(1)} MB` : '—', color: "purple" },
+              { icon: TrendingUp, label: "Optimization Rate", value: currentResumes > 0 ? `${Math.round((optimizedCount / currentResumes) * 100)}%` : '-', color: "emerald" },
+              { icon: Clock, label: "Applications Created", value: jobApplications.length || 0, color: "amber" }
             ].map((stat, index) => (
               <Card 
                 key={index}
@@ -438,7 +438,7 @@ export default function DashboardPage() {
                 <CardHeader className="pb-4 relative z-10">
                   <CardTitle className="text-white flex items-center gap-2">
                     <Zap className="w-5 h-5 text-cyan-400" />
-                    quick actions
+                    Quick Actions
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
@@ -450,9 +450,9 @@ export default function DashboardPage() {
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2 mb-1">
                           <Upload className="w-4 h-4 group-hover:animate-bounce" />
-                          <span className="font-medium">upload resume</span>
+                          <span className="font-medium">Upload Resume</span>
                         </div>
-                        <span className="text-xs opacity-80">start with an existing resume</span>
+                        <span className="text-xs opacity-80">Start with an existing resume</span>
                       </div>
                     </button>
                     
@@ -463,12 +463,12 @@ export default function DashboardPage() {
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2 mb-1">
                           <Sparkles className="w-4 h-4 group-hover:animate-pulse" />
-                          <span className="font-medium">ai builder</span>
+                          <span className="font-medium">AI Builder</span>
                           <Badge className="bg-amber-600 text-white text-xs px-1 py-0">
-                            soon
+                            Soon
                           </Badge>
                         </div>
-                        <span className="text-xs opacity-60">create from scratch with ai</span>
+                        <span className="text-xs opacity-60">Create from scratch with AI</span>
                       </div>
                     </button>
                   </div>
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                 <CardHeader className="relative z-10">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <CardTitle className="text-white">your resumes</CardTitle>
+                      <CardTitle className="text-white">Your Resumes</CardTitle>
                       <Badge variant="secondary" className="bg-cyan-400/20 text-cyan-300">
                         {currentResumes} of {resumeLimit}
                       </Badge>
@@ -511,14 +511,14 @@ export default function DashboardPage() {
                       <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
                         <FileText className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-medium text-white mb-2">no resumes yet</h3>
-                      <p className="text-slate-400 mb-4">create your first ai-optimized resume to get started</p>
+                      <h3 className="text-lg font-medium text-white mb-2">No resumes yet</h3>
+                      <p className="text-slate-400 mb-4">Create your first AI-optimized resume to get started</p>
                       <button 
                         className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25"
                         onClick={() => setIsUploadOpen(true)}
                       >
                         <Plus className="w-4 h-4 mr-2 inline" />
-                        create your first resume
+                        Create Your First Resume
                       </button>
                     </div>
                   ) : (
@@ -541,7 +541,7 @@ export default function DashboardPage() {
                                 <h4 className="font-medium text-white truncate">{resume.title}</h4>
                                 {resume.lastOptimized && (
                                   <Badge variant="secondary" className="bg-green-400/20 text-green-300 text-xs">
-                                    ✨ optimized
+                                    ✨ Optimized
                                   </Badge>
                                 )}
                                 {resume.analysisScore && (
@@ -552,16 +552,16 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <div className={`flex items-center space-x-4 text-sm text-slate-400 mb-2 ${viewMode === 'list' ? 'justify-center flex-wrap' : ''}`}>
-                                <span>modified {formatTimeAgo(resume.updatedAt)}</span>
+                                <span>Modified {formatTimeAgo(resume.updatedAt)}</span>
                                 <span>•</span>
-                                <span>{resume.fileSize ? `${(resume.fileSize / 1024).toFixed(0)} kb` : '—'}</span>
+                                <span>{resume.fileSize ? `${(resume.fileSize / 1024).toFixed(0)} KB` : '—'}</span>
                               </div>
                               <div className={`${viewMode === 'list' ? 'flex justify-center' : ''}`}>
                                 <Badge 
                                   variant="secondary" 
                                   className={resume.status === 'optimized' ? 'bg-green-400/20 text-green-300' : 'bg-amber-400/20 text-amber-300'}
                                 >
-                                  {resume.status || 'draft'}
+                                  {resume.status === 'draft' ? 'Draft' : resume.status === 'optimized' ? 'Optimized' : resume.status || 'Draft'}
                                 </Badge>
                               </div>
                             </div>
@@ -570,13 +570,13 @@ export default function DashboardPage() {
                             <div className={`flex items-center space-x-2 ${viewMode === 'list' ? 'mt-3 justify-center' : ''}`}>
                               <Link href={`/dashboard/resume/${resume.id}`}>
                                 <Button size="sm" variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm">
-                                  edit
+                                  Edit
                                 </Button>
                               </Link>
                               
                               <Link href={`/dashboard/resume/${resume.id}/job-description`}>
                                 <button className="px-3 py-1 text-sm bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded hover:scale-105 transition-all duration-300">
-                                  optimize
+                                  Optimize
                                 </button>
                               </Link>
                               
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                           <div className="mt-3 pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all duration-300">
                             <div className="flex items-center justify-between">
                               <div className="text-xs text-slate-500">
-                                download options:
+                                Download options:
                               </div>
                               <div className="flex gap-2">
                                 <DownloadButton 
@@ -628,7 +628,7 @@ export default function DashboardPage() {
                   <CardHeader className="pb-4 relative z-10">
                     <CardTitle className="text-white flex items-center gap-2 text-lg">
                       <BarChart3 className="w-5 h-5 text-cyan-400" />
-                      quick stats
+                      Quick Stats
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="relative z-10">
@@ -636,40 +636,40 @@ export default function DashboardPage() {
                       <div className="text-center p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
                         <p className="text-2xl font-bold text-cyan-400">
                           {mockResumes.reduce((total, resume) => total + (resume.fileSize || 0), 0) > 0 
-                            ? `${((mockResumes.reduce((total, resume) => total + (resume.fileSize || 0), 0)) / 1024 / 1024).toFixed(1)} mb`
+                            ? `${((mockResumes.reduce((total, resume) => total + (resume.fileSize || 0), 0)) / 1024 / 1024).toFixed(1)} MB`
                             : '—'
                           }
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">total file size</p>
+                        <p className="text-xs text-slate-400 mt-1">Total file size</p>
                       </div>
                       
                       <div className="text-center p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
                         <p className="text-2xl font-bold text-green-400">
                           {mockResumes.filter(r => r.lastOptimized).length}
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">resumes enhanced</p>
+                        <p className="text-xs text-slate-400 mt-1">Resumes enhanced</p>
                       </div>
                       
                       <div className="text-center p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
                         <p className="text-2xl font-bold text-purple-400">
                           {mockResumes.length}
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">documents created</p>
+                        <p className="text-xs text-slate-400 mt-1">Documents created</p>
                       </div>
                       
                       <div className="text-center p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 hover:scale-105 transition-all cursor-pointer backdrop-blur-sm">
                         <p className="text-2xl font-bold text-amber-400">
                           {Math.max(...mockResumes.map(r => r.applications || 0), 0)}
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">most used resume</p>
+                        <p className="text-xs text-slate-400 mt-1">Most used resume</p>
                       </div>
                     </div>
                     
                     <div className="mt-4 p-3 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-all backdrop-blur-sm">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-200 font-medium">total applications</p>
-                          <p className="text-xs text-slate-400">ai optimizations created</p>
+                          <p className="text-sm text-slate-200 font-medium">Total applications</p>
+                          <p className="text-xs text-slate-400">AI optimizations created</p>
                         </div>
                         <p className="text-xl font-bold text-cyan-300">
                           {jobApplications.length}
@@ -693,10 +693,10 @@ export default function DashboardPage() {
                     ) : (
                       <div className="w-5 h-5 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full" />
                     )}
-                    {isPremium ? 'premium plan' : 'free plan'}
+                    {isPremium ? 'Premium Plan' : 'Free Plan'}
                     {!isPremium && usagePercentage >= 80 && (
                       <Badge className={`text-xs ${usagePercentage >= 100 ? 'bg-red-600 animate-pulse' : 'bg-amber-600'} text-white`}>
-                        {usagePercentage >= 100 ? 'full' : 'nearly full'}
+                        {usagePercentage >= 100 ? 'Full' : 'Nearly Full'}
                       </Badge>
                     )}
                   </CardTitle>
@@ -704,7 +704,7 @@ export default function DashboardPage() {
                 <CardContent className="space-y-4 relative z-10">
                   <div>
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-slate-300">resume usage</span>
+                      <span className="text-slate-300">Resume usage</span>
                       <span className="text-white font-medium">{totalResumesCreated} / {resumeLimit}</span>
                     </div>
                     {!isPremium && (
@@ -712,7 +712,7 @@ export default function DashboardPage() {
                         <Progress value={usagePercentage} className="h-2 bg-slate-700" />
                         <p className="text-xs text-slate-400">
                           {usagePercentage >= 100 ? (
-                            <span className="text-red-400 animate-pulse">⚠️ limit reached - upgrade to continue</span>
+                            <span className="text-red-400 animate-pulse">⚠️ Limit reached - upgrade to continue</span>
                           ) : usagePercentage >= 80 ? (
                             <span className="text-amber-400">⚡ {3 - totalResumesCreated} resume{3 - totalResumesCreated !== 1 ? 's' : ''} remaining</span>
                           ) : (
@@ -727,23 +727,23 @@ export default function DashboardPage() {
                     <>
                       <Separator className="bg-white/20" />
                       <div className="space-y-2">
-                        <p className="text-sm text-slate-200 font-medium">upgrade to unlock:</p>
+                        <p className="text-sm text-slate-200 font-medium">Upgrade to unlock:</p>
                         <ul className="text-sm text-slate-300 space-y-1">
                           <li className="flex items-center gap-2 hover:text-white transition-colors">
                             <CheckCircle className="w-3 h-3 text-green-400" />
-                            unlimited resumes
+                            Unlimited resumes
                           </li>
                           <li className="flex items-center gap-2 hover:text-white transition-colors">
                             <CheckCircle className="w-3 h-3 text-green-400" />
-                            advanced ai optimization
+                            Advanced AI optimization
                           </li>
                           <li className="flex items-center gap-2 hover:text-white transition-colors">
                             <CheckCircle className="w-3 h-3 text-green-400" />
-                            premium templates
+                            Premium templates
                           </li>
                           <li className="flex items-center gap-2 hover:text-white transition-colors">
                             <CheckCircle className="w-3 h-3 text-green-400" />
-                            priority support
+                            Priority support
                           </li>
                         </ul>
                       </div>
@@ -752,7 +752,7 @@ export default function DashboardPage() {
                         className="w-full bg-gradient-to-r from-purple-500 to-cyan-600 hover:from-purple-400 hover:to-cyan-500 text-white py-2 px-4 rounded-lg font-medium group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25"
                       >
                         <Crown className="w-4 h-4 mr-2 inline group-hover:animate-bounce" />
-                        upgrade to premium
+                        Upgrade to Premium
                       </button>
                     </>
                   )}
@@ -764,11 +764,11 @@ export default function DashboardPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
                 <CardHeader className="pb-4 relative z-10">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">recent activity</CardTitle>
+                    <CardTitle className="text-white">Recent Activity</CardTitle>
                     {resumes.length > 0 && (
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-slate-400">live</span>
+                        <span className="text-xs text-slate-400">Live</span>
                       </div>
                     )}
                   </div>
@@ -783,7 +783,7 @@ export default function DashboardPage() {
                             <div className={`w-2 h-2 ${resume.lastOptimized ? 'bg-green-400' : 'bg-blue-400'} rounded-full flex-shrink-0`}></div>
                             <div className="flex-1">
                               <p className="text-slate-100">
-                                {resume.lastOptimized ? 'resume optimized' : 'resume created'}
+                                {resume.lastOptimized ? 'Resume optimized' : 'Resume created'}
                               </p>
                               <p className="text-slate-400 text-xs">
                                 {formatTimeAgo(resume.lastOptimized || resume.createdAt)}
@@ -795,7 +795,7 @@ export default function DashboardPage() {
                           <div key={application.id} className="flex items-center space-x-3 p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-all backdrop-blur-sm">
                             <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
                             <div className="flex-1">
-                              <p className="text-slate-100">application created</p>
+                              <p className="text-slate-100">Application created</p>
                               <p className="text-slate-400 text-xs">
                                 {formatTimeAgo(application.createdAt)}
                               </p>
@@ -808,8 +808,8 @@ export default function DashboardPage() {
                         <div className="w-8 h-8 text-slate-500 mx-auto mb-2">
                           <BarChart3 className="w-full h-full" />
                         </div>
-                        <p className="text-sm text-slate-400">no activity yet</p>
-                        <p className="text-xs text-slate-500">create your first resume to get started</p>
+                        <p className="text-sm text-slate-400">No activity yet</p>
+                        <p className="text-xs text-slate-500">Create your first resume to get started</p>
                       </div>
                     )}
                   </div>
@@ -822,25 +822,25 @@ export default function DashboardPage() {
                 <CardHeader className="pb-4 relative z-10">
                   <CardTitle className="text-cyan-300 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 animate-pulse" />
-                    pro tip
+                    Pro Tip
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
                   {currentResumes === 0 ? (
                     <p className="text-sm text-slate-200 leading-relaxed">
-                      🚀 <strong>getting started:</strong> upload your existing resume first - our ai will analyze it and suggest improvements while preserving your personal style and experience.
+                      🚀 <strong>Getting started:</strong> Upload your existing resume first - our AI will analyze it and suggest improvements while preserving your personal style and experience.
                     </p>
                   ) : optimizedCount === 0 ? (
                     <p className="text-sm text-slate-200 leading-relaxed">
-                      ⚡ <strong>first optimization:</strong> try optimizing one of your resumes for a specific job posting. our ai can increase your match rate by up to 40%.
+                      ⚡ <strong>First optimization:</strong> Try optimizing one of your resumes for a specific job posting. Our AI can increase your match rate by up to 40%.
                     </p>
                   ) : optimizedCount < currentResumes ? (
                     <p className="text-sm text-slate-200 leading-relaxed">
-                      🎯 <strong>complete your set:</strong> you have {currentResumes - optimizedCount} unoptimized resume{currentResumes - optimizedCount !== 1 ? 's' : ''}. optimize them for different job types to maximize opportunities.
+                      🎯 <strong>Complete your set:</strong> You have {currentResumes - optimizedCount} unoptimized resume{currentResumes - optimizedCount !== 1 ? 's' : ''}. Optimize them for different job types to maximize opportunities.
                     </p>
                   ) : (
                     <p className="text-sm text-slate-200 leading-relaxed">
-                      🏆 <strong>optimization master:</strong> all your resumes are ai-optimized! consider creating targeted versions for specific job categories or industries.
+                      🏆 <strong>Optimization master:</strong> All your resumes are AI-optimized! Consider creating targeted versions for specific job categories or industries.
                     </p>
                   )}
                 </CardContent>
@@ -860,7 +860,7 @@ export default function DashboardPage() {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-white text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                      ✨ upload your resume
+                      ✨ Upload Your Resume
                     </h2>
                     <Button
                       variant="ghost"
@@ -875,8 +875,8 @@ export default function DashboardPage() {
                   <div className="mb-6 p-4 bg-gradient-to-r from-purple-900/30 to-cyan-900/30 rounded-lg border border-purple-400/20 hover:border-purple-400/40 transition-all backdrop-blur-sm">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-white font-medium mb-1">don't have a resume yet?</h3>
-                        <p className="text-slate-300 text-sm">ai builder coming soon - create from scratch with artificial intelligence</p>
+                        <h3 className="text-white font-medium mb-1">Don't have a resume yet?</h3>
+                        <p className="text-slate-300 text-sm">AI Builder coming soon - create from scratch with artificial intelligence</p>
                       </div>
                       <div className="flex gap-2">
                         <Button 
@@ -885,9 +885,9 @@ export default function DashboardPage() {
                           onClick={handleAIBuilder}
                         >
                           <Sparkles className="w-4 h-4 mr-2" />
-                          ai builder
+                          AI Builder
                           <Badge className="bg-amber-600 text-white text-xs px-1 py-0 ml-2">
-                            soon
+                            Soon
                           </Badge>
                         </Button>
                       </div>

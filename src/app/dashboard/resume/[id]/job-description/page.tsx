@@ -236,12 +236,12 @@ export default function JobDescriptionPage() {
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
                   <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
-                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
+                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
                 </Link>
 
                 <Button onClick={handleBack} variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  back
+                  Back
                 </Button>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
@@ -555,7 +555,7 @@ export default function JobDescriptionPage() {
                       ) : (
                         isJobComplete() && <Sparkles className="w-4 h-4" />
                       )}
-                      start ai analysis
+                      Start AI Analysis
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </button>

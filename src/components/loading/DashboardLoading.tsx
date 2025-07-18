@@ -11,11 +11,11 @@ export default function DashboardLoading() {
   const [isMounted, setIsMounted] = useState(false)
 
   const steps = [
-    { icon: User, text: "loading your profile...", delay: 0 },
-    { icon: FileText, text: "preparing resume editor...", delay: 800 },
-    { icon: Briefcase, text: "setting up templates...", delay: 1600 },
-    { icon: GraduationCap, text: "initializing ai optimizer...", delay: 2400 },
-    { icon: Star, text: "almost ready...", delay: 3200 }
+    { icon: User, text: "Loading your profile...", delay: 0 },
+    { icon: FileText, text: "Preparing resume editor...", delay: 800 },
+    { icon: Briefcase, text: "Setting up templates...", delay: 1600 },
+    { icon: GraduationCap, text: "Initializing AI optimizer...", delay: 2400 },
+    { icon: Star, text: "Almost ready...", delay: 3200 }
   ]
 
   // Client-side mount check
@@ -95,10 +95,10 @@ export default function DashboardLoading() {
             <Logo size="small" variant="simple" className="mx-auto" />
           </div>
           <h1 className="text-4xl font-bold mb-4">
-            <span className="gradient-text">taking you to your dashboard</span>
+            <span className="gradient-text">Taking you to your dashboard</span>
           </h1>
           <p className="text-slate-400 text-lg">
-            setting up your personalized resume workspace
+            Setting up your personalized resume workspace
           </p>
         </div>
 

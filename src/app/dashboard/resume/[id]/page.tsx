@@ -791,7 +791,7 @@ export default function ResumeEditorPage() {
                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                 <div className="relative z-10 flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" />
-                  back to dashboard
+                  Back to Dashboard
                 </div>
               </button>
             </Link>
@@ -852,13 +852,13 @@ export default function ResumeEditorPage() {
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
                   <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
-                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
+                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
                 </Link>
                 
                 <Link href="/dashboard">
                   <Button variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    dashboard
+                    Dashboard
                   </Button>
                 </Link>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
@@ -905,7 +905,7 @@ export default function ResumeEditorPage() {
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  {isSaving ? 'saving...' : 'save'}
+                  {isSaving ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>
@@ -1318,7 +1318,7 @@ export default function ResumeEditorPage() {
                     >
                       <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                       <div className="relative z-10 flex items-center gap-2">
-                        next: job description
+                        Next: Job Description
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                       </div>
                     </button>

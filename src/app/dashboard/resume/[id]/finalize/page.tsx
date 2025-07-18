@@ -392,7 +392,7 @@ export default function EnhancedFinalizePage() {
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
                   <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
-                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">rework</span>
+                  <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
                 </Link>
 
                 <Button 
@@ -401,7 +401,7 @@ export default function EnhancedFinalizePage() {
                   className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  back to dashboard
+                  Back to Dashboard
                 </Button>
                 <Separator orientation="vertical" className="h-6 bg-white/20" />
                 
@@ -669,7 +669,7 @@ export default function EnhancedFinalizePage() {
                       {isDownloading ? (
                         <>
                           <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>generating your resume...</span>
+                          <span>Generating your resume...</span>
                         </>
                       ) : (
                         <>
@@ -696,7 +696,7 @@ export default function EnhancedFinalizePage() {
                   className="text-slate-400 hover:text-white hover:bg-white/10 hover:scale-105 transition-all duration-300"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  make more changes
+                  Make More Changes
                 </Button>
               </div>
             </div>

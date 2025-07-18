@@ -309,8 +309,8 @@ export default function ResumeUploader({
               }
             `}>
               {isDragActive 
-                ? 'ai processing ready • release to upload'
-                : 'advanced ai-powered resume optimization awaits'
+                ? 'AI processing ready • Release to upload'
+                : 'Advanced AI-powered resume optimization awaits'
               }
             </p>
             
@@ -356,7 +356,7 @@ export default function ResumeUploader({
         <div className="mt-6 space-y-3">
           <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
             <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-            processing files ({uploadingFiles.length})
+            Processing files ({uploadingFiles.length})
           </h4>
           
           {uploadingFiles.map((uploadingFile) => (
@@ -397,7 +397,7 @@ export default function ResumeUploader({
                     <p className="text-sm font-medium text-slate-200 truncate flex items-center gap-2">
                       {uploadingFile.file.name}
                       {uploadingFile.status === 'uploading' && (
-                        <span className="text-xs text-cyan-400 animate-pulse">• processing...</span>
+                        <span className="text-xs text-cyan-400 animate-pulse">• Processing...</span>
                       )}
                     </p>
                     <p className="text-xs text-slate-400">
@@ -459,47 +459,47 @@ export default function ResumeUploader({
                             <div className="flex items-center gap-1">
                               {uploadingFile.progress < 20 && (
                                 <span className="text-cyan-400 animate-pulse flex items-center gap-1">
-                                  <span>🔍</span> scanning document...
+                                  <span>🔍</span> Scanning document...
                                 </span>
                               )}
                               {uploadingFile.progress >= 20 && uploadingFile.progress < 40 && (
                                 <span className="text-purple-400 animate-pulse flex items-center gap-1">
-                                  <span>🧠</span> ai reading content...
+                                  <span>🧠</span> AI reading content...
                                 </span>
                               )}
                               {uploadingFile.progress >= 40 && uploadingFile.progress < 60 && (
                                 <span className="text-blue-400 animate-pulse flex items-center gap-1">
-                                  <span>⚡</span> parsing experience...
+                                  <span>⚡</span> Parsing experience...
                                 </span>
                               )}
                               {uploadingFile.progress >= 60 && uploadingFile.progress < 75 && (
                                 <span className="text-emerald-400 animate-pulse flex items-center gap-1">
-                                  <span>✨</span> enhancing keywords...
+                                  <span>✨</span> Enhancing keywords...
                                 </span>
                               )}
                               {uploadingFile.progress >= 75 && uploadingFile.progress < 85 && (
                                 <span className="text-amber-400 animate-pulse flex items-center gap-1">
-                                  <span>🎯</span> optimizing format...
+                                  <span>🎯</span> Optimizing format...
                                 </span>
                               )}
                               {uploadingFile.progress >= 85 && uploadingFile.progress < 92 && (
                                 <span className="text-pink-400 animate-pulse flex items-center gap-1">
-                                  <span>🔧</span> fine-tuning details...
+                                  <span>🔧</span> Fine-tuning details...
                                 </span>
                               )}
                               {uploadingFile.progress >= 92 && uploadingFile.progress < 96 && (
                                 <span className="text-indigo-400 animate-pulse flex items-center gap-1">
-                                  <span>🎨</span> polishing perfection...
+                                  <span>🎨</span> Polishing perfection...
                                 </span>
                               )}
                               {uploadingFile.progress >= 96 && uploadingFile.progress < 99 && (
                                 <span className="text-violet-400 animate-pulse flex items-center gap-1">
-                                  <span>🚀</span> adding secret sauce...
+                                  <span>🚀</span> Adding secret sauce...
                                 </span>
                               )}
                               {uploadingFile.progress >= 99 && (
                                 <span className="text-green-400 animate-bounce flex items-center gap-1">
-                                  <span>🎉</span> almost perfect...
+                                  <span>🎉</span> Almost perfect...
                                 </span>
                               )}
                             </div>
@@ -515,9 +515,9 @@ export default function ResumeUploader({
                       <div className="text-center">
                         <span className="text-xs text-green-400 font-medium flex items-center gap-1 justify-center">
                           <CheckCircle className="w-3 h-3" />
-                          complete
+                          Complete
                         </span>
-                        <p className="text-xs text-slate-500 mt-1">ready to edit</p>
+                        <p className="text-xs text-slate-500 mt-1">Ready to edit</p>
                       </div>
                     )}
                     
@@ -525,9 +525,9 @@ export default function ResumeUploader({
                       <div className="text-center">
                         <span className="text-xs text-red-400 font-medium flex items-center gap-1 justify-center">
                           <AlertCircle className="w-3 h-3" />
-                          failed
+                          Failed
                         </span>
-                        <p className="text-xs text-slate-500 mt-1">try again</p>
+                        <p className="text-xs text-slate-500 mt-1">Try again</p>
                       </div>
                     )}
                   </div>

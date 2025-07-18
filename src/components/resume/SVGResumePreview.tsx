@@ -1198,9 +1198,9 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
         </div>
       </foreignObject>
 
-      {/* Experience */}
+      {/* Work Experience */}
       <text x="40" y="240" fontSize="18" fontWeight="600" fill={config.primaryColor} fontFamily="sans-serif">
-        Experience
+        Work Experience
       </text>
 
 {(() => {
@@ -1407,9 +1407,9 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
         {data.email} • {data.phone} • {data.location}
       </text>
 
-      {/* About */}
+      {/* Professional Summary */}
       <text x="50" y="140" fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor} letterSpacing="1px">
-        ABOUT
+        PROFESSIONAL SUMMARY
       </text>
 
       <foreignObject x="50" y="155" width="650" height="75">
@@ -1425,9 +1425,9 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
         </div>
       </foreignObject>
 
-      {/* Experience */}
+      {/* Work Experience */}
       <text x="50" y="240" fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor} letterSpacing="1px">
-        EXPERIENCE
+        WORK EXPERIENCE
       </text>
 
 {(() => {
@@ -1549,7 +1549,7 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
         return (
           <g>
             <text x="50" y={skillsY} fontFamily="sans-serif" fontSize="12" fontWeight="500" fill={config.primaryColor} letterSpacing="1px">
-              SKILLS
+              CORE SKILLS
             </text>
         
             {data.skills.length > 0 && (
@@ -1649,7 +1649,7 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
       <rect x="40" y="140" width="670" height="95" fill="white" rx="12" stroke={config.primaryColor} strokeWidth="2"/>
       
       <text x="60" y="160" fontFamily="sans-serif" fontSize="16" fontWeight="700" fill={config.primaryColor}>
-        About Me
+        Professional Summary
       </text>
 
       <foreignObject x="60" y="170" width="640" height="75">
@@ -1664,9 +1664,9 @@ export const SVGResumePreview = forwardRef<SVGResumePreviewRef, SVGResumePreview
         </div>
       </foreignObject>
 
-      {/* Experience section */}
+      {/* Work Experience section */}
       <text x="40" y="250" fontFamily="sans-serif" fontSize="18" fontWeight="700" fill={config.primaryColor}>
-        Experience
+        Work Experience
       </text>
 
 {(() => {

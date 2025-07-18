@@ -445,7 +445,7 @@ export default function HomePage() {
                             <Upload className="w-6 h-6 text-white" />
                           </div>
                           <h3 className="text-white font-semibold mb-1 group-hover/action:text-cyan-300 transition-colors">Create Resume</h3>
-                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Upload & optimize</p>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Upload & Optimize</p>
                         </div>
                       </div>
                     </div>
@@ -457,7 +457,7 @@ export default function HomePage() {
                             <Zap className="w-6 h-6 text-white" />
                           </div>
                           <h3 className="text-white font-semibold mb-1 group-hover/action:text-purple-300 transition-colors">AI Optimize</h3>
-                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Smart enhancement</p>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Smart Enhancement</p>
                         </div>
                       </div>
                     </div>
@@ -469,7 +469,7 @@ export default function HomePage() {
                             <FileText className="w-6 h-6 text-white" />
                           </div>
                           <h3 className="text-white font-semibold mb-1 group-hover/action:text-green-300 transition-colors">Browse Templates</h3>
-                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Professional designs</p>
+                          <p className="text-slate-400 text-sm group-hover/action:text-slate-300 transition-colors">Professional Designs</p>
                         </div>
                       </div>
                     </div>
