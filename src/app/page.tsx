@@ -213,7 +213,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center space-x-2 group">
                 <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">rework</span>
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">ReWork</span>
               </Link>
               <div className="flex items-center space-x-4">
                 {status === "loading" ? (
@@ -232,14 +232,14 @@ export default function HomePage() {
                       </div>
                     </div>
                     <Link href="/dashboard">
-                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white border-0 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300">dashboard</Button>
+                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white border-0 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300">Dashboard</Button>
                     </Link>
                     <Button 
                       onClick={() => signOut()} 
                       variant="ghost" 
                       className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200"
                     >
-                      sign out
+                      Sign Out
                     </Button>
                   </div>
                 ) : (
@@ -249,13 +249,13 @@ export default function HomePage() {
                       variant="ghost" 
                       className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200"
                     >
-                      login
+                      Login
                     </Button>
                     <Button 
                       onClick={() => signIn()} 
                       className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white border-0 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
                     >
-                      get started
+                      Get Started
                     </Button>
                   </div>
                 )}
@@ -274,7 +274,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-cyan-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <span className="relative z-10 flex items-center gap-2 font-medium">
                   <span className="text-cyan-300 animate-pulse">✦</span>
-                  ai-powered optimization
+                  AI-Powered Optimization
                   <span className="text-purple-300 animate-bounce text-xs">●</span>
                 </span>
               </Badge>
@@ -352,7 +352,7 @@ export default function HomePage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div className="relative z-10 flex items-center gap-2">
-                      create resume
+                      Create Resume
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                     <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
@@ -368,7 +368,7 @@ export default function HomePage() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10 flex items-center gap-2">
-                    start free trial
+                    Start Free Trial
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                   <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
@@ -378,7 +378,7 @@ export default function HomePage() {
             
             {/* Enhanced Trust Indicator */}
             <p className={`text-sm text-slate-400 font-medium hover:text-slate-300 transition-all duration-500 cursor-default ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '1000ms' }}>
-              🔒 no credit card required • 3 free resumes • cancel anytime
+              🔒 No credit card required • 3 free resumes • Cancel anytime
             </p>
           </div>
 
@@ -544,9 +544,9 @@ export default function HomePage() {
           {/* 3D Tilt Feature Cards */}
           <div className="grid md:grid-cols-3 gap-8 mb-24">
             {[
-              { icon: Sparkles, title: "ai optimization", desc: "smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
-              { icon: FileText, title: "professional templates", desc: "ats-friendly templates with real-time color customization and perfect formatting", color: "from-teal-400 to-blue-500", hoverColor: "secondary" },
-              { icon: Download, title: "instant export", desc: "download polished, job-specific pdfs ready for immediate application", color: "from-green-400 to-teal-500", hoverColor: "green" }
+              { icon: Sparkles, title: "AI Optimization", desc: "Smart keyword matching and content optimization tailored to any job description", color: "from-blue-400 to-purple-500", hoverColor: "primary" },
+              { icon: FileText, title: "Professional Templates", desc: "ATS-friendly templates with real-time color customization and perfect formatting", color: "from-teal-400 to-blue-500", hoverColor: "secondary" },
+              { icon: Download, title: "Instant Export", desc: "Download polished, job-specific PDFs ready for immediate application", color: "from-green-400 to-teal-500", hoverColor: "green" }
             ].map((feature, index) => (
               <Card 
                 key={index}
@@ -590,17 +590,17 @@ export default function HomePage() {
               <CardHeader className="relative z-10">
                 <CardTitle className="text-primary-400 flex items-center gap-3 text-xl group-hover:text-primary-300 transition-colors duration-300">
                   <Target className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-                  why rework works
+                  Why ReWork Works
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <div className="space-y-4 text-base text-slate-300">
                   {[
-                    "ai optimization that actually improves your chances",
-                    "job-specific keyword optimization for better matching",
-                    "ats-friendly formatting that gets past screening systems",
-                    "professional results in seconds, not hours",
-                    "perfect preview-to-pdf consistency every time"
+                    "AI optimization that actually improves your chances",
+                    "Job-specific keyword optimization for better matching",
+                    "ATS-friendly formatting that gets past screening systems",
+                    "Professional results in seconds, not hours",
+                    "Perfect preview-to-PDF consistency every time"
                   ].map((feature, index) => (
                     <div key={index} className="flex items-start gap-3 hover:bg-slate-800/30 p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] group/item">
                       <div className="w-2 h-2 bg-primary-400 rounded-full mt-3 flex-shrink-0 group-hover/item:animate-pulse"></div>
@@ -616,16 +616,16 @@ export default function HomePage() {
               <CardHeader className="relative z-10">
                 <CardTitle className="text-secondary-400 flex items-center gap-3 text-xl group-hover:text-secondary-300 transition-colors duration-300">
                   <Clock className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-                  get started today
+                  Get Started Today
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <div className="space-y-4 text-base text-slate-300">
                   {[
-                    { text: "upload your current resume", time: "1 minute", color: "green" },
-                    { text: "ai analyzes and optimizes content", time: "2-3 minutes", color: "blue" },
-                    { text: "customize colors and template", time: "2 minutes", color: "purple" },
-                    { text: "download professional pdf", time: "instant", color: "teal" }
+                    { text: "Upload your current resume", time: "1 minute", color: "green" },
+                    { text: "AI analyzes and optimizes content", time: "2-3 minutes", color: "blue" },
+                    { text: "Customize colors and template", time: "2 minutes", color: "purple" },
+                    { text: "Download professional PDF", time: "instant", color: "teal" }
                   ].map((step, index) => (
                     <div key={index} className="flex justify-between items-center hover:bg-slate-800/30 p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] group/item">
                       <span className="group-hover/item:text-slate-200 transition-colors duration-300">✅ {step.text}</span>
@@ -639,7 +639,7 @@ export default function HomePage() {
                         className="w-full bg-gradient-to-r from-purple-500 to-cyan-600 hover:from-purple-400 hover:to-cyan-500 text-white border-0 group hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25"
                         size="sm"
                       >
-                        start your free trial
+                        Start Your Free Trial
                         <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                       </Button>
                     )}
@@ -654,7 +654,7 @@ export default function HomePage() {
         <footer className="border-t border-white/10 backdrop-blur-xl bg-slate-900/30 mt-24 hover:border-white/20 transition-colors duration-500">
           <div className="container mx-auto px-4 py-12 text-center">
             <p className="text-slate-400 hover:text-slate-300 transition-colors duration-300 cursor-default">
-              © 2025 rework • professional resume optimization platform
+              © 2025 ReWork • Professional Resume Optimization Platform
             </p>
           </div>
         </footer>
