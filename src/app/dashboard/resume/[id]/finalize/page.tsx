@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { useFinalizeLoading } from '@/hooks/useMinimumLoading'
 import ResumeLoader from '@/components/resume-loader'
 import { ArrowLeft, CheckCircle, Download, Sparkles, ArrowRight, Crown, Palette, FileText, PartyPopper, Zap } from 'lucide-react'
-import { Logo } from '@/components/ui/logo'
+import { Logo, BetaBadge } from '@/components/ui/logo'
 import { toast } from 'sonner'
 import { SVGResumePreview, SVGResumePreviewRef } from '@/components/resume/SVGResumePreview'
 import confetti from 'canvas-confetti'
@@ -391,8 +391,9 @@ export default function EnhancedFinalizePage() {
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="xs" variant="simple" showBadge={false} className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
+                  <BetaBadge size="xs" className="group-hover:scale-105 transition-transform duration-300" />
                 </Link>
 
                 <Button 

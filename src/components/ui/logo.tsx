@@ -1,11 +1,42 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
+// Separate BetaBadge component for independent use
+export function BetaBadge({ 
+  size = 'medium', 
+  className 
+}: { 
+  size?: 'xs' | 'small' | 'medium' | 'large'
+  className?: string 
+}) {
+  const badgeClasses = {
+    xs: 'text-[9px] px-1.5 py-0.5',
+    small: 'text-xs px-2 py-0.5',
+    medium: 'text-sm px-2.5 py-1',
+    large: 'text-base px-3 py-1.5'
+  }
+  
+  return (
+    <span 
+      className={cn(
+        "bg-secondary-500/20 text-secondary-600 dark:text-secondary-400",
+        "font-medium tracking-wider uppercase rounded-full",
+        "border border-secondary-500/30",
+        badgeClasses[size],
+        className
+      )}
+    >
+      Beta
+    </span>
+  )
+}
+
 interface LogoProps {
   variant?: 'detailed' | 'simple'
   size?: 'xs' | 'small' | 'medium' | 'large'
   className?: string
   badgePosition?: 'side' | 'below'
+  showBadge?: boolean
 }
 
 const sizeClasses = {
@@ -19,7 +50,8 @@ export function Logo({
   variant = 'simple', 
   size = 'medium',
   className,
-  badgePosition = 'side'
+  badgePosition = 'side',
+  showBadge = true
 }: LogoProps) {
   const src = variant === 'detailed' 
     ? '/rework-logo-detailed-cropped2.png' 
@@ -40,6 +72,21 @@ export function Logo({
     large: 'text-base px-3 py-1.5'
   }
   
+  // If showBadge is false, return only the logo image
+  if (!showBadge) {
+    return (
+      <Image
+        src={src}
+        alt="ReWork Logo"
+        width={dimensions[size].width}
+        height={dimensions[size].height}
+        className={cn(sizeClasses[size], 'object-contain', className)}
+        priority
+        unoptimized // For transparent PNGs
+      />
+    )
+  }
+
   return (
     <div className={cn(
       "inline-flex items-center",

@@ -37,7 +37,7 @@ import {
   List,
   Star
 } from "lucide-react"
-import { Logo } from "@/components/ui/logo"
+import { Logo, BetaBadge } from "@/components/ui/logo"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -328,8 +328,9 @@ export default function DashboardPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center space-x-2 group">
-                <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
+                <Logo size="xs" variant="simple" showBadge={false} className="group-hover:scale-110 transition-all duration-300" />
                 <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:scale-105 transition-transform duration-300">ReWork</span>
+                <BetaBadge size="xs" className="group-hover:scale-105 transition-transform duration-300" />
               </Link>
               <div className="flex items-center space-x-4">
                 <Button 

@@ -27,7 +27,7 @@ import {
   Zap,
   Clock
 } from "lucide-react"
-import { Logo } from "@/components/ui/logo"
+import { Logo, BetaBadge } from "@/components/ui/logo"
 
 export default function JobDescriptionPage() {
   const { data: session, status } = useSession()
@@ -235,8 +235,9 @@ export default function JobDescriptionPage() {
               <div className="flex items-center space-x-4">
                 {/* Brand Logo */}
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="xs" variant="simple" showBadge={false} className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
+                  <BetaBadge size="xs" className="group-hover:scale-105 transition-transform duration-300" />
                 </Link>
 
                 <Button onClick={handleBack} variant="ghost" className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-200">

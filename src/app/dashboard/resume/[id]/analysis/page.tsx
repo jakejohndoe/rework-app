@@ -42,7 +42,7 @@ import {
   Database,
   Settings
 } from "lucide-react"
-import { Logo } from "@/components/ui/logo"
+import { Logo, BetaBadge } from "@/components/ui/logo"
 
 // Enhanced analysis result interface
 interface EnhancedAnalysisResult {
@@ -680,8 +680,9 @@ export default function RedesignedAnalysisPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Link href="/" className="flex items-center space-x-2 group">
-                  <Logo size="xs" variant="simple" className="group-hover:scale-110 transition-all duration-300" />
+                  <Logo size="xs" variant="simple" showBadge={false} className="group-hover:scale-110 transition-all duration-300" />
                   <span className="text-xl font-bold gradient-text group-hover:scale-105 transition-transform duration-300">ReWork</span>
+                  <BetaBadge size="xs" className="group-hover:scale-105 transition-transform duration-300" />
                 </Link>
 
                 <Button onClick={handleBack} variant="ghost" className="text-white hover:bg-white/10">

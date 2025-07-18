@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { FileText, User, Briefcase, GraduationCap, Star, CheckCircle } from 'lucide-react'
-import { Logo } from '@/components/ui/logo'
+import { Logo, BetaBadge } from '@/components/ui/logo'
 
 export default function DashboardLoading() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -91,8 +91,12 @@ export default function DashboardLoading() {
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-12">
         {/* Premium Header */}
         <div className="text-center mb-12">
-          <div className="mx-auto mb-6 animate-glow">
-            <Logo size="small" variant="simple" className="mx-auto" />
+          <div className="mx-auto mb-6 animate-glow flex flex-col items-center gap-4">
+            <Logo size="small" variant="simple" showBadge={false} className="mx-auto" />
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold gradient-text">ReWork</span>
+              <BetaBadge size="small" className="animate-pulse" />
+            </div>
           </div>
           <h1 className="text-4xl font-bold mb-4">
             <span className="gradient-text">Taking you to your dashboard</span>
