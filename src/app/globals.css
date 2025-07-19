@@ -92,6 +92,19 @@
     transition-property: background-image, transform;
     will-change: background-image;
   }
+
+  /* Tutorial overlay z-index */
+  .z-10000 {
+    z-index: 10000;
+  }
+
+  .z-10001 {
+    z-index: 10001;
+  }
+
+  .z-10002 {
+    z-index: 10002;
+  }
   
   /* OPTIMIZED CIRCUIT BACKGROUND - Reduced complexity */
   .circuit-bg {

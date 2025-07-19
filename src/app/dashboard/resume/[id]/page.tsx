@@ -936,7 +936,7 @@ export default function ResumeEditorPage() {
                     
                     {/* Enhanced Auto-Fill Button */}
                     {resume?.s3Key && (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 auto-fill-section">
                         <div className="text-right">
                           <p className="text-sm text-slate-300 font-medium flex items-center gap-1">
                             <Sparkles className="w-3 h-3 text-cyan-400" />
@@ -1315,7 +1315,7 @@ export default function ResumeEditorPage() {
                     <button 
                       onClick={handleNext}
                       disabled={!isResumeComplete()}
-                      className="px-8 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="px-8 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 continue-to-job-button"
                     >
                       <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                       <div className="relative z-10 flex items-center gap-2">

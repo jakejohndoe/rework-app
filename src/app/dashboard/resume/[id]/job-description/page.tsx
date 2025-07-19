@@ -309,7 +309,7 @@ export default function JobDescriptionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Enhanced Job Details */}
-              <Card className={`glass-card border-white/10 hover:scale-[1.01] transition-all duration-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '200ms' }}>
+              <Card className={`glass-card border-white/10 hover:scale-[1.01] transition-all duration-300 job-description-form ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '200ms' }}>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-cyan-500 rounded-lg flex items-center justify-center">
@@ -547,7 +547,7 @@ export default function JobDescriptionPage() {
                   <button 
                     onClick={handleNext}
                     disabled={!isJobComplete() || isSaving}
-                    className="px-8 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="px-8 py-3 btn-gradient text-white rounded-lg font-medium hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 start-ai-analysis-button"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                     <div className="relative z-10 flex items-center gap-2">

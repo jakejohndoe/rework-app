@@ -15,6 +15,8 @@ import { PDFThumbnail } from "@/components/pdf-thumbnail"
 import { QuickDownloadButton, DownloadButton } from "@/components/download-button"
 import { SettingsModal } from "@/components/settings-modal"
 import ResumeLoader from "@/components/resume-loader"
+import { useTutorial } from "@/components/tutorial/CustomTutorial"
+import TutorialStartButton from "@/components/tutorial/TutorialStartButton"
 // ✅ WORKING: Keep the coordinated loading approach that's working
 import { 
   FileText, 
@@ -41,6 +43,7 @@ import { Logo, BetaBadge } from "@/components/ui/logo"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
+  const { setResumeUploaded } = useTutorial()
   
   // ✅ WORKING: Keep the exact same coordinated loading logic
   const [shouldShowContent, setShouldShowContent] = useState(false)
@@ -187,6 +190,8 @@ export default function DashboardPage() {
   const handleUploadComplete = (resumes: any[]) => {
     // Upload complete
     setIsUploadOpen(false)
+    // Trigger tutorial continuation for first-time users
+    setResumeUploaded(true)
     // Refresh data after upload
     fetchResumes()
   }
@@ -333,6 +338,7 @@ export default function DashboardPage() {
                 <BetaBadge size="xs" className="group-hover:scale-105 transition-transform duration-300" />
               </Link>
               <div className="flex items-center space-x-4">
+                <TutorialStartButton />
                 <Button 
                   variant="ghost" 
                   className="text-white hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm"
@@ -356,7 +362,7 @@ export default function DashboardPage() {
 
         <main className="container mx-auto px-4 py-8">
           {/* Enhanced Welcome Section */}
-          <div className="mb-8">
+          <div className="mb-8 dashboard-overview">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-4xl font-bold mb-2">
@@ -369,7 +375,7 @@ export default function DashboardPage() {
                   Ready to optimize your resume for your next opportunity?
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 upload-resume-section">
                 <button
                   onClick={() => setIsUploadOpen(true)}
                   className="relative px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/25 hover:scale-105"

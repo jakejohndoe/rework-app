@@ -1039,7 +1039,7 @@ export default function RedesignedAnalysisPage() {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                   
                   {/* LEFT: AI Suggestions */}
-                  <div className="space-y-6">
+                  <div className="space-y-6 suggestions-interface">
                     <Card className="glass-card border-white/10">
                       <CardHeader>
                         <CardTitle className="text-white flex items-center gap-3">
